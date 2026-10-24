@@ -48,6 +48,10 @@ orquestria/
 │       ├── V2__workspaces_kanban_tasks.sql
 │       └── V3__task_details_comments.sql
 ├── docs/
+│   ├── README.md
+│   ├── ETAPA_0_FRONTEND.md
+│   ├── ETAPA_1_API_JAVA.md
+│   ├── ETAPA_2_DEPLOY_NUVEM.md
 │   ├── ETAPA_3_KANBAN_API.md
 │   ├── ETAPA_4_INTEGRACAO.md
 │   ├── DEPLOY_NETLIFY.md
@@ -68,7 +72,7 @@ No Netlify, a variável de build `NEXT_PUBLIC_ORQUESTRIA_API_URL` deve apontar p
 
 Ao publicar uma mudança no GitHub, aguarde a **nova versão do backend** estar online no Blitz antes de testar o novo frontend no Netlify. Quando uma API está suspensa no plano gratuito, a primeira requisição pode demorar.
 
-Veja [como testar a integração completa](docs/ETAPA_4_INTEGRACAO.md) e o [guia de infraestrutura](docs/DEPLOY_CLOUD.md). A página de [diagnóstico](https://orquestria.netlify.app/diagnostico/) continua disponível para verificar a comunicação com a API.
+Consulte o [índice da documentação](docs/README.md), o [teste da integração completa](docs/ETAPA_4_INTEGRACAO.md) e o [guia de infraestrutura](docs/DEPLOY_CLOUD.md). A página de [diagnóstico](https://orquestria.netlify.app/diagnostico/) continua disponível para verificar a comunicação com a API.
 
 ## Executar localmente (opcional)
 

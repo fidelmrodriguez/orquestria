@@ -1,6 +1,6 @@
 # Etapa 3 — Modelagem de workspaces e tarefas
 
-O backend do Orquestria já está hospedado no Blitz e conectado ao PostgreSQL do Neon.
+Este arquivo registra o escopo da Etapa 3, quando o backend já estava hospedado no Blitz e conectado ao PostgreSQL do Neon.
 Nesta etapa, a API evolui para suportar workspaces, projetos associados a workspaces,
 colunas de Kanban e tarefas. O frontend principal permanece demonstrativo nesta entrega.
 
@@ -16,7 +16,7 @@ colunas de Kanban e tarefas. O frontend principal permanece demonstrativo nesta 
 | POST | `/api/projects/{projectId}/columns` | Criar coluna |
 | GET | `/api/projects/{projectId}/tasks` | Listar tarefas |
 | POST | `/api/projects/{projectId}/tasks` | Criar tarefa |
-| PATCH | `/api/projects/{projectId}/tasks/{taskId}/move` | Mover uma tarefa entre colunas |
+| PATCH / POST | `/api/projects/{projectId}/tasks/{taskId}/move` | Mover uma tarefa entre colunas |
 
 ## Exemplos de JSON
 
@@ -45,3 +45,5 @@ incluindo o projeto criado durante o teste anterior. Nunca edite a migração V1
 
 **Segurança:** os endpoints de gravação ainda não possuem autenticação. Use apenas dados fictícios;
 esta API e a tela de diagnóstico são experimentais. Não publique informações pessoais ou sigilosas.
+
+> **Atualização posterior:** o método `POST` foi adicionado como alternativa ao `PATCH` depois de um problema de CORS na hospedagem. O Kanban principal passou a consumir a API na [Etapa 4](ETAPA_4_INTEGRACAO.md).
