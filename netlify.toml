@@ -1,9 +1,10 @@
-# O frontend Next.js está em /frontend.
-# O Netlify publica apenas o site Next.js — nao executa o backend Java.
+# O frontend atual do Orquestria não utiliza rotas dinâmicas no servidor.
+# Next.js gera arquivos estáticos em frontend/out durante o build.
 [build]
   base = "frontend"
   command = "npm run build"
-  publish = ".next"
+  publish = "out"
 
 [build.environment]
   NODE_VERSION = "20"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"

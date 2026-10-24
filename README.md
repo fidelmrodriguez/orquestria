@@ -17,7 +17,7 @@ O **Orquestria** é uma aplicação para organizar projetos e tarefas em equipe.
 | **Banco de dados** | 🗓️ PostgreSQL planejado — ainda sem persistência no servidor |
 | **Dados da demonstração** | DummyJSON na carga inicial; alterações mantidas no navegador (`localStorage`) |
 | **Testes** | Testes unitários com Jest e React Testing Library |
-| **Deploy** | Next.js via Netlify; URL pública adicionada após a publicação |
+| **Deploy** | Exportação estática do Next.js (`frontend/out`) via Netlify; URL pública será adicionada após a confirmação |
 
 ## Funcionalidades disponíveis
 
@@ -109,7 +109,6 @@ Para experimentar, use os dados demonstrativos que já vêm preenchidos na tela 
 ```bash
 npm run dev        # ambiente de desenvolvimento
 npm run build      # build de produção
-npm start          # inicia o build de produção
 npm test           # testes unitários
 npm run typecheck  # verificação de tipos TypeScript
 ```
@@ -118,7 +117,7 @@ A carga inicial de usuários e tarefas depende da disponibilidade da API públic
 
 ## Deploy do frontend
 
-Este repositório foi organizado para publicar **somente `frontend/` no Netlify**, mesmo com a estrutura reservada para um backend futuro. O arquivo `netlify.toml` na raiz configura o build a partir da subpasta `frontend`.
+Este repositório foi organizado para publicar **somente `frontend/` no Netlify**, mesmo com a estrutura reservada para um backend futuro. O Next.js exporta as páginas como arquivos estáticos na pasta `frontend/out`, e o `netlify.toml` na raiz define essa pasta como diretório de publicação. Para executar localmente, use `npm run dev`; o comando `next start` não é utilizado na exportação estática.
 
 Veja o procedimento em [docs/DEPLOY_NETLIFY.md](docs/DEPLOY_NETLIFY.md). Quando o deploy estiver publicado, substitua a linha **Demonstração** no início deste documento pelo link real.
 

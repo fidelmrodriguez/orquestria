@@ -1,52 +1,51 @@
-# Deploy da Orquestria no Netlify
+# Publicação do frontend Orquestria no Netlify
 
-O deploy atual é **somente do frontend Next.js**. O diretório `backend/` está reservado para o futuro Spring Boot e **não precisa** de deploy neste momento.
+O repositório contém um frontend Next.js/React funcional e a pasta `backend/` reservada para a futura API Java/Spring Boot. O backend **não participa** desta publicação.
 
-## 1. Publique o repositório no GitHub
+## Configuração atual
 
-Na raiz do projeto:
+A aplicação utiliza renderização no cliente, sem rotas de API/SSR próprias do Next.js. O `frontend/next.config.mjs` define `output: "export"`, que produz um site estático em `frontend/out/` com `npm run build`.
+
+Na raiz do repositório, o `netlify.toml` define:
+
+| Campo | Valor |
+| --- | --- |
+| Base directory | `frontend` |
+| Build command | `npm run build` |
+| Publish directory | `out` (relativo à base) |
+| Node.js | `20` |
+| `NETLIFY_NEXT_PLUGIN_SKIP` | `true` |
+
+O deploy estático não precisa do adaptador SSR do Next.js. Não inclua a pasta `out/` no Git: ela será gerada no Netlify.
+
+## Corrigindo a página 404 após deploy publicado
+
+1. Substitua no repositório os arquivos `frontend/next.config.mjs`, `frontend/package.json`, `netlify.toml`, `README.md` e este documento pelos arquivos do pacote de correção.
+2. Faça um commit e envie para `main`.
+3. No painel do Netlify, abra **Project configuration → Build settings** e confira se a configuração efetiva usa `frontend` como base, `npm run build` como comando e `out` como publicação. Evite configurar `frontend/out` quando a base já é `frontend`.
+4. Abra **Deploys** e execute **Trigger deploy → Clear cache and deploy site**, se a interface oferecer essa opção. Caso contrário, aguarde o deploy provocado pelo push.
+5. No deploy, abra **Deploy File Explorer**. Confira a presença de `index.html` e `_next/` no diretório publicado. Depois teste a URL do site.
+6. Quando a página funcionar, acrescente a URL ao README e ao campo **About / Website** do GitHub.
+
+Se ainda aparecer 404, confira o **Deploy log**: precisa mostrar execução do Next.js e exportação para `out`. Verifique também se o último deploy usa a branch `main` e o commit corrigido.
+
+## Execução local
 
 ```bash
-git init
-git add .
-git commit -m "feat: publica frontend Orquestria e prepara estrutura fullstack"
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
-git push -u origin main
+cd frontend
+npm ci
+npm run dev
 ```
 
-Substitua `SEU_USUARIO` e `SEU_REPOSITORIO` pelo repositório que você criar.
+Acesse http://localhost:3000. Para verificar a geração de arquivos estáticos:
 
-## 2. Conecte o GitHub ao Netlify
+```bash
+npm run build
+# Deve gerar out/index.html
+```
 
-1. No Netlify, crie um projeto **Import an existing project** e selecione o repositório no GitHub.
-2. Verifique se o Netlify está lendo o `netlify.toml` da raiz.
-3. Configuração esperada para este pacote:
+## Quando o backend Java estiver pronto
 
-   | Campo | Valor |
-   | --- | --- |
-   | Base directory | `frontend` |
-   | Build command | `npm run build` |
-   | Publish directory | `.next` (relativa à base `frontend`) |
-   | Node.js | `20` |
+O Netlify continuará servindo o frontend estático. A API Spring Boot será hospedada separadamente. O navegador consumirá seus endpoints HTTPS, sujeitos a CORS, autenticação e configuração da URL da API.
 
-4. Inicie o deploy. O Netlify detecta o Next.js e usa seu adaptador para publicar a aplicação. Não é necessário instalar ou fixar manualmente o plugin Next.js.
-5. Quando gerar o endereço `https://SEU-SITE.netlify.app`, copie-o para o campo **Demonstração** do `README.md`.
-
-> Atenção: se você já selecionou uma configuração automática diferente na interface do Netlify, evite configurar caminhos conflitantes. Neste projeto, o `netlify.toml` é a referência para **base**, **build** e **publish**.
-
-## 3. Checklist de publicação
-
-- [ ] A aplicação abre na URL Netlify.
-- [ ] A tela de acesso demonstrativo funciona.
-- [ ] O quadro carrega os dados iniciais (quando DummyJSON está disponível).
-- [ ] É possível adicionar e mover tarefas.
-- [ ] O estado permanece após atualizar a mesma aba do navegador.
-- [ ] A visualização mobile e o tema claro/escuro funcionam.
-- [ ] O endereço público foi adicionado ao README.
-
-## 4. Quando houver backend Java
-
-Mantenha a API Spring Boot na pasta `backend/`, mas publique-a em serviço que execute aplicações Java continuamente. A API pode usar PostgreSQL hospedado separadamente (por exemplo, Neon ou Supabase), e o frontend no Netlify passará a consumir sua URL HTTPS.
-
-Nesse estágio, será necessário configurar variável de ambiente para a URL da API, CORS, autenticação e um fluxo de deployment específico para o backend. **Nada disso está configurado nesta primeira entrega.**
+> Se futuramente o frontend passar a usar recursos Next.js exclusivos de servidor, será necessário reavaliar `output: "export"` e a configuração de hospedagem.
