@@ -53,3 +53,12 @@ Sem limpeza automática, exclusão de usuários, agendador, remoção de registr
 - **Voltar ao guest** restaura as credenciais públicas padrão para facilitar novas demonstrações.
 - Testes automatizados cobrem o preenchimento inicial, Backspace, troca de credenciais, troca de modo e login pessoal.
 - Esta entrega altera somente a interface, seus testes e a documentação: não exige alteração no Spring Boot, no Neon ou nas migrações.
+
+### Diagnóstico temporário de falha 401 no login pessoal
+- O `AuthService` registra no log da **API no Blitz** se a conta não foi encontrada (`motivo=conta_nao_encontrada`) ou se o BCrypt recusou a senha (`motivo=senha_incorreta`). O navegador continua recebendo o mesmo HTTP 401 genérico em ambos os casos.
+- Um cadastro concluído gera uma sessão automaticamente, sem autenticação por senha. A existência dessa sessão não comprova que um login posterior passará.
+- Os logs não contêm e-mail, nome, senha, hash, token, identificador de usuário ou JSON da requisição. Não habilitar logging de request bodies nem de headers Authorization no ambiente publicado.
+- Procedimento: publicar o backend no Blitz; aguardar que a nova versão esteja ativa; tentar entrar como guest para controle; sair; tentar login pessoal com o **e-mail** (não nome) e senha usados no cadastro; buscar `[Orquestria][auth]` nos logs do serviço do Blitz e compartilhar apenas `motivo=` e, se presente, `tipo_conta=`.
+- Se a falha for `conta_nao_encontrada`, verificar o e-mail cadastrado e se a API está conectada ao banco Neon esperado. Se for `senha_incorreta`, investigar diferença entre a senha informada no cadastro e no login e o hash persistido, sem revelar credenciais.
+- Este diagnóstico não altera contas existentes, hashes de senha, rotas, sessões, migrações ou políticas de retenção. Remover os logs de motivo específico após investigar o erro, mantendo a resposta pública genérica.
+- Testes automatizados adicionais cobrem registro seguido de login com BCrypt real e HTTP 401 uniforme nos dois motivos de falha.
