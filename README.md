@@ -65,19 +65,21 @@ orquestria/
 └── README.md
 ```
 
-## Publicação e testes
+## Arquitetura e infraestrutura
 
-A aplicação roda em serviços independentes:
+O Orquestria separa a interface, a API REST e a persistência em serviços independentes:
 
 ```text
-Navegador → Netlify (React/Next.js) → Blitz (Java/Spring Boot) → Neon (PostgreSQL)
+Navegador → Netlify (Next.js/React) → Blitz (Java/Spring Boot) → Neon (PostgreSQL)
 ```
 
-No Netlify, a variável de build `NEXT_PUBLIC_ORQUESTRIA_API_URL` deve apontar para a URL HTTPS do serviço no Blitz, sem barra final. Credenciais do PostgreSQL ficam **somente** no Blitz (`DB_URL`, `DB_USER`, `DB_PASSWORD`). Não configure senhas no frontend.
+O frontend é publicado no **Netlify** e se comunica com a API Spring Boot por HTTPS, utilizando JSON. O backend é executado no **Blitz**, enquanto o **Neon** hospeda o banco PostgreSQL. O acesso aos dados é realizado com Spring Data JPA/Hibernate, e as alterações de esquema são versionadas pelo Flyway.
 
-Ao publicar uma mudança no GitHub, aguarde a **nova versão do backend** estar online no Blitz antes de testar o novo frontend no Netlify. Quando uma API está suspensa no plano gratuito, a primeira requisição pode demorar.
+A URL pública da API é informada ao frontend pela variável de build `NEXT_PUBLIC_ORQUESTRIA_API_URL`. As credenciais de banco de dados permanecem restritas ao ambiente do backend, por meio das variáveis `DB_URL`, `DB_USER` e `DB_PASSWORD`.
 
-Consulte o [índice da documentação](docs/README.md), a [Etapa 5 de autenticação](docs/ETAPA_5_AUTENTICACAO.md), o [teste da integração completa](docs/ETAPA_4_INTEGRACAO.md) e o [guia de infraestrutura](docs/DEPLOY_CLOUD.md). A página de [diagnóstico](https://orquestria.netlify.app/diagnostico/) continua disponível para verificar a comunicação com a API.
+Os serviços possuem ciclos de publicação independentes. Na infraestrutura gratuita, a API pode apresentar maior latência na primeira requisição após um período de inatividade.
+
+O [índice da documentação](docs/README.md) reúne as etapas de desenvolvimento. Os detalhes da [autenticação](docs/ETAPA_5_AUTENTICACAO.md), da [integração do Kanban](docs/ETAPA_4_INTEGRACAO.md) e da [infraestrutura](docs/DEPLOY_CLOUD.md) estão documentados separadamente. Há também uma [página de diagnóstico](https://orquestria.netlify.app/diagnostico/) para verificar a comunicação com a API.
 
 ## Executar localmente (opcional)
 
@@ -88,7 +90,7 @@ Frontend: `cd frontend && npm ci && npm run dev`. Backend: `cd backend && docker
 - Recuperação de senha, compartilhamentos privados e permissões avançadas.
 - Testes de integração com PostgreSQL, documentação OpenAPI e tratamento de concorrência.
 - Operações de exclusão com regras explícitas e auditoria.
-- **Manutenção automática e política de retenção de dados: etapa futura, em commit independente.** Nenhuma rotina de limpeza foi adicionada nesta entrega.
+- **Manutenção automática e política de retenção de dados:** planejadas para uma etapa futura; ainda não implementadas.
 
 ---
 
