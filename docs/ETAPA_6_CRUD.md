@@ -49,3 +49,11 @@ A ordem (`position`) das tarefas e colunas restantes é compactada após uma exc
 Nenhuma nova migração, alteração de credenciais, exclusão automática, tarefa agendada ou limpeza do Neon foi acrescentada. A manutenção automática permanece reservada à **Etapa 8**.
 
 Os testes de unidade cobrem acesso negado para projeto de outra conta, dependências impeditivas, remoção ordenada do projeto e ajuste de posições. Testes de integração completos com PostgreSQL e pipeline CI continuam previstos para a Etapa 7.
+
+### Correção de build da Parte 1 (24/10/2026)
+
+O commit inicial da Parte 1 não passou no teste automatizado de exclusões durante o build do Blitz. O diagnóstico do Blitz apontou divergência entre os argumentos esperados por uma simulação de acesso ao banco e as chamadas efetivas. Os testes usam `JdbcTemplate.update` para **mais de um SQL em sequência** na mesma operação; sob *strict stubbing* do Mockito, uma simulação específica pode causar conflito com outra chamada válida ao mesmo método.
+
+Os três stubs de `JdbcTemplate.update` que compartilham esse padrão foram ajustados pontualmente com `lenient()`. **As verificações `verify(...)` e `InOrder` continuam ativas** para validar o SQL, os argumentos e a ordem efetiva das operações. Nenhum endpoint, serviço ou esquema de banco foi alterado por esta correção.
+
+Após o commit, confirmar que o Blitz compila **e executa toda a suíte de testes Maven**, publica a nova versão e mantém a aplicação online. Somente então começar os testes manuais das rotas `DELETE` com dados descartáveis de uma conta pessoal.

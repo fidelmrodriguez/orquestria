@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -64,7 +65,10 @@ class BoardDeletionServiceTest {
     @Test
     void projetoExcluiTarefasAntesDasColunasParaRespeitarAsChavesEstrangeiras() {
         ownedProject();
-        when(jdbc.update(eq("DELETE FROM projects WHERE id = ? AND owner_id = ?"),
+        // JdbcTemplate.update também é chamado para tarefas e colunas no mesmo fluxo.
+        // Este stub é leniente apenas para evitar falso conflito de argumentos
+        // do Mockito StrictStubs; o InOrder abaixo continua verificando o SQL real.
+        lenient().when(jdbc.update(eq("DELETE FROM projects WHERE id = ? AND owner_id = ?"),
                 eq(PROJECT), eq(OWNER))).thenReturn(1);
 
         service.deleteProject(PROJECT);
@@ -95,7 +99,8 @@ class BoardDeletionServiceTest {
         ownedProject();
         when(jdbc.query(eq("SELECT position FROM board_columns WHERE id = ? AND project_id = ?"),
                 any(RowMapper.class), eq(COLUMN), eq(PROJECT))).thenReturn(List.of(2));
-        when(jdbc.update(eq("DELETE FROM board_columns WHERE id = ? AND project_id = ?"),
+        // Após remover a coluna, o serviço também executa um UPDATE de posições.
+        lenient().when(jdbc.update(eq("DELETE FROM board_columns WHERE id = ? AND project_id = ?"),
                 eq(COLUMN), eq(PROJECT))).thenReturn(1);
 
         service.deleteColumn(PROJECT, COLUMN);
@@ -130,7 +135,8 @@ class BoardDeletionServiceTest {
                     RowMapper mapper = invocation.getArgument(1);
                     return List.of(mapper.mapRow(row, 0));
                 });
-        when(jdbc.update(eq("DELETE FROM tasks WHERE id = ? AND project_id = ?"),
+        // A chamada seguinte a JdbcTemplate.update compacta a ordenação.
+        lenient().when(jdbc.update(eq("DELETE FROM tasks WHERE id = ? AND project_id = ?"),
                 eq(TASK), eq(PROJECT))).thenReturn(1);
 
         service.deleteTask(PROJECT, TASK);
