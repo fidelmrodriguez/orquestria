@@ -13,12 +13,18 @@ export function uid(prefix = "id") {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-export function formatDate(value: string) {
+/** Evita erros de renderização quando a API retorna datas ausentes ou inválidas. */
+export function formatDate(value?: string | null, fallback = "—") {
+  if (!value || typeof value !== "string" || !value.trim()) return fallback;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return fallback;
+
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "short",
     year: "numeric"
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function getInitials(name: string) {

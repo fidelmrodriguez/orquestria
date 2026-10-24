@@ -57,7 +57,7 @@ export function TaskCard({ task, member }: TaskCardProps) {
           </div>
           <div>
             <p className="max-w-24 truncate text-xs font-medium text-slate-700 dark:text-slate-200">{member?.name || "User"}</p>
-            <p className="text-[11px] text-slate-400">{formatDate(task.dueDate)}</p>
+            <p className="text-[11px] text-slate-400">{formatDate(task.dueDate, "Sem prazo")}</p>
           </div>
         </div>
         <span className="inline-flex items-center gap-1 text-xs text-slate-400">

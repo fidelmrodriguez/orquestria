@@ -6,7 +6,7 @@ Uma aplicação para organizar projetos, tarefas e o trabalho em equipe. O quadr
 
 ## Aplicação
 
-No Orquestria, você pode navegar por workspaces e projetos, criar colunas, organizar tarefas no Kanban e acompanhar os detalhes de cada atividade. O frontend inclui edição de título, descrição, prioridade, responsáveis e prazo, comentários, pesquisa, filtros, versão mobile e temas claro/escuro.
+No Orquestria, você pode navegar por workspaces e projetos, criar colunas, organizar tarefas no Kanban e acompanhar os detalhes de cada atividade. O frontend inclui edição de título, descrição, prioridade, responsáveis e prazo, comentários, pesquisa, filtros, versão mobile e temas claro/escuro. Tarefas sem data de vencimento são permitidas e aparecem com a indicação **Sem prazo** no Kanban.
 
 ### Integração com Java
 
