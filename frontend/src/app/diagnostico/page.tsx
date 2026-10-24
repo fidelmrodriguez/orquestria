@@ -149,19 +149,19 @@ export default function DiagnosticoPage() {
 
     try {
       const updated = await request<Tarefa>(`/api/projects/${projectId}/tasks/${task.id}/move`, {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ columnId, position: task.position }),
       });
-      console.info("[Orquestria] Resposta do PATCH de tarefa", {
+      console.info("[Orquestria] Resposta da movimentação (POST)", {
         taskId: task.id, previousColumnId: task.columnId,
         requestedColumnId: columnId, returnedColumnId: updated.columnId,
       });
       if (updated.columnId !== columnId) {
-        throw new Error("A API respondeu ao PATCH, mas devolveu a coluna anterior.");
+        throw new Error("A API respondeu à movimentação, mas devolveu a coluna anterior.");
       }
 
-      // Consulta novamente o backend após o PATCH. A confirmação não depende do estado local.
+      // Consulta novamente o backend após a movimentação. A confirmação não depende do estado local.
       // O parâmetro serve para distinguir a leitura de qualquer resposta cacheada em proxies.
       const persistedTasks = await request<Tarefa[]>(
         `/api/projects/${projectId}/tasks?verificacao=${Date.now()}`,
@@ -174,7 +174,7 @@ export default function DiagnosticoPage() {
         persistedColumnId: persisted?.columnId ?? null,
       });
       if (!persisted) {
-        throw new Error("A API respondeu ao PATCH, mas a tarefa não apareceu na nova consulta.");
+        throw new Error("A API respondeu à movimentação, mas a tarefa não apareceu na nova consulta.");
       }
       if (persisted.columnId !== columnId) {
         throw new Error("A API aceitou a movimentação, mas a consulta seguinte retornou a coluna anterior.");
