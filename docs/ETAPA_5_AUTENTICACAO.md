@@ -50,3 +50,11 @@ A API exige `Authorization: Bearer <token>` nas rotas `/api/workspaces`, `/api/p
 ## Fora desta entrega
 
 Sem limpeza automática, exclusão de usuários, agendador, remoção de registros antigos ou alterações de quotas. A manutenção automática segue reservada para a Etapa 8 em commit separado. A conta guest será permanentemente protegida nessa futura política.
+
+## Ajuste de usabilidade do login (Etapa 5)
+
+- O formulário separa **Entrar como guest**, **Já tenho uma conta** e **Criar minha conta**. O guest continua com credenciais públicas preenchidas por padrão.
+- A autenticação das contas pessoais utiliza **o e-mail cadastrado**, não o nome de exibição. O modo pessoal começa com a senha vazia, impedindo que a senha pré-preenchida do guest seja enviada para outra conta por engano.
+- Após o cadastro, o usuário continua entrando automaticamente. Depois do logout, seleciona **Já tenho uma conta** e informa seu e-mail e sua senha para entrar novamente.
+- O console registra somente a operação (`login`/`register`), o status HTTP e o resultado da requisição, sem imprimir e-mails, senhas, tokens ou conteúdo da resposta. Se o login pessoal ainda falhar, o código HTTP permite diferenciar credenciais rejeitadas (`401`) de falhas de servidor.
+- Nenhuma migração, alteração de senha, criação de conta ou rotina de limpeza foi adicionada nesta correção.
