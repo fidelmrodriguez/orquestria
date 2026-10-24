@@ -1,132 +1,86 @@
 # Orquestria
 
-Gestão de projetos e tarefas com workspaces, quadros Kanban e organização do trabalho em equipe.
+Uma aplicação para organizar projetos, tarefas e o trabalho em equipe. O quadro Kanban foi construído em **Next.js, React e TypeScript**; a API usa **Java 21, Spring Boot e PostgreSQL**.
 
-**[Acessar o Orquestria](https://orquestria.netlify.app/)** · [Código do frontend](frontend/) · [Código do backend](backend/) · [Guia de publicação](docs/DEPLOY_NETLIFY.md)
+**[Abrir aplicação](https://orquestria.netlify.app/)** · [API (saúde)](https://orquestria-api.fidelmrodriguez.blitz.cloud/actuator/health) · [Frontend](frontend/) · [Backend](backend/)
 
-O Orquestria começou como uma aplicação frontend em **Next.js, React e TypeScript**. Essa versão está publicada no Netlify e já permite navegar por projetos, organizar tarefas e utilizar o quadro Kanban. O repositório também inclui uma API em **Java e Spring Boot**, com PostgreSQL para persistência de projetos.
+## Aplicação
 
-O Kanban principal ainda usa dados demonstrativos; a página `/diagnostico/` consulta a API real. O repositório inclui agora configuração de deploy e uma página isolada para testar a API via navegador; o Kanban será integrado nas próximas etapas.
+No Orquestria, você pode navegar por workspaces e projetos, criar colunas, organizar tarefas no Kanban e acompanhar os detalhes de cada atividade. O frontend inclui edição de título, descrição, prioridade, responsáveis e prazo, comentários, pesquisa, filtros, versão mobile e temas claro/escuro.
 
-## O que já está funcionando
+### Integração com Java
 
-### Frontend
+O quadro principal consulta a API Spring Boot sempre que `NEXT_PUBLIC_ORQUESTRIA_API_URL` estiver configurada. Nessa modalidade, projetos, colunas, tarefas e comentários são carregados do PostgreSQL. Criação, edições e movimentações são enviadas ao backend por HTTP; após cada gravação, a interface consulta os dados novamente.
 
-- Workspaces e projetos com navegação e criação de itens.
-- Quadro Kanban com criação e movimentação de tarefas.
-- Edição de tarefas, prioridades, responsáveis, tags, prazos e comentários.
-- Pesquisa, filtros, notificações, responsividade e temas claro/escuro.
-- Estado com Zustand, dados iniciais via DummyJSON e alterações gravadas no `localStorage`.
-- Sincronização de estado entre abas **do mesmo navegador** com `BroadcastChannel`.
-- Formulários com React Hook Form e Zod e testes com Jest e React Testing Library.
+Se a variável da API não estiver configurada, o frontend continua disponível em **modo demonstrativo local**, com dados da DummyJSON, Zustand e `localStorage`. Esse modo serve apenas para a interface e não deve ser confundido com persistência no PostgreSQL.
 
-A tela de entrada utiliza uma **sessão demonstrativa no navegador**, não autenticação de usuários no servidor. Os dados da aplicação online não são compartilhados entre pessoas ou dispositivos; recursos de colaboração entre usuários ainda não estão disponíveis.
+O login ainda é **demonstrativo**: não há autenticação ou isolamento por usuário no servidor. Os registros da API são compartilhados entre os visitantes e devem conter **somente dados fictícios**. O painel mostra um aviso sobre isso quando está conectado ao Java.
 
-### Backend — projetos, workspaces e Kanban (Etapa 3)
+### Funcionalidades da API
 
-O diretório [`backend/`](backend/) contém uma API REST com Java 21, Spring Boot, JPA/Hibernate, PostgreSQL e Flyway. Os endpoints implementados permitem:
+- Workspaces e projetos, incluindo associação de projetos a workspaces e alteração do nome do projeto.
+- Colunas do Kanban, com criação, listagem e alteração do título.
+- Tarefas, com criação, consulta, edição de detalhes, prioridade, responsável, tags, prazo e movimentação entre colunas do mesmo projeto.
+- Comentários em tarefas, validações de entrada e respostas HTTP de erro.
+- Migrações Flyway `V1`, `V2` e `V3` e persistência com Spring Data JPA/Hibernate.
 
-- Criar projetos: `POST /api/projects`.
-- Listar projetos: `GET /api/projects`.
-- Consultar um projeto: `GET /api/projects/{id}`.
-- Consultar a saúde da aplicação: `GET /actuator/health`.
-- Criar e listar workspaces.
-- Associar opcionalmente projetos a workspaces.
-- Criar e listar colunas e tarefas por projeto.
-- Mover tarefas entre colunas do mesmo projeto.
-
-A nova migração Flyway `V2` preserva os projetos gravados anteriormente no PostgreSQL.
-Veja [os novos endpoints e exemplos da Etapa 3](docs/ETAPA_3_KANBAN_API.md).
-
-A API tem validação dos dados recebidos e respostas HTTP para erros comuns. Há testes unitários iniciais para a camada de serviço. **A API atual está publicada no Blitz, usando o Neon. Os novos endpoints desta etapa entrarão em produção após o próximo deploy. A tela principal ainda utiliza dados demonstrativos.**
+> Esta fase não inclui exclusão de registros, contas reais, permissões, notificações em tempo real entre usuários ou manutenção automática do banco.
 
 ## Tecnologias
 
-| Frontend | Backend |
+| Frontend | Backend e infraestrutura |
 | --- | --- |
-| Next.js 14, React 18, TypeScript | Java 21, Spring Boot 3.5 |
-| Tailwind CSS, Zustand, TanStack Query | Spring Web, Spring Data JPA / Hibernate |
-| React Hook Form, Zod | PostgreSQL, Flyway, Bean Validation |
-| Jest, React Testing Library | JUnit 5, Mockito, Maven |
+| Next.js 14, React 18 e TypeScript | Java 21 e Spring Boot 3.5 |
+| Zustand e TanStack Query | Spring Web e Spring Data JPA/Hibernate |
+| Tailwind CSS, React Hook Form e Zod | PostgreSQL (Neon), Flyway e Bean Validation |
+| Jest e React Testing Library | JUnit 5, Mockito e Maven |
+| Netlify (exportação estática) | Docker e Blitz |
 
-## Organização
+## Organização do repositório
 
 ```text
 orquestria/
-├── frontend/          # Next.js, publicado no Netlify
-├── backend/           # API Spring Boot: Docker/Blitz + PostgreSQL Neon
-│   ├── src/main/java/
-│   ├── src/main/resources/db/migration/
-│   ├── src/test/java/
-│   ├── compose.yaml
-│   └── pom.xml
+├── frontend/             # Aplicação Next.js
+│   └── src/lib/remote-board.ts
+├── backend/              # API REST Java
+│   └── src/main/resources/db/migration/
+│       ├── V1__create_projects.sql
+│       ├── V2__workspaces_kanban_tasks.sql
+│       └── V3__task_details_comments.sql
 ├── docs/
+│   ├── ETAPA_3_KANBAN_API.md
+│   ├── ETAPA_4_INTEGRACAO.md
 │   ├── DEPLOY_NETLIFY.md
 │   └── DEPLOY_CLOUD.md
-├── render.yaml         # Configuração legada, não usada no Blitz
 ├── netlify.toml
 └── README.md
 ```
 
-A implantação atual funciona assim:
+## Publicação e testes
+
+A aplicação roda em serviços independentes:
 
 ```text
-Site online (Netlify)
-    └── Next.js / React
-        ├── DummyJSON (dados iniciais)
-        └── Zustand / localStorage (persistência local)
-
-API Java (deploy independente)
-    └── Java / Spring Boot (Blitz)
-        └── Spring Data JPA / Hibernate
-            └── PostgreSQL (Neon)
+Navegador → Netlify (React/Next.js) → Blitz (Java/Spring Boot) → Neon (PostgreSQL)
 ```
 
-A próxima integração é conectar o quadro principal do frontend a essa API por HTTPS, substituindo gradualmente os dados simulados pelas informações armazenadas no banco.
+No Netlify, a variável de build `NEXT_PUBLIC_ORQUESTRIA_API_URL` deve apontar para a URL HTTPS do serviço no Blitz, sem barra final. Credenciais do PostgreSQL ficam **somente** no Blitz (`DB_URL`, `DB_USER`, `DB_PASSWORD`). Não configure senhas no frontend.
 
-## Hospedagem e teste pelo navegador
+Ao publicar uma mudança no GitHub, aguarde a **nova versão do backend** estar online no Blitz antes de testar o novo frontend no Netlify. Quando uma API está suspensa no plano gratuito, a primeira requisição pode demorar.
 
-A API está publicada no Blitz, o frontend no Netlify e o banco no Neon. O repositório contém `backend/Dockerfile`, usado no build do Blitz.
-
-Com a URL do Blitz em `NEXT_PUBLIC_ORQUESTRIA_API_URL` no Netlify, abra [Diagnóstico da API](https://orquestria.netlify.app/diagnostico/) para testar a API e a persistência de workspaces, projetos, colunas e tarefas após o deploy desta etapa. Essa página está separada do Kanban e não substitui a integração funcional do frontend.
-
-**O backend está hospedado no Blitz e já respondeu aos testes de API com PostgreSQL.**
+Veja [como testar a integração completa](docs/ETAPA_4_INTEGRACAO.md) e o [guia de infraestrutura](docs/DEPLOY_CLOUD.md). A página de [diagnóstico](https://orquestria.netlify.app/diagnostico/) continua disponível para verificar a comunicação com a API.
 
 ## Executar localmente (opcional)
 
-**Frontend** — Node.js 20+ e npm:
+Frontend: `cd frontend && npm ci && npm run dev`. Backend: `cd backend && docker compose up -d && mvn spring-boot:run` (exige Java 21, Maven e Docker). Mais detalhes em [backend/README.md](backend/README.md).
 
-```bash
-git clone https://github.com/fidelmrodriguez/orquestria.git
-cd orquestria/frontend
-npm ci
-npm run dev
-```
+## Próximas evoluções
 
-Abra `http://localhost:3000`. Os campos de login já vêm preenchidos para testar a demonstração. A carga inicial depende da disponibilidade da API pública DummyJSON.
-
-**Backend** — Java 21, Maven 3.9+ e Docker:
-
-```bash
-# Em outro terminal, a partir da raiz do repositório:
-cd backend
-docker compose up -d
-mvn spring-boot:run
-```
-
-A API inicia em `http://localhost:8080`. Veja os comandos, endpoints e exemplos de requisição em [backend/README.md](backend/README.md). A execução do backend exige PostgreSQL acessível; o Compose facilita o ambiente local.
-
-## Publicação
-
-A versão pública do frontend está em **https://orquestria.netlify.app/**. O Next.js é exportado como site estático (`frontend/out`). O Netlify não executa Java. O A API Java é implantada no Blitz a partir do Dockerfile do backend e usa o banco PostgreSQL criado no Neon. A página `/diagnostico/` facilita os testes via navegador, incluindo colunas e tarefas nesta etapa.
-
-## Próximas etapas
-
-- Ampliar o domínio para comentários, responsáveis e edição de tarefas.
-- Criar autenticação e autorização no backend com Spring Security.
-- Incluir testes de integração, documentação OpenAPI e infraestrutura para a API.
-- Conectar o frontend à API e substituir a persistência demonstrativa por dados no PostgreSQL.
+- Autenticação e autorização de verdade com Spring Security.
+- Testes de integração com PostgreSQL, documentação OpenAPI e tratamento de concorrência.
+- Operações de exclusão com regras explícitas e auditoria.
+- **Manutenção automática e política de retenção de dados: etapa futura, em commit independente.** Nenhuma rotina de limpeza foi adicionada nesta entrega.
 
 ---
 
-Desenvolvido por [Fidel M Rodriguez](https://github.com/fidelmrodriguez) · [LinkedIn](https://www.linkedin.com/in/fidelmrodriguez/)
+Desenvolvido por [Fidel M Rodriguez](https://github.com/fidelmrodriguez).

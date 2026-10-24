@@ -57,8 +57,8 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
 
   if (!open || !workspace || !project) return null;
 
-  const submit = (values: FormValues) => {
-    addTask({
+  const submit = async (values: FormValues) => {
+    const saved = await addTask({
       title: values.title,
       description: values.description,
       columnId: values.columnId,
@@ -68,6 +68,10 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
       dueDate: new Date(values.dueDate).toISOString(),
       tags: values.tags?.split(",").map((tag) => tag.trim()).filter(Boolean) || []
     });
+    if (saved === false) {
+      notify("Não foi possível salvar a tarefa na API Java.", "error");
+      return;
+    }
     reset();
     notify("Tarefa criada com sucesso.", "success");
     onClose();

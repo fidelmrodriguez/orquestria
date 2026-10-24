@@ -1,12 +1,32 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { isApiMode } from "@/lib/remote-board";
+import type { Task } from "@/types/board";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
 import { selectActiveWorkspace, selectSelectedTask, useBoardStore } from "@/store/board-store";
 import { TaskCommentsSection } from "./TaskCommentsSection";
 import { TaskPlanningCards } from "./TaskPlanningCards";
 import { TaskPropertiesForm } from "./TaskPropertiesForm";
+
+function TaskDescriptionEditor({ task, onSave }: {
+  task: Task; onSave: (id: string, patch: {description: string}) => void;
+}) {
+  const [draft, setDraft] = useState(task.description);
+  useEffect(() => { setDraft(task.description); }, [task.id, task.description]);
+  return <textarea
+    value={draft}
+    onChange={(event) => {
+      setDraft(event.target.value);
+      if (!isApiMode) onSave(task.id, { description: event.target.value });
+    }}
+    onBlur={() => { if (isApiMode && draft !== task.description) onSave(task.id, { description: draft }); }}
+    className="min-h-32 w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+    aria-label="Descrição da tarefa"
+  />;
+}
 
 export function TaskDetailPanel() {
   const task = useBoardStore(selectSelectedTask);
@@ -21,9 +41,10 @@ export function TaskDetailPanel() {
   const member = workspace.members.find((item) => item.id === task.assigneeId);
   const column = workspace.columns.find((item) => item.id === task.columnId);
 
-  const submitComment = (message: string) => {
-    addComment(task.id, message);
-    notify("Comentário enviado.", "success");
+  const submitComment = async (message: string) => {
+    const result = await addComment(task.id, message);
+    if (result === false) notify("Não foi possível salvar o comentário.", "error");
+    else notify("Comentário enviado.", "success");
   };
 
   return (
@@ -48,12 +69,7 @@ export function TaskDetailPanel() {
             inputClassName="text-xl font-semibold"
           />
 
-          <textarea
-            value={task.description}
-            onChange={(event) => updateTask(task.id, { description: event.target.value })}
-            className="min-h-32 w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-            aria-label="Descrição da tarefa"
-          />
+          <TaskDescriptionEditor task={task} onSave={updateTask} />
 
           <TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={updateTask} />
           <TaskPlanningCards task={task} onUpdateTask={updateTask} />

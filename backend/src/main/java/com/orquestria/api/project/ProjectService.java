@@ -28,6 +28,12 @@ public class ProjectService {
         }
         return ProjectResponse.from(repository.save(project));
     }
+    @Transactional
+    public ProjectResponse rename(UUID id, RenameProjectRequest request) {
+        Project project = repository.findById(id).orElseThrow(() -> new ProjectNotFoundException(id));
+        project.rename(request.name().trim());
+        return ProjectResponse.from(project);
+    }
     @Transactional(readOnly = true)
     public List<ProjectResponse> list() {
         return repository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))

@@ -1,93 +1,56 @@
-# Backend do Orquestria
+# API Orquestria — Java e Spring Boot
 
-API REST em **Java 21 + Spring Boot 3.5**, com PostgreSQL, Spring Data JPA e migrações Flyway. A API evoluiu nesta etapa: a API de projetos funciona de forma independente; o frontend publicado ainda usa dados demonstrativos e **não consome esses endpoints**.
+API REST que atende o Kanban do frontend. Desenvolvida com Java 21, Spring Boot 3.5, Spring Data JPA, PostgreSQL, Flyway e Bean Validation.
 
-## Rodar localmente
+## Endpoints
 
-Você precisa de **Java 21**, **Maven 3.9+** e **Docker com Docker Compose** (ou PostgreSQL 16 instalado).
+| Método | Rota | Ação |
+| --- | --- | --- |
+| GET | `/actuator/health` | Saúde da API |
+| GET / POST | `/api/workspaces` | Listar / criar workspaces |
+| GET | `/api/workspaces/{id}` | Consultar workspace |
+| GET / POST | `/api/projects` | Listar / criar projetos |
+| GET | `/api/projects/{id}` | Consultar projeto |
+| POST | `/api/projects/{id}/rename` | Renomear projeto |
+| GET / POST | `/api/projects/{id}/columns` | Listar / criar colunas |
+| POST | `/api/projects/{id}/columns/{columnId}/rename` | Renomear coluna |
+| GET / POST | `/api/projects/{id}/tasks` | Listar / criar tarefas |
+| POST | `/api/projects/{id}/tasks/{taskId}/edit` | Editar detalhes da tarefa |
+| POST | `/api/projects/{id}/tasks/{taskId}/comments` | Adicionar comentário |
+| POST / PATCH | `/api/projects/{id}/tasks/{taskId}/move` | Mover tarefa |
 
-No terminal, a partir da pasta `backend/`:
+As atualizações em `POST` usam rotas de ação para manter compatibilidade com o preflight CORS da hospedagem utilizada. As operações validam os dados com Bean Validation. A mudança de coluna verifica se a coluna pertence ao projeto da tarefa.
+
+## Migrações
+
+- `V1__create_projects.sql`: projetos.
+- `V2__workspaces_kanban_tasks.sql`: workspaces, colunas e tarefas, preservando os projetos já salvos.
+- `V3__task_details_comments.sql`: responsável, tags e comentários, preservando tarefas existentes.
+
+O Flyway aplica migrações pendentes na inicialização. Não edite versões de migrações já aplicadas no Neon; crie uma nova migração para mudanças futuras.
+
+## Configuração
+
+Em produção, configure no Blitz (não no GitHub):
+
+```env
+DB_URL=jdbc:postgresql://HOST/neondb?sslmode=require
+DB_USER=USUARIO
+DB_PASSWORD=SENHA
+APP_CORS_ALLOWED_ORIGIN=https://orquestria.netlify.app
+```
+
+Rodar localmente é opcional:
 
 ```bash
+cd backend
 docker compose up -d
+mvn test
 mvn spring-boot:run
 ```
 
-O Compose cria um PostgreSQL local em `localhost:5432` com credenciais **somente para desenvolvimento**. O Spring Boot conecta nesse banco, executa a migração SQL `V1__create_projects.sql` e valida o esquema JPA.
+Docker e Java 21/Maven 3.9+ são necessários no ambiente local. O serviço do Blitz compila o Dockerfile diretamente do GitHub. Documentação em [DEPLOY_CLOUD.md](../docs/DEPLOY_CLOUD.md).
 
-Para rodar os testes unitários:
+## Limitações atuais
 
-```bash
-mvn test
-```
-
-Para usar outro banco, defina `DB_URL` (URL JDBC), `DB_USER` e `DB_PASSWORD` como variáveis de ambiente. O arquivo `.env.example` é referência; não é carregado automaticamente pelo Spring Boot.
-
-## Endpoints disponíveis
-
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| `GET` | `/actuator/health` | Estado da aplicação e das dependências |
-| `POST` | `/api/projects` | Cria um projeto |
-| `GET` | `/api/projects` | Lista projetos, mais recentes primeiro |
-| `GET` | `/api/projects/{id}` | Consulta por identificador UUID |
-| `POST`/`GET` | `/api/workspaces` | Cria ou lista workspaces |
-| `GET` | `/api/workspaces/{id}` | Consulta workspace |
-| `POST`/`GET` | `/api/projects/{id}/columns` | Cria ou lista colunas |
-| `POST`/`GET` | `/api/projects/{id}/tasks` | Cria ou lista tarefas |
-| `PATCH` | `/api/projects/{id}/tasks/{taskId}/move` | Move tarefa para coluna do mesmo projeto |
-
-Criar um projeto:
-
-```bash
-curl -i -X POST http://localhost:8080/api/projects \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"Portal interno","description":"Primeira API do Orquestria"}'
-```
-
-Listar projetos:
-
-```bash
-curl http://localhost:8080/api/projects
-```
-
-A criação retorna **201 Created** com o identificador e o horário de criação. O nome é obrigatório (até 120 caracteres). A descrição é opcional (até 2.000 caracteres). Erros de validação retornam **400** e buscas inexistentes retornam **404**.
-
-## Organização do código
-
-```text
-src/main/java/com/orquestria/api/
-├── OrquestriaApplication.java
-├── common/ApiExceptionHandler.java
-└── project/
-    ├── Project.java
-    ├── ProjectRepository.java
-    ├── ProjectService.java
-    ├── ProjectController.java
-    ├── CreateProjectRequest.java
-    ├── ProjectResponse.java
-    └── ProjectNotFoundException.java
-src/main/resources/
-├── application.yml
-└── db/migration/V1__create_projects.sql
-src/test/java/com/orquestria/api/project/
-└── ProjectServiceTest.java
-```
-
-## Etapa 3
-
-A migração `V2__workspaces_kanban_tasks.sql` adiciona novos modelos sem alterar os dados de projetos existentes. Consulte [o guia de testes](../docs/ETAPA_3_KANBAN_API.md).
-
-## Próximos passos
-
-- Modelar workspaces, colunas e tarefas, com relacionamentos e regras de negócio.
-- Adicionar autenticação e autorização com Spring Security.
-- Implementar testes de integração com PostgreSQL e documentação OpenAPI.
-- Integrar gradualmente a API ao Next.js, retirando a dependência do `localStorage` para os dados de negócio.
-- Definir CORS, variáveis de produção e hospedagem HTTPS antes de expor endpoints publicamente.
-
-**Atenção:** esta API inicial ainda não tem autenticação nem rate limiting; use-a **localmente** com dados exclusivamente fictícios até a etapa de segurança. As credenciais do Compose são apenas para desenvolvimento.
-
-## Deploy em nuvem (sem IDE)
-
-Veja [docs/DEPLOY_CLOUD.md](../docs/DEPLOY_CLOUD.md). O build Docker executa os testes, o Blitz hospeda a API e o Neon fornece PostgreSQL via conexão JDBC TLS. As credenciais devem ser configuradas como variáveis privadas no Blitz.
+O login do frontend é fictício: **a API não autentica usuários nem isola dados por workspace**. Não use dados pessoais ou informações reais. Exclusão e manutenção agendada não estão implementadas. Consulte a [Etapa 4](../docs/ETAPA_4_INTEGRACAO.md) para os testes pela interface.

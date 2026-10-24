@@ -51,6 +51,7 @@ public class Project {
         }
     }
 
+    public void rename(String name) { this.name = name; }
     public void setWorkspace(Workspace workspace) { this.workspace = workspace; }
     public Workspace getWorkspace() { return workspace; }
     public UUID getId() { return id; }

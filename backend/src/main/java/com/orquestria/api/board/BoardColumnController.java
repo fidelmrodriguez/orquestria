@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.*;
 public class BoardColumnController {
     private final BoardColumnService service;
     public BoardColumnController(BoardColumnService service) { this.service = service; }
+    @PostMapping("/{columnId}/rename")
+    public BoardColumnResponse rename(@PathVariable UUID projectId, @PathVariable UUID columnId,
+            @Valid @RequestBody RenameBoardColumnRequest request) {
+        return service.rename(projectId, columnId, request);
+    }
     @GetMapping
     public List<BoardColumnResponse> list(@PathVariable UUID projectId) { return service.list(projectId); }
     @PostMapping

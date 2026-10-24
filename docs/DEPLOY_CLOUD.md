@@ -1,51 +1,42 @@
-# Publicação do Orquestria na nuvem
+# Deploy do Orquestria na nuvem
 
-A aplicação utiliza serviços separados:
+**Netlify (Next.js)** → **Blitz (Java/Spring Boot)** → **Neon (PostgreSQL)**
 
-- **Frontend:** Netlify — `https://orquestria.netlify.app/`
-- **API Java:** Blitz — `https://orquestria-api.fidelmrodriguez.blitz.cloud/`
-- **PostgreSQL:** Neon (branch `production`, banco `neondb`)
+## Backend: Blitz
 
-## Backend (Blitz)
+O Blitz lê o repositório na branch `main`, com **Folder to build = `backend`**, `Dockerfile = Dockerfile`, e executa Java 21. As credenciais do Neon ficam somente nas variáveis do Blitz:
 
-O Blitz está conectado à branch `main` do repositório GitHub e usa:
-
-- `Folder to build`: `backend`
-- `Dockerfile`: `Dockerfile`
-- `Start command`: vazio (a imagem define o comando)
-- Banco do Blitz: desativado, pois o banco fica no Neon
-
-Variáveis de ambiente privadas no Blitz:
-
-| Variável | Formato esperado |
+| Variável | Exemplo sem credenciais |
 | --- | --- |
 | `DB_URL` | `jdbc:postgresql://HOST/neondb?sslmode=require` |
-| `DB_USER` | usuário do Neon |
-| `DB_PASSWORD` | senha do Neon |
+| `DB_USER` | Usuário do Neon |
+| `DB_PASSWORD` | Senha do Neon |
+| `APP_CORS_ALLOWED_ORIGIN` | `https://orquestria.netlify.app` (opcional; já é o padrão) |
 
-As credenciais não devem ser versionadas no GitHub, nem inseridas no Next.js.
+Não é preciso criar um banco no Blitz. O Flyway executa migrações pendentes V1, V2 e V3 ao iniciar. **Nunca inclua senha de banco no GitHub.**
 
-## Frontend (Netlify)
+## Frontend: Netlify
 
-O Netlify publica exclusivamente a pasta `frontend/` com exportação estática do Next.js.
-A variável `NEXT_PUBLIC_ORQUESTRIA_API_URL` aponta para a URL HTTPS do Blitz, sem `/` final.
-Depois de alterar uma variável de build do Netlify, execute um novo deploy.
+O Netlify publica `frontend/` como exportação estática (`out/`). A variável de build é:
 
-## Testes sem IDE
+```text
+NEXT_PUBLIC_ORQUESTRIA_API_URL=https://orquestria-api.fidelmrodriguez.blitz.cloud
+```
 
-1. Acesse `https://orquestria-api.fidelmrodriguez.blitz.cloud/actuator/health`.
-2. Abra `https://orquestria.netlify.app/diagnostico/`.
-3. Clique em **Verificar conexão e atualizar dados**.
-4. Crie um workspace, projeto, coluna e tarefa com dados fictícios.
-5. Atualize a página e consulte novamente. Se os dados permanecerem, a API está gravando no Neon.
-6. Mova a tarefa para outra coluna, atualize a página e confira a coluna retornada.
+Essa variável é pública por natureza e deve conter somente a URL da API, nunca segredos. Alterá-la exige novo build no Netlify. Os endpoints de escrita dependem do backend atualizado no Blitz.
 
-Nos logs do Blitz, verifique a inicialização do Spring Boot e as migrações do Flyway.
-A migração V2 não remove projetos existentes; ela acrescenta tabelas e uma relação opcional de workspace.
+## Ordem recomendada para esta etapa
 
-## Avisos
+1. Faça um único commit contendo frontend, backend, README e docs.
+2. Confira primeiro o build do Blitz, inicialização do Spring e aplicação da migração V3.
+3. Depois confira o deploy publicado no Netlify, pois o novo frontend utiliza endpoints novos.
+4. Teste `GET /actuator/health`, `GET /api/projects` e as ações do quadro principal.
+5. Use [ETAPA_4_INTEGRACAO.md](ETAPA_4_INTEGRACAO.md) para os testes detalhados.
 
-- O plano gratuito pode suspender a API por inatividade. A primeira requisição após suspensão pode levar mais tempo.
-- A API ainda não implementa autenticação e autorização. Use apenas dados de teste.
-- A página de diagnóstico é separada do quadro Kanban principal, que permanece demonstrativo nesta etapa.
-- O arquivo `render.yaml` permanece como configuração legada; não é usado pelo Blitz.
+## Cuidados
+
+- Os planos gratuitos podem suspender serviços por inatividade ou limitar recursos.
+- A aplicação é demonstrativa e não possui autenticação/isolamento de dados por usuário.
+- Não inclua dados pessoais no banco de demonstração.
+- **Não há limpeza automática, exclusão periódica, agendador ou monitor de cotas nesta etapa.** Política de retenção será uma entrega separada.
+- `render.yaml` é um arquivo legado da primeira tentativa de deploy e não participa da publicação no Blitz.

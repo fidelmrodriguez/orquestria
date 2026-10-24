@@ -19,6 +19,16 @@ public class TaskController {
         TaskResponse result = service.create(projectId, request);
         return ResponseEntity.created(URI.create("/api/projects/" + projectId + "/tasks/" + result.id())).body(result);
     }
+    @PostMapping("/{taskId}/edit")
+    public TaskResponse edit(@PathVariable UUID projectId, @PathVariable UUID taskId,
+                             @Valid @RequestBody UpdateTaskRequest request) {
+        return service.edit(projectId, taskId, request);
+    }
+    @PostMapping("/{taskId}/comments")
+    public TaskResponse comment(@PathVariable UUID projectId, @PathVariable UUID taskId,
+                                @Valid @RequestBody CreateTaskCommentRequest request) {
+        return service.comment(projectId, taskId, request);
+    }
     // POST representa a ação de mover uma tarefa e também funciona em hospedagens
     // que não disponibilizam PATCH no preflight CORS. PATCH permanece compatível.
     @RequestMapping(value = "/{taskId}/move", method = {RequestMethod.PATCH, RequestMethod.POST})

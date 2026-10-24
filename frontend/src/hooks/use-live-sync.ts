@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { isApiMode } from "@/lib/remote-board";
 import { useBoardStore, type BoardSnapshot } from "@/store/board-store";
 
 const CHANNEL = "orquestria-live-sync";
@@ -22,7 +23,7 @@ export function useLiveSync(enabled: boolean) {
   const applying = useRef(false);
 
   useEffect(() => {
-    if (!enabled || typeof window === "undefined" || !("BroadcastChannel" in window)) return;
+    if (isApiMode || !enabled || typeof window === "undefined" || !("BroadcastChannel" in window)) return;
 
     const channel = new BroadcastChannel(CHANNEL);
 

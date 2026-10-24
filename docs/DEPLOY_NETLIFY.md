@@ -1,51 +1,26 @@
-# Publicação do frontend Orquestria no Netlify
+# Frontend do Orquestria — Netlify
 
-O repositório contém um frontend Next.js/React funcional e a pasta `backend/` reservada para a futura API Java/Spring Boot. O backend **não participa** desta publicação.
+A aplicação Next.js 14 é exportada como site estático e publicada separadamente da API Java.
 
-## Configuração atual
-
-A aplicação utiliza renderização no cliente, sem rotas de API/SSR próprias do Next.js. O `frontend/next.config.mjs` define `output: "export"`, que produz um site estático em `frontend/out/` com `npm run build`.
-
-Na raiz do repositório, o `netlify.toml` define:
-
-| Campo | Valor |
+| Campo | Configuração |
 | --- | --- |
 | Base directory | `frontend` |
 | Build command | `npm run build` |
 | Publish directory | `out` (relativo à base) |
-| Node.js | `20` |
-| `NETLIFY_NEXT_PLUGIN_SKIP` | `true` |
+| Branch | `main` |
 
-O deploy estático não precisa do adaptador SSR do Next.js. Não inclua a pasta `out/` no Git: ela será gerada no Netlify.
+`frontend/next.config.mjs` define `output: "export"`. Não comite a pasta `out/`.
 
-## Corrigindo a página 404 após deploy publicado
+## API Java em produção
 
-1. Substitua no repositório os arquivos `frontend/next.config.mjs`, `frontend/package.json`, `netlify.toml`, `README.md` e este documento pelos arquivos do pacote de correção.
-2. Faça um commit e envie para `main`.
-3. No painel do Netlify, abra **Project configuration → Build settings** e confira se a configuração efetiva usa `frontend` como base, `npm run build` como comando e `out` como publicação. Evite configurar `frontend/out` quando a base já é `frontend`.
-4. Abra **Deploys** e execute **Trigger deploy → Clear cache and deploy site**, se a interface oferecer essa opção. Caso contrário, aguarde o deploy provocado pelo push.
-5. No deploy, abra **Deploy File Explorer**. Confira a presença de `index.html` e `_next/` no diretório publicado. Depois teste a URL do site.
-6. Quando a página funcionar, acrescente a URL ao README e ao campo **About / Website** do GitHub.
+No Netlify, em **Project configuration → Environment variables**, configure a variável pública de build:
 
-Se ainda aparecer 404, confira o **Deploy log**: precisa mostrar execução do Next.js e exportação para `out`. Verifique também se o último deploy usa a branch `main` e o commit corrigido.
-
-## Execução local
-
-```bash
-cd frontend
-npm ci
-npm run dev
+```text
+NEXT_PUBLIC_ORQUESTRIA_API_URL=https://orquestria-api.fidelmrodriguez.blitz.cloud
 ```
 
-Acesse http://localhost:3000. Para verificar a geração de arquivos estáticos:
+Após salvar uma variável, faça um novo deploy; a URL fica incorporada ao JavaScript estático. Não configure usuário/senha do PostgreSQL no Netlify.
 
-```bash
-npm run build
-# Deve gerar out/index.html
-```
+O Kanban principal usa a API Java como fonte de dados quando a variável está presente. Se não estiver, o frontend executa o modo demonstrativo local com DummyJSON e Zustand. O backend Spring Boot não roda no Netlify.
 
-## Quando o backend Java estiver pronto
-
-O Netlify continuará servindo o frontend estático. A API Spring Boot será hospedada separadamente. O navegador consumirá seus endpoints HTTPS, sujeitos a CORS, autenticação e configuração da URL da API.
-
-> Se futuramente o frontend passar a usar recursos Next.js exclusivos de servidor, será necessário reavaliar `output: "export"` e a configuração de hospedagem.
+Para validar, visite `https://orquestria.netlify.app/` e siga [ETAPA_4_INTEGRACAO.md](ETAPA_4_INTEGRACAO.md). A página `/diagnostico/` permanece como ferramenta auxiliar.

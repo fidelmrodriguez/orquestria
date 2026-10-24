@@ -27,6 +27,10 @@ public class ProjectController {
         return ResponseEntity.created(URI.create("/api/projects/" + result.id())).body(result);
     }
 
+    @org.springframework.web.bind.annotation.PostMapping("/{id}/rename")
+    public ProjectResponse rename(@PathVariable UUID id, @Valid @RequestBody RenameProjectRequest request) {
+        return service.rename(id, request);
+    }
     @GetMapping
     public List<ProjectResponse> list() {
         return service.list();

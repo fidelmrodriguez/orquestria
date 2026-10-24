@@ -16,7 +16,7 @@ export function TaskPlanningCards({ task, onUpdateTask }: TaskPlanningCardsProps
         <input
           type="date"
           value={task.dueDate.slice(0, 10)}
-          onChange={(event) => onUpdateTask(task.id, { dueDate: new Date(event.target.value).toISOString() })}
+          onChange={(event) => onUpdateTask(task.id, { dueDate: event.target.value ? new Date(`${event.target.value}T12:00:00Z`).toISOString() : "" })}
           className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none dark:border-slate-800 dark:bg-slate-900"
         />
       </div>

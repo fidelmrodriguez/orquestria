@@ -41,14 +41,14 @@ export function LoginScreen() {
       <section className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[1.05fr_.95fr]">
         <div className="space-y-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 shadow-card backdrop-blur dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-300">
-            <ShieldCheck className="size-4" /> Ambiente de trabalho seguro
+            <ShieldCheck className="size-4" /> Ambiente demonstrativo
           </div>
           <div className="space-y-5">
             <h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white sm:text-6xl">
-              Gestão de projetos com quadro, prioridades e colaboração em tempo real.
+              Gestão de projetos com quadro, prioridades e organização de tarefas.
             </h1>
             <p className="max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
-              Centralize tarefas, responsáveis, comentários e status da operação em uma experiência rápida, responsiva e pronta para equipes.
+              Organize projetos, tarefas e prioridades em um quadro visual. Os dados do modo Java são compartilhados nesta demonstração pública.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -72,7 +72,7 @@ export function LoginScreen() {
             </div>
             <div>
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">Entrar no painel</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Use os dados preenchidos para acessar o ambiente.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Acesso demonstrativo: sem autenticação real de usuários.</p>
             </div>
           </div>
 

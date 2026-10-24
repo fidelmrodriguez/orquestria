@@ -37,7 +37,7 @@ class TaskServiceTest {
         when(projects.findById(expectedProjectId)).thenReturn(Optional.of(project));
         when(columns.findById(columnId)).thenReturn(Optional.of(column));
         assertThrows(InvalidBoardOperationException.class, () ->
-            service.create(expectedProjectId, new CreateTaskRequest("Tarefa", null, columnId, TaskPriority.MEDIA, 0, null)));
+            service.create(expectedProjectId, new CreateTaskRequest("Tarefa", null, columnId, TaskPriority.MEDIA, 0, null, null, null)));
     }
 
     private void setId(Project project, UUID id) {

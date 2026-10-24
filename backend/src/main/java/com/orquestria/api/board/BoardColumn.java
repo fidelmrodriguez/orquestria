@@ -29,6 +29,7 @@ public class BoardColumn {
         this.color = color;
     }
     @PrePersist void beforeInsert() { if (createdAt == null) createdAt = Instant.now(); }
+    public void rename(String title) { this.title = title; }
     public UUID getId() { return id; }
     public Project getProject() { return project; }
     public String getTitle() { return title; }
