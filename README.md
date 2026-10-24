@@ -6,7 +6,7 @@ Gestão de projetos e tarefas com workspaces, quadros Kanban e organização do 
 
 O Orquestria começou como uma aplicação frontend em **Next.js, React e TypeScript**. Essa versão está publicada no Netlify e já permite navegar por projetos, organizar tarefas e utilizar o quadro Kanban. O repositório também inclui agora o início da API em **Java e Spring Boot**, com PostgreSQL para persistência de projetos.
 
-O frontend e o backend ainda são **independentes**: a versão online continua demonstrativa, e a integração com a API será feita nas próximas etapas.
+O frontend e o backend ainda são **independentes**: a versão online continua demonstrativa. O repositório inclui agora configuração de deploy e uma página isolada para testar a API via navegador; o Kanban será integrado nas próximas etapas.
 
 ## O que já está funcionando
 
@@ -31,7 +31,7 @@ O diretório [`backend/`](backend/) contém uma API REST inicial com Java 21, Sp
 - Consultar um projeto: `GET /api/projects/{id}`.
 - Consultar a saúde da aplicação: `GET /actuator/health`.
 
-A API tem validação dos dados recebidos e respostas HTTP para erros comuns. Há testes unitários iniciais para a camada de serviço. **Ela ainda não está hospedada nem conectada ao frontend.**
+A API tem validação dos dados recebidos e respostas HTTP para erros comuns. Há testes unitários iniciais para a camada de serviço. **A configuração para hospedagem no Render está incluída, mas o serviço ainda precisa ser criado. A tela principal do frontend ainda não está integrada.**
 
 ## Tecnologias
 
@@ -47,14 +47,16 @@ A API tem validação dos dados recebidos e respostas HTTP para erros comuns. H�
 ```text
 orquestria/
 ├── frontend/          # Next.js, publicado no Netlify
-├── backend/           # API Spring Boot, banco local via Compose
+├── backend/           # API Spring Boot: Docker/Render + PostgreSQL Neon
 │   ├── src/main/java/
 │   ├── src/main/resources/db/migration/
 │   ├── src/test/java/
 │   ├── compose.yaml
 │   └── pom.xml
 ├── docs/
-│   └── DEPLOY_NETLIFY.md
+│   ├── DEPLOY_NETLIFY.md
+│   └── DEPLOY_CLOUD.md
+├── render.yaml         # Deploy da API Java no Render
 ├── netlify.toml
 └── README.md
 ```
@@ -67,15 +69,23 @@ Site online (Netlify)
         ├── DummyJSON (dados iniciais)
         └── Zustand / localStorage (persistência local)
 
-API local (independente)
-    └── Java / Spring Boot
+API Java (deploy independente)
+    └── Java / Spring Boot (Render, quando configurado)
         └── Spring Data JPA / Hibernate
-            └── PostgreSQL
+            └── PostgreSQL (Neon, quando configurado)
 ```
 
 O objetivo é que o frontend passe a consumir essa API por HTTPS, substituindo gradualmente os dados simulados pelas informações armazenadas no banco.
 
-## Executar localmente
+## Hospedagem e teste pelo navegador
+
+Sem instalar ferramentas: [passo a passo do Neon + Render + Netlify](docs/DEPLOY_CLOUD.md). O repositório contém `render.yaml` e `backend/Dockerfile` para implantar a API Java via Docker no Render.
+
+Depois de configurar a URL do Render em `NEXT_PUBLIC_ORQUESTRIA_API_URL` no Netlify, abra [Diagnóstico da API](https://orquestria.netlify.app/diagnostico/) para testar saúde, listagem e criação de projetos no PostgreSQL. Essa página está separada do Kanban e não substitui a integração funcional do frontend.
+
+**Os serviços de nuvem não são criados automaticamente ao subir os arquivos no GitHub.**
+
+## Executar localmente (opcional)
 
 **Frontend** — Node.js 20+ e npm:
 
@@ -101,7 +111,7 @@ A API inicia em `http://localhost:8080`. Veja os comandos, endpoints e exemplos 
 
 ## Publicação
 
-A versão pública do frontend está em **https://orquestria.netlify.app/**. O Next.js é exportado como site estático (`frontend/out`), conforme o `netlify.toml`. O Netlify não executa a API Java deste projeto.
+A versão pública do frontend está em **https://orquestria.netlify.app/**. O Next.js é exportado como site estático (`frontend/out`). O Netlify não executa Java. O `render.yaml` configura o backend para o Render, e o banco será criado manualmente no Neon. A página `/diagnostico/` facilita os testes via navegador.
 
 ## Próximas etapas
 

@@ -78,3 +78,7 @@ src/test/java/com/orquestria/api/project/
 - Definir CORS, variáveis de produção e hospedagem HTTPS antes de expor endpoints publicamente.
 
 **Atenção:** esta API inicial ainda não tem autenticação nem rate limiting; use-a **localmente** até a etapa de segurança. As credenciais do Compose são apenas para desenvolvimento.
+
+## Deploy em nuvem (sem IDE)
+
+Veja [docs/DEPLOY_CLOUD.md](../docs/DEPLOY_CLOUD.md). O build Docker executa os testes, o Render hospeda a API e o Neon fornece PostgreSQL via conexão JDBC TLS. As credenciais devem ser configuradas como variáveis privadas no Render.

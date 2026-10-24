@@ -5,6 +5,10 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/orquestria}
     username: ${DB_USER:orquestria}
     password: ${DB_PASSWORD:orquestria}
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 0
+      connection-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: validate
@@ -14,9 +18,17 @@ spring:
 
 server:
   port: ${PORT:8080}
+  address: 0.0.0.0
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    com.orquestria.api: INFO

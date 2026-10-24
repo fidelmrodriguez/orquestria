@@ -1,0 +1,19 @@
+# API Java em uma instância web gratuita do Render.
+# O PostgreSQL e os segredos são criados fora do GitHub, no Neon e no Render.
+services:
+  - type: web
+    name: orquestria-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2
