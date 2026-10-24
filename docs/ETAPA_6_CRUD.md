@@ -57,3 +57,25 @@ O commit inicial da Parte 1 não passou no teste automatizado de exclusões dura
 Os três stubs de `JdbcTemplate.update` que compartilham esse padrão foram ajustados pontualmente com `lenient()`. **As verificações `verify(...)` e `InOrder` continuam ativas** para validar o SQL, os argumentos e a ordem efetiva das operações. Nenhum endpoint, serviço ou esquema de banco foi alterado por esta correção.
 
 Após o commit, confirmar que o Blitz compila **e executa toda a suíte de testes Maven**, publica a nova versão e mantém a aplicação online. Somente então começar os testes manuais das rotas `DELETE` com dados descartáveis de uma conta pessoal.
+
+
+## Parte 2 — Interface de gerenciamento seguro (`/gerenciar`)
+
+Esta entrega adiciona uma página **independente** em `frontend/src/app/gerenciar/page.tsx`, sem substituir `AppShell` ou `board-store` do Kanban. Acesse `https://orquestria.netlify.app/gerenciar` depois de entrar na sua conta, sem sair da sessão do navegador. Se o Netlify publicar a página, não é necessário novo deploy Java.
+
+A tela usa a variável existente `NEXT_PUBLIC_ORQUESTRIA_API_URL` e o token armazenado na sessão pelo `auth-client`. Carrega workspaces/projetos e, sob demanda, colunas/tarefas do projeto selecionado. Cada operação solicita confirmação; para projeto e workspace é necessário digitar `EXCLUIR`. Depois do `204`, a página recarrega os dados da API. Há mensagens separadas para sessão expirada (`401`), recurso inacessível (`404`), dependência impeditiva (`409`) e indisponibilidade da API.
+
+A exclusão de coluna fica desabilitada quando a listagem indica tarefas nela. Mesmo com concorrência entre leitura e exclusão, **o backend continua fazendo a última validação** e pode retornar `409`. O mesmo vale para workspaces com projetos. A página não coleta nem exibe senhas ou tokens.
+
+### Testes manuais após deploy
+
+1. No Netlify, conferir a publicação do commit e visitar `/gerenciar` já autenticado numa conta de teste.
+2. Criar um projeto descartável e uma coluna/tarefa pelo quadro principal e atualizar `/gerenciar`.
+3. Excluir a tarefa de teste com confirmação e conferir se desapareceu depois da leitura da API.
+4. Excluir a coluna agora vazia e confirmar a remoção.
+5. Excluir projeto após digitar `EXCLUIR` e confirmar que não aparece mais.
+6. Excluir workspace vazio, se existente, após digitar `EXCLUIR`.
+7. Confirmar que o frontend desabilita exclusões proibidas por dependências e que erros `409` do backend são exibidos se houver mudança concorrente.
+8. Voltar ao quadro principal e usar F5 para atualizar o estado local.
+
+**Limitações deliberadas:** os botões não foram adicionados diretamente ao quadro principal nesta entrega, pois a integração dependeria de editar e testar a versão exata de `AppShell` e `board-store`. A página independente permite validar a API sem sobrescrever esses componentes. A interface principal integrada e a revisão final de concorrência e paginação continuam pendentes. Sem acesso ao checkout atual do repositório, a compilação e o deploy completo do Netlify ainda precisam ser confirmados.
