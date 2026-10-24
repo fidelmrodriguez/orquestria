@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AUTH_TOKEN_STORAGE_KEY, getAuthToken, restoreAuthSession } from "@/lib/auth-client";
 import {
-  apiRequest, humanName, targetPath, unpackList,
+  apiRequest, deleteActionPath, deleteOperation, humanName, unpackList,
   type DeleteTarget, type Entity
 } from "@/lib/kanban-deletion";
 
@@ -24,6 +24,8 @@ export default function GerenciarPage() {
   const [columns, setColumns] = useState<Entity[]>([]);
   const [tasks, setTasks] = useState<Entity[]>([]);
   const [dependenciesLoaded, setDependenciesLoaded] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
+  const [retryProject, setRetryProject] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -70,8 +72,8 @@ export default function GerenciarPage() {
 
   const refreshOverview = useCallback(async (accessToken: string) => {
     const [workspaceResult, projectResult] = await Promise.all([
-      apiRequest(API_BASE, "/api/workspaces", accessToken),
-      apiRequest(API_BASE, "/api/projects", accessToken)
+      apiRequest(API_BASE, "/api/workspaces", accessToken, "GET", "listar-workspaces"),
+      apiRequest(API_BASE, "/api/projects", accessToken, "GET", "listar-projetos")
     ]);
     setWorkspaces(unpackList(workspaceResult).sort(byName));
     setProjects(unpackList(projectResult).sort(byName));
@@ -79,9 +81,10 @@ export default function GerenciarPage() {
 
   const refreshProject = useCallback(async (projectId: string, accessToken: string) => {
     setDependenciesLoaded(false);
+    setProjectError(null);
     const [columnResult, taskResult] = await Promise.all([
-      apiRequest(API_BASE, `/api/projects/${encodeURIComponent(projectId)}/columns`, accessToken),
-      apiRequest(API_BASE, `/api/projects/${encodeURIComponent(projectId)}/tasks`, accessToken)
+      apiRequest(API_BASE, `/api/projects/${encodeURIComponent(projectId)}/columns`, accessToken, "GET", "listar-colunas"),
+      apiRequest(API_BASE, `/api/projects/${encodeURIComponent(projectId)}/tasks`, accessToken, "GET", "listar-tarefas")
     ]);
     setColumns(unpackList(columnResult).sort((a,b) => (a.position ?? 0) - (b.position ?? 0)));
     setTasks(unpackList(taskResult).sort((a,b) => (a.position ?? 0) - (b.position ?? 0)));
@@ -102,18 +105,26 @@ export default function GerenciarPage() {
 
   useEffect(() => {
     if (!selectedProjectId || !token) {
-      setColumns([]); setTasks([]); setDependenciesLoaded(false);
+      setColumns([]); setTasks([]); setDependenciesLoaded(false); setProjectError(null);
       return;
     }
     let cancelled = false;
     (async () => {
       setBusy(true); setError(null);
       try { await refreshProject(selectedProjectId, token); }
-      catch (cause) { if (!cancelled) setError(cause instanceof Error ? cause.message : "Erro ao carregar quadro."); }
+      catch (cause) {
+        if (!cancelled) {
+          const reason = cause instanceof Error ? cause.message : "Erro ao carregar quadro.";
+          setError(reason);
+          setProjectError(reason);
+          // Falha de consulta não deve deixar um indicador de carregamento eterno.
+          setDependenciesLoaded(true);
+        }
+      }
       finally { if (!cancelled) setBusy(false); }
     })();
     return () => { cancelled = true; };
-  }, [selectedProjectId, token, refreshProject]);
+  }, [selectedProjectId, token, refreshProject, retryProject]);
 
   function askDelete(target: DeleteTarget, label: string, impact: string) {
     setError(null); setMessage(null); setConfirmation("");
@@ -126,14 +137,25 @@ export default function GerenciarPage() {
     const target = pending.target;
     setBusy(true); setError(null); setMessage(null);
     try {
-      await apiRequest(API_BASE, targetPath(target), token, "DELETE");
+      // O navegador tinha o preflight de DELETE bloqueado. A rota POST explícita
+      // reutiliza o mesmo serviço transacional e as mesmas validações no Java.
+      await apiRequest(API_BASE, deleteActionPath(target), token, "POST", deleteOperation(target));
       setPending(null); setConfirmation("");
       if (target.kind === "project" && target.id === selectedProjectId) {
         setSelectedProjectId(""); setColumns([]); setTasks([]);
       }
-      await refreshOverview(token);
-      if (target.kind !== "project" && selectedProjectId) await refreshProject(selectedProjectId, token);
-      setMessage("Exclusão confirmada pela API. As listas foram atualizadas. Ao voltar ao quadro, recarregue a página.");
+      // Nunca confundir falha na releitura com falha na exclusão já confirmada.
+      try {
+        await refreshOverview(token);
+        if (target.kind !== "project" && selectedProjectId) await refreshProject(selectedProjectId, token);
+        setMessage("Exclusão confirmada pela API. As listas foram atualizadas. Ao voltar ao quadro, recarregue a página.");
+      } catch (refreshFailure) {
+        console.warn("[Orquestria][gerenciar] exclusao_confirmada_releitura_falhou", {
+          operacao: deleteOperation(target),
+          tipo: refreshFailure instanceof Error ? refreshFailure.name : "desconhecido"
+        });
+        setMessage("A API confirmou a exclusão, mas não foi possível atualizar a lista. Atualize a página antes de tentar outra operação.");
+      }
     } catch (cause) {
       // Não fechamos a confirmação em caso de falha: o usuário vê o motivo do erro.
       setError(cause instanceof Error ? cause.message : "Não foi possível excluir o item.");
@@ -169,6 +191,7 @@ export default function GerenciarPage() {
           <section aria-labelledby="projects-title" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 id="projects-title" className="text-xl font-semibold">Projetos</h2>
             <p className="mt-1 text-sm text-slate-500">Excluir um projeto apaga também suas colunas, tarefas e comentários.</p>
+            <p className="mt-2 text-sm text-blue-700 dark:text-blue-300">Para excluir tarefas ou colunas, clique em <strong>Ver colunas e tarefas</strong> no projeto desejado.</p>
             {projects.length === 0 && <p className="mt-4 text-sm">Nenhum projeto cadastrado nesta conta.</p>}
             <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-700">
               {projects.map(project => <li key={keyOf(project)} className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -184,7 +207,11 @@ export default function GerenciarPage() {
           {selectedProject && <section aria-labelledby="items-title" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 id="items-title" className="text-xl font-semibold">Quadro: {humanName(selectedProject)}</h2>
             <p className="mt-1 text-sm text-slate-500">Primeiro exclua ou mova as tarefas. Uma coluna com tarefas não pode ser excluída.</p>
-            {!dependenciesLoaded ? <p className="mt-4 text-sm">Carregando colunas e tarefas para validação...</p> :
+            {!dependenciesLoaded ? <p className="mt-4 text-sm">Carregando colunas e tarefas para validação...</p> : projectError ?
+            <div role="alert" className="mt-4 space-y-3 rounded-lg border border-rose-300 bg-rose-50 p-4 text-rose-800">
+              <p>Não foi possível carregar colunas e tarefas: {projectError}</p>
+              <button type="button" disabled={busy} onClick={() => setRetryProject(value => value + 1)} className="rounded-lg border border-rose-400 px-3 py-2 text-sm font-semibold disabled:opacity-50">Tentar novamente</button>
+            </div> :
             <div className="mt-5 space-y-5">
               {columns.length === 0 && <p>O projeto não tem colunas.</p>}
               {columns.map(column => {

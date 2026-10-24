@@ -120,3 +120,63 @@ Isso resolve o uso entre abas dentro do modelo atual de bearer tokens, mas não
 é equivalente a cookies HttpOnly. Uma futura evolução poderá migrar a sessão
 para cookie HttpOnly/SameSite com política adequada entre Netlify e Blitz.
 Esta correção não muda as regras de exclusão, as migrações Flyway ou o backend.
+
+## Correção — Preflight CORS bloqueando `DELETE` na página de gerenciamento (24/10/2026)
+
+### Sintoma observado
+
+O login e a listagem de projetos/workspaces funcionam, mas a exclusão pelo navegador falha
+em `OPTIONS` antes de enviar o `DELETE` ao backend: `Response to preflight request
+... does not have HTTP ok status`. A interface mostra uma mensagem genérica de
+falha de conexão. **Isso não demonstra que o projeto foi excluído**.
+
+### Compatibilidade sem remover as rotas REST
+
+A API mantém os quatro endpoints HTTP `DELETE` e adiciona aliases explícitos via
+`POST` que invocam exatamente o mesmo `BoardDeletionService` (com autenticação,
+verificação do proprietário, `@Transactional`, integridade e retornos `204/404/409`):
+
+| Método do navegador | Endpoint |
+| --- | --- |
+| `POST` | `/api/projects/{projectId}/tasks/{taskId}/delete` |
+| `POST` | `/api/projects/{projectId}/columns/{columnId}/delete` |
+| `POST` | `/api/projects/{projectId}/delete` |
+| `POST` | `/api/workspaces/{workspaceId}/delete` |
+
+O `POST` é uma alternativa para o navegador quando a combinação de preflight,
+camadas de segurança e/ou proxy impede o método DELETE. A origem específica do
+bloqueio no caminho HTTP ainda requer inspeção da resposta OPTIONS no Network;
+**não foi identificada uma falha do PostgreSQL**. A interface de gerenciamento
+usa os novos `POST`, sem tentativa de `DELETE` automática. Caso a API não tenha
+recebido o deploy, uma resposta `405` indica rota ausente. O acesso é autenticado
+por Bearer e **não existe exclusão automática**.
+
+### Diagnóstico do frontend
+
+O console registra `[Orquestria][gerenciar] requisicao`, `resposta`,
+`falha_de_rede_ou_cors` e, quando aplicável,
+`exclusao_confirmada_releitura_falhou`. Os logs incluem apenas nome da operação,
+método e status, sem e-mail, token, senha, corpo ou IDs dos recursos.
+
+Para localizar o botão de tarefa, clicar **Ver colunas e tarefas** no projeto.
+Quando a consulta falha, a tela mostra erro e opção **Tentar novamente**, em vez
+de permanecer indefinidamente em "Carregando". Se a exclusão for confirmada
+pelo servidor mas a releitura falhar, a interface informa que **a exclusão já
+aconteceu**, evitando repetir a ação inadvertidamente.
+
+### Publicação e validação manual
+
+1. Commitar os arquivos preservando caminhos e esperar que o Blitz publique as novas rotas Java **antes** de testar o frontend no Netlify.
+2. Abrir `/gerenciar` autenticado em **conta pessoal de teste**; clicar em **Ver colunas e tarefas** no projeto de teste.
+3. Criar uma tarefa descartável no Kanban e confirmar a exclusão na página de gerenciamento. No Network, a chamada deve ser `POST .../tasks/{taskId}/delete` e retornar `204`.
+4. Excluir uma coluna já vazia e depois um projeto **descartável**; conferir `204` e atualização da listagem.
+5. Excluir um workspace vazio; confirmar `204`. Workspace com projeto e coluna com tarefas continuam impedidos (`409`).
+6. Conferir que um token inválido recebe `401` e que os recursos de outra conta não podem ser excluídos (`404`).
+7. Em caso de falha, copiar do console somente `[Orquestria][gerenciar] ...` e, do Network, `Request Method`/`Status Code` da requisição de teste — **nunca o Authorization nem o Payload**.
+
+### Limitações
+
+As operações ainda ficam em `/gerenciar`; integração dos botões diretamente
+no Kanban e testes de concorrência completos continuam pendentes na Etapa 6.
+Não há alteração em Flyway, PostgreSQL, tokens ou login. A validação completa de
+build do repositório e o preflight real no Blitz dependem do deploy.

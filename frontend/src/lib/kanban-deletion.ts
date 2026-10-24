@@ -15,6 +15,27 @@ export type DeleteTarget =
   | { kind: "project"; id: string }
   | { kind: "workspace"; id: string };
 
+/**
+ * Operações POST alternativas para operações destrutivas. Os endpoints DELETE
+ * originais continuam disponíveis para clientes HTTP e integrações.
+ */
+export function deleteActionPath(target: DeleteTarget): string {
+  return `${targetPath(target)}/delete`;
+}
+
+export type KanbanOperation =
+  | "listar-workspaces" | "listar-projetos" | "listar-colunas" | "listar-tarefas"
+  | "excluir-tarefa" | "excluir-coluna" | "excluir-projeto" | "excluir-workspace";
+
+export function deleteOperation(target: DeleteTarget): KanbanOperation {
+  switch (target.kind) {
+    case "task": return "excluir-tarefa";
+    case "column": return "excluir-coluna";
+    case "project": return "excluir-projeto";
+    case "workspace": return "excluir-workspace";
+  }
+}
+
 export class KanbanApiError extends Error {
   constructor(public readonly status: number, message: string) {
     super(message);
@@ -51,30 +72,40 @@ export async function apiRequest(
   apiBase: string,
   path: string,
   token: string,
-  method: "GET" | "DELETE" = "GET"
+  method: "GET" | "DELETE" | "POST" = "GET",
+  operation: KanbanOperation = "listar-projetos"
 ): Promise<unknown> {
   if (!token) throw new KanbanApiError(401, "Sua sessão expirou. Entre novamente.");
   let response: Response;
+  // Logs de diagnóstico sem valores privados: nunca registrar token, senha,
+  // corpo da requisição ou identificadores das entidades.
+  console.info("[Orquestria][gerenciar] requisicao", { operacao: operation, metodo: method });
   try {
     response = await fetch(`${apiBase}${path}`, {
       method,
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store"
     });
-  } catch {
-    throw new KanbanApiError(0, "Não foi possível conectar à API. Verifique se o Blitz já acordou.");
+  } catch (cause) {
+    console.error("[Orquestria][gerenciar] falha_de_rede_ou_cors", {
+      operacao: operation, metodo: method,
+      tipo: cause instanceof Error ? cause.name : "desconhecido"
+    });
+    throw new KanbanApiError(0, "A requisição não chegou à API: possível CORS ou falha de rede. Confira OPTIONS na aba Network e se o Blitz está online.");
   }
+  console.info("[Orquestria][gerenciar] resposta", { operacao: operation, metodo: method, status: response.status, sucesso: response.ok });
   if (!response.ok) {
     const messages: Record<number, string> = {
       401: "Sua sessão expirou. Entre novamente.",
       403: "Você não tem permissão para realizar esta operação.",
       404: "Este recurso não existe mais ou não pertence à sua conta.",
-      409: "Este item possui dependências. Esvazie a coluna ou remova os projetos do workspace antes de excluir."
+      409: "Este item possui dependências. Esvazie a coluna ou remova os projetos do workspace antes de excluir.",
+      405: "O servidor ainda não aceita esta operação. Confirme se o novo commit já foi publicado no Blitz."
     };
     const message = messages[response.status] ||
       (response.status >= 500 ? "O servidor não concluiu a operação. Tente novamente." : `Operação recusada (HTTP ${response.status}).`);
     throw new KanbanApiError(response.status, message);
   }
-  if (method === "DELETE" || response.status === 204) return null;
+  if (method === "DELETE" || method === "POST" || response.status === 204) return null;
   return response.json();
 }
