@@ -29,6 +29,7 @@ type BoardState = {
   activities: Activity[];
   remoteReady: boolean;
   remoteLoading: boolean;
+  remoteActionLabel: string;
   remoteError: string | null;
   setRemoteBoard: (workspaces: Workspace[]) => void;
   setRemoteError: (message: string) => void;
@@ -110,13 +111,14 @@ type RemoteSelection = { workspaceId?: string; projectId?: string; taskId?: stri
 async function runRemoteMutation(
   set: (value: Partial<BoardState>) => void,
   get: () => BoardState,
+  actionLabel: string,
   action: () => Promise<RemoteSelection>
 ): Promise<boolean> {
   if (get().remoteLoading) {
     set({ remoteError: "Aguarde a operação anterior terminar antes de continuar." });
     return false;
   }
-  set({ remoteLoading: true, remoteError: null });
+  set({ remoteLoading: true, remoteActionLabel: actionLabel, remoteError: null });
   try {
     const preferred = await action();
     const user = get().currentUser;
@@ -137,7 +139,7 @@ async function runRemoteMutation(
     set({ remoteError: describeError(error) });
     return false;
   } finally {
-    set({ remoteLoading: false, draggedTaskId: null });
+    set({ remoteLoading: false, remoteActionLabel: "Salvando alterações...", draggedTaskId: null });
   }
 }
 
@@ -158,6 +160,7 @@ export const useBoardStore = create<BoardState>()(
       activities: [],
       remoteReady: false,
       remoteLoading: false,
+      remoteActionLabel: "Salvando alterações...",
       remoteError: null,
       setRemoteBoard: (workspaces) => set((state) => ({
         workspaces,
@@ -172,9 +175,14 @@ export const useBoardStore = create<BoardState>()(
       setRemoteError: (message) => set({ remoteError: message, remoteReady: false }),
       reloadRemote: async () => {
         const member = get().currentUser;
-        if (!member) return;
+        if (!member || get().remoteLoading) return;
+        set({ remoteLoading: true, remoteActionLabel: "Atualizando dados...", remoteError: null });
         try { get().setRemoteBoard(await loadRemoteBoard(member)); }
-        catch (error) { set({ remoteError: describeError(error) }); }
+        catch (error) {
+          console.error("[Orquestria] Falha ao atualizar dados da API", error);
+          set({ remoteError: describeError(error) });
+        }
+        finally { set({ remoteLoading: false, remoteActionLabel: "Salvando alterações..." }); }
       },
       login: (name, email) => {
         const user: Member = {
@@ -232,7 +240,7 @@ export const useBoardStore = create<BoardState>()(
       setTheme: (theme) => set({ theme }),
       addWorkspace: (name) => {
         if (isApiMode) {
-          return runRemoteMutation(set, get, async () => {
+          return runRemoteMutation(set, get, "Criando workspace...", async () => {
             const created = await postApi<{id: string}>("/api/workspaces", { name, description: "" });
             const project = await postApi<{id: string}>("/api/projects", {
               name: "Projeto inicial", description: "Primeira frente de trabalho do espaço.", workspaceId: created.id
@@ -273,7 +281,7 @@ export const useBoardStore = create<BoardState>()(
       },
       addProject: (workspaceId, name) => {
         if (isApiMode) {
-          return runRemoteMutation(set, get, async () => {
+          return runRemoteMutation(set, get, "Criando projeto...", async () => {
             const created = await postApi<{id: string}>("/api/projects", {
               name, description: "Projeto criado para centralizar atividades e entregas.",
               workspaceId: workspaceId === UNASSIGNED_WORKSPACE_ID ? null : workspaceId
@@ -312,7 +320,7 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       updateProject: (projectId, name) => {
-        if (isApiMode) return runRemoteMutation(set, get, async () => {
+        if (isApiMode) return runRemoteMutation(set, get, "Salvando projeto...", async () => {
           await postApi(`/api/projects/${projectId}/rename`, { name });
           return { projectId };
         });
@@ -324,7 +332,7 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       addColumn: (projectId, title) => {
-        if (isApiMode) return runRemoteMutation(set, get, async () => {
+        if (isApiMode) return runRemoteMutation(set, get, "Criando coluna...", async () => {
           const workspace = get().workspaces.find((space) => space.projects.some((p) => p.id === projectId));
           const count = workspace?.columns.filter((col) => col.projectId === projectId).length || 0;
           await postApi(`/api/projects/${projectId}/columns`, { title, position: count, color: "slate" });
@@ -351,7 +359,7 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       updateColumn: (columnId, title) => {
-        if (isApiMode) return runRemoteMutation(set, get, async () => {
+        if (isApiMode) return runRemoteMutation(set, get, "Salvando coluna...", async () => {
           const column = get().workspaces.flatMap((space) => space.columns).find((item) => item.id === columnId);
           if (!column) throw new Error("Coluna não encontrada.");
           await postApi(`/api/projects/${column.projectId}/columns/${column.id}/rename`, { title });
@@ -365,7 +373,7 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       addTask: (payload) => {
-        if (isApiMode) return runRemoteMutation(set, get, async () => {
+        if (isApiMode) return runRemoteMutation(set, get, "Criando tarefa...", async () => {
           const current = get().workspaces.flatMap((space) => space.tasks)
             .filter((task) => task.projectId === payload.projectId && task.columnId === payload.columnId);
           const task = await postApi<{id: string}>(`/api/projects/${payload.projectId}/tasks`, {
@@ -391,7 +399,7 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       updateTask: (taskId, patch) => {
-        if (isApiMode) return runRemoteMutation(set, get, async () => {
+        if (isApiMode) return runRemoteMutation(set, get, "Salvando tarefa...", async () => {
           const task = get().workspaces.flatMap((space) => space.tasks).find((item) => item.id === taskId);
           if (!task) throw new Error("Tarefa não encontrada.");
           const data = { ...task, ...patch };
@@ -411,7 +419,7 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       moveTask: (taskId, columnId) => {
-        if (isApiMode) return runRemoteMutation(set, get, async () => {
+        if (isApiMode) return runRemoteMutation(set, get, "Movendo tarefa...", async () => {
           const task = get().workspaces.flatMap((space) => space.tasks).find((item) => item.id === taskId);
           if (!task) throw new Error("Tarefa não encontrada.");
           await postApi(`/api/projects/${task.projectId}/tasks/${task.id}/move`, {
@@ -431,7 +439,7 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       addComment: (taskId, message) => {
-        if (isApiMode) return runRemoteMutation(set, get, async () => {
+        if (isApiMode) return runRemoteMutation(set, get, "Enviando comentário...", async () => {
           const task = get().workspaces.flatMap((space) => space.tasks).find((item) => item.id === taskId);
           const author = get().currentUser;
           if (!task || !author) throw new Error("Tarefa ou usuário não encontrado.");

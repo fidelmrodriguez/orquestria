@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RemoteOperationOverlay } from "@/components/feedback/RemoteOperationOverlay/RemoteOperationOverlay";
 import { ActivityFeed } from "@/components/activity/ActivityFeed/ActivityFeed";
 import { BoardView } from "@/components/board/BoardView/BoardView";
 import { LoginScreen } from "@/components/auth/LoginScreen/LoginScreen";
@@ -19,6 +20,7 @@ export function AppShell() {
   const theme = useBoardStore((state) => state.theme);
   const remoteReady = useBoardStore((state) => state.remoteReady);
   const remoteLoading = useBoardStore((state) => state.remoteLoading);
+  const remoteActionLabel = useBoardStore((state) => state.remoteActionLabel);
   const remoteError = useBoardStore((state) => state.remoteError);
   const reloadRemote = useBoardStore((state) => state.reloadRemote);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -71,7 +73,6 @@ export function AppShell() {
               <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
                 <strong>Modo Java + PostgreSQL.</strong> Os dados do quadro são compartilhados nesta demonstração pública.
                 O login ainda é demonstrativo e não controla o acesso aos registros.
-                {remoteLoading && <span className="ml-2 font-semibold">Salvando ou atualizando dados...</span>}
                 <button type="button" onClick={() => void reloadRemote()} className="ml-3 underline underline-offset-2">Atualizar do servidor</button>
               </div>
             )}
@@ -100,6 +101,7 @@ export function AppShell() {
       <TaskDetailPanel />
       <NewTaskPanel open={newTaskOpen} onClose={() => setNewTaskOpen(false)} />
       <SharePanel open={shareOpen} onClose={() => setShareOpen(false)} />
+      {isApiMode && <RemoteOperationOverlay open={remoteLoading} label={remoteActionLabel} />}
     </div>
   );
 }

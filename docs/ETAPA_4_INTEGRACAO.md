@@ -52,3 +52,11 @@ A API Java recebeu endpoints de edição e comentários, mais uma migração Fly
 Tarefas podem ser criadas sem data de vencimento. A API devolve `dueDate: null` nesse caso e o frontend representa o prazo ausente como uma string vazia. O cartão mostra **Sem prazo**, sem tentar formatar uma data inválida. O utilitário `formatDate` também retorna um valor alternativo para datas ausentes ou inválidas, evitando que um cartão derrube o quadro inteiro.
 
 Para validar no Netlify: abra **Projetos sem workspace**, selecione um projeto com tarefa sem vencimento e confirme que o Kanban carrega. Edite uma tarefa com prazo e recarregue com F5; a data válida deve continuar sendo exibida. Essa correção afeta apenas o frontend, sem migração do banco ou modificação da API.
+
+## Feedback de gravação e atualização
+
+No modo conectado ao Spring Boot, o quadro utiliza um **overlay com carregamento centralizado** durante requisições de gravação (workspaces, projetos, colunas, tarefas, comentários e movimentação) e na atualização manual dos dados. O modal mostra a operação atual e impede novos cliques até que a API responda e os dados sejam recarregados.
+
+O carregamento usa o estado `remoteLoading` do Zustand, sem tempos de espera artificiais. Mesmo em caso de erro, o indicador desaparece no bloco `finally` e a mensagem de falha permanece visível no quadro. No modo local demonstrativo, esse overlay não aparece.
+
+**Teste no Netlify:** abra um projeto, crie/edite/mova uma tarefa e verifique se o overlay aparece durante o envio. Após a resposta, ele deve desaparecer; atualize a página (F5) e confira que os dados permanecem. Use **Atualizar do servidor** para verificar a mensagem de atualização. Nenhuma mudança no backend ou no banco é necessária para este ajuste.

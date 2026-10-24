@@ -10,7 +10,7 @@ No Orquestria, você pode navegar por workspaces e projetos, criar colunas, orga
 
 ### Integração com Java
 
-O quadro principal consulta a API Spring Boot sempre que `NEXT_PUBLIC_ORQUESTRIA_API_URL` estiver configurada. Nessa modalidade, projetos, colunas, tarefas e comentários são carregados do PostgreSQL. Criação, edições e movimentações são enviadas ao backend por HTTP; após cada gravação, a interface consulta os dados novamente.
+O quadro principal consulta a API Spring Boot sempre que `NEXT_PUBLIC_ORQUESTRIA_API_URL` estiver configurada. Nessa modalidade, projetos, colunas, tarefas e comentários são carregados do PostgreSQL. Criação, edições e movimentações são enviadas ao backend por HTTP; após cada gravação, a interface consulta os dados novamente. Enquanto uma operação está em andamento, um modal de carregamento bloqueia novas interações e indica a ação em curso. O modal fecha tanto no sucesso quanto na falha, e os erros continuam disponíveis no aviso do quadro.
 
 Se a variável da API não estiver configurada, o frontend continua disponível em **modo demonstrativo local**, com dados da DummyJSON, Zustand e `localStorage`. Esse modo serve apenas para a interface e não deve ser confundido com persistência no PostgreSQL.
 
