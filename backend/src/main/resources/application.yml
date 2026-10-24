@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: orquestria-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/orquestria}
+    username: ${DB_USER:orquestria}
+    password: ${DB_PASSWORD:orquestria}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

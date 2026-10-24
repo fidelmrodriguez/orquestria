@@ -1,95 +1,83 @@
 # Orquestria
 
-**Gestão de projetos e tarefas com Kanban, colaboração e uma interface pensada para o trabalho em equipe.**
+Gestão de projetos e tarefas com workspaces, quadros Kanban e organização do trabalho em equipe.
 
-> **Status do projeto:** frontend funcional · backend Java/Spring Boot planejado.
->
-> **Demonstração:** endereço Netlify a adicionar após a publicação deste repositório.
+**[Acessar o Orquestria](https://orquestria.netlify.app/)** · [Código do frontend](frontend/) · [Código do backend](backend/) · [Guia de publicação](docs/DEPLOY_NETLIFY.md)
 
-O **Orquestria** é uma aplicação para organizar projetos e tarefas em equipe. Nesta primeira versão, desenvolvi o frontend com **Next.js, React e TypeScript**, incluindo workspaces, gerenciamento de tarefas e quadro Kanban. O próximo passo é criar uma API com **Java e Spring Boot**, usando **PostgreSQL** para armazenar os dados no servidor.
+O Orquestria começou como uma aplicação frontend em **Next.js, React e TypeScript**. Essa versão está publicada no Netlify e já permite navegar por projetos, organizar tarefas e utilizar o quadro Kanban. O repositório também inclui agora o início da API em **Java e Spring Boot**, com PostgreSQL para persistência de projetos.
 
-## Visão rápida
+O frontend e o backend ainda são **independentes**: a versão online continua demonstrativa, e a integração com a API será feita nas próximas etapas.
 
-| | Estado atual |
+## O que já está funcionando
+
+### Frontend
+
+- Workspaces e projetos com navegação e criação de itens.
+- Quadro Kanban com criação e movimentação de tarefas.
+- Edição de tarefas, prioridades, responsáveis, tags, prazos e comentários.
+- Pesquisa, filtros, notificações, responsividade e temas claro/escuro.
+- Estado com Zustand, dados iniciais via DummyJSON e alterações gravadas no `localStorage`.
+- Sincronização de estado entre abas **do mesmo navegador** com `BroadcastChannel`.
+- Formulários com React Hook Form e Zod e testes com Jest e React Testing Library.
+
+A tela de entrada utiliza uma **sessão demonstrativa no navegador**, não autenticação de usuários no servidor. Os dados da aplicação online não são compartilhados entre pessoas ou dispositivos; recursos de colaboração entre usuários ainda não estão disponíveis.
+
+### Backend — primeira etapa
+
+O diretório [`backend/`](backend/) contém uma API REST inicial com Java 21, Spring Boot, JPA/Hibernate, PostgreSQL e Flyway. Os endpoints implementados permitem:
+
+- Criar projetos: `POST /api/projects`.
+- Listar projetos: `GET /api/projects`.
+- Consultar um projeto: `GET /api/projects/{id}`.
+- Consultar a saúde da aplicação: `GET /actuator/health`.
+
+A API tem validação dos dados recebidos e respostas HTTP para erros comuns. Há testes unitários iniciais para a camada de serviço. **Ela ainda não está hospedada nem conectada ao frontend.**
+
+## Tecnologias
+
+| Frontend | Backend |
 | --- | --- |
-| **Frontend** | ✅ Implementado, pronto para execução local e deploy |
-| **Backend Java** | 🗓️ Planejado — não implementado nesta versão |
-| **Banco de dados** | 🗓️ PostgreSQL planejado — ainda sem persistência no servidor |
-| **Dados da demonstração** | DummyJSON na carga inicial; alterações mantidas no navegador (`localStorage`) |
-| **Testes** | Testes unitários com Jest e React Testing Library |
-| **Deploy** | Exportação estática do Next.js (`frontend/out`) via Netlify; URL pública será adicionada após a confirmação |
+| Next.js 14, React 18, TypeScript | Java 21, Spring Boot 3.5 |
+| Tailwind CSS, Zustand, TanStack Query | Spring Web, Spring Data JPA / Hibernate |
+| React Hook Form, Zod | PostgreSQL, Flyway, Bean Validation |
+| Jest, React Testing Library | JUnit 5, Mockito, Maven |
 
-## Funcionalidades disponíveis
-
-- **Gestão de workspaces e projetos:** criação e navegação por áreas e projetos.
-- **Quadro Kanban:** colunas editáveis, criação e movimentação de tarefas com drag and drop nativo.
-- **Gestão de tarefas:** edição de título, descrição, prioridade, responsáveis, tags e prazo, além de comentários.
-- **Organização do trabalho:** pesquisa e filtros por prioridade e responsável.
-- **Experiência de uso:** layout responsivo, navegação mobile, tema claro/escuro, notificações e painéis laterais.
-- **Estado da aplicação:** Zustand com persistência local e sincronização **entre abas do mesmo navegador** via `BroadcastChannel`.
-- **Qualidade:** formulários com React Hook Form + Zod e testes automatizados com Jest / React Testing Library.
-
-> **Demonstração, não autenticação de produção:** a tela de login valida campos no frontend e cria uma sessão local. A senha não é autenticada por um servidor. Os dados editados não ficam compartilhados entre usuários/dispositivos. Os links de compartilhamento exibidos pela interface ainda não concedem acesso real a outras pessoas.
-
-## Stack e arquitetura
-
-**Frontend implementado:** Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Zustand, TanStack Query, React Hook Form, Zod, Jest e React Testing Library.
-
-**Backend planejado:** Java, Spring Boot, Spring Data JPA/Hibernate, PostgreSQL, Spring Security, testes e documentação de API. Essas tecnologias **ainda não fazem parte do código entregue**.
-
-### Arquitetura atual
-
-```text
-                ┌───────────────────────────────┐
-                │ Frontend · Next.js / React    │
-                │ hospedagem: Netlify           │
-                └───────────────┬───────────────┘
-                                │
-                 ┌──────────────┴───────────────┐
-                 ▼                              ▼
-      DummyJSON (dados iniciais)     Zustand + localStorage
-                                    BroadcastChannel (abas)
-```
-
-### Evolução planejada
-
-```text
-    Next.js / React (Netlify)
-              │
-              │ HTTP / JSON
-              ▼
-    API REST · Java / Spring Boot
-              │
-              │ JPA / Hibernate
-              ▼
-           PostgreSQL
-```
-
-A proposta é substituir progressivamente os dados demonstrativos e a persistência local por operações de API, persistência relacional e regras de autorização no servidor. O backend terá **deploy independente** do frontend.
-
-## Estrutura do repositório
+## Organização
 
 ```text
 orquestria/
-├── frontend/                # Aplicação Next.js funcional
-│   ├── src/app/             # App Router, layout e estilos globais
-│   ├── src/components/      # Interface e componentes por domínio
-│   ├── src/hooks/           # Hooks de carga inicial e sincronização
-│   ├── src/lib/             # Fonte de dados e regras auxiliares
-│   ├── src/store/           # Estado e persistência local com Zustand
-│   ├── src/types/           # Modelos TypeScript
-│   ├── package.json
-│   └── package-lock.json
-├── backend/                 # Reservado para a futura API Spring Boot
+├── frontend/          # Next.js, publicado no Netlify
+├── backend/           # API Spring Boot, banco local via Compose
+│   ├── src/main/java/
+│   ├── src/main/resources/db/migration/
+│   ├── src/test/java/
+│   ├── compose.yaml
+│   └── pom.xml
 ├── docs/
-│   └── DEPLOY_NETLIFY.md   # Publicação do frontend
-├── netlify.toml             # Build do frontend a partir da subpasta
+│   └── DEPLOY_NETLIFY.md
+├── netlify.toml
 └── README.md
 ```
 
-## Rodando localmente
+A implantação atual funciona assim:
 
-**Pré-requisitos:** Node.js 20+ e npm.
+```text
+Site online (Netlify)
+    └── Next.js / React
+        ├── DummyJSON (dados iniciais)
+        └── Zustand / localStorage (persistência local)
+
+API local (independente)
+    └── Java / Spring Boot
+        └── Spring Data JPA / Hibernate
+            └── PostgreSQL
+```
+
+O objetivo é que o frontend passe a consumir essa API por HTTPS, substituindo gradualmente os dados simulados pelas informações armazenadas no banco.
+
+## Executar localmente
+
+**Frontend** — Node.js 20+ e npm:
 
 ```bash
 git clone https://github.com/fidelmrodriguez/orquestria.git
@@ -98,43 +86,30 @@ npm ci
 npm run dev
 ```
 
-Acesse **http://localhost:3000**.
+Abra `http://localhost:3000`. Os campos de login já vêm preenchidos para testar a demonstração. A carga inicial depende da disponibilidade da API pública DummyJSON.
 
-> Se você escolher outro nome para o repositório no GitHub, ajuste a URL do `git clone` acima.
-
-Para experimentar, use os dados demonstrativos que já vêm preenchidos na tela de entrada (nome, e-mail e senha). Nenhum cadastro real é necessário nesta versão.
-
-**Scripts disponíveis** (executados dentro de `frontend/`):
+**Backend** — Java 21, Maven 3.9+ e Docker:
 
 ```bash
-npm run dev        # ambiente de desenvolvimento
-npm run build      # build de produção
-npm test           # testes unitários
-npm run typecheck  # verificação de tipos TypeScript
+# Em outro terminal, a partir da raiz do repositório:
+cd backend
+docker compose up -d
+mvn spring-boot:run
 ```
 
-A carga inicial de usuários e tarefas depende da disponibilidade da API pública **DummyJSON**. Depois da carga, as alterações são mantidas no armazenamento local do navegador. Para reiniciar a demonstração, limpe a chave `orquestria-storage-v1` do `localStorage`.
+A API inicia em `http://localhost:8080`. Veja os comandos, endpoints e exemplos de requisição em [backend/README.md](backend/README.md). A execução do backend exige PostgreSQL acessível; o Compose facilita o ambiente local.
 
-## Deploy do frontend
+## Publicação
 
-Este repositório foi organizado para publicar **somente `frontend/` no Netlify**, mesmo com a estrutura reservada para um backend futuro. O Next.js exporta as páginas como arquivos estáticos na pasta `frontend/out`, e o `netlify.toml` na raiz define essa pasta como diretório de publicação. Para executar localmente, use `npm run dev`; o comando `next start` não é utilizado na exportação estática.
+A versão pública do frontend está em **https://orquestria.netlify.app/**. O Next.js é exportado como site estático (`frontend/out`), conforme o `netlify.toml`. O Netlify não executa a API Java deste projeto.
 
-Veja o procedimento em [docs/DEPLOY_NETLIFY.md](docs/DEPLOY_NETLIFY.md). Quando o deploy estiver publicado, substitua a linha **Demonstração** no início deste documento pelo link real.
+## Próximas etapas
 
-**Nota:** o Netlify não vai iniciar automaticamente um processo Java/Spring Boot contínuo. Quando a API estiver pronta, o frontend consumirá o endereço HTTPS da API hospedada separadamente.
-
-## Próximas etapas — backend Java
-
-A ordem prevista de evolução é:
-
-1. **API REST:** estrutura Spring Boot com controllers, services, DTOs, validações e tratamento centralizado de erros.
-2. **Persistência:** modelagem relacional de usuários, workspaces, projetos, colunas, tarefas e comentários no PostgreSQL, utilizando Spring Data JPA/Hibernate e migrações.
-3. **Segurança:** autenticação real com Spring Security e autorização por usuário, workspace e projeto.
-4. **Integração:** substituir a fonte demonstrativa e a gravação exclusiva no navegador por chamadas à API.
-5. **Confiabilidade:** testes unitários e de integração, OpenAPI/Swagger, Docker, CI e deploy da API.
-
-Essas são **etapas planejadas**, não funcionalidades já entregues.
+- Ampliar o domínio da API para workspaces, colunas, tarefas e comentários.
+- Criar autenticação e autorização no backend com Spring Security.
+- Incluir testes de integração, documentação OpenAPI e infraestrutura para a API.
+- Conectar o frontend à API e substituir a persistência demonstrativa por dados no PostgreSQL.
 
 ---
 
-**Desenvolvido por [Fidel M Rodriguez](https://github.com/fidelmrodriguez)** · [LinkedIn](https://www.linkedin.com/in/fidelmrodriguez/)
+Desenvolvido por [Fidel M Rodriguez](https://github.com/fidelmrodriguez) · [LinkedIn](https://www.linkedin.com/in/fidelmrodriguez/)
