@@ -9,7 +9,7 @@ public class AuthController {
         return service.login(req.identifier(),req.password());
     }
     @PostMapping("/register") public LoginResponse register(@Valid @RequestBody RegisterRequest req){
-        return service.register(req.name(),req.identifier(),req.password());
+        return service.register(req.name(),req.email(),req.password());
     }
     @GetMapping("/me") public UserResponse me(){
         AppUser user=service.currentUser();
