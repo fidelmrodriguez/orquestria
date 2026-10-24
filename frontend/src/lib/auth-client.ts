@@ -24,7 +24,6 @@ export async function authenticate(endpoint: "login" | "register", payload: obje
     console.error("[Orquestria][auth] URL da API não configurada", { endpoint });
     throw new Error("A API de autenticação não está configurada.");
   }
-
   let response: Response;
   try {
     response = await fetch(`${apiUrl}/api/auth/${endpoint}`, {
@@ -35,25 +34,22 @@ export async function authenticate(endpoint: "login" | "register", payload: obje
     console.error("[Orquestria][auth] Falha de rede", { endpoint });
     throw new Error("Não foi possível conectar ao servidor. Tente novamente.");
   }
-
   // Diagnóstico sem dados pessoais: não registrar e-mail, nome, senha, token ou body.
   console.info("[Orquestria][auth] Resposta da API", {
     operacao: endpoint, status: response.status, sucesso: response.ok
   });
-
   if (!response.ok) {
     if (endpoint === "login" && response.status === 401) {
-      throw new Error("E-mail ou senha incorretos. Use o e-mail informado no cadastro.");
+      throw new Error("Usuário, e-mail ou senha incorretos.");
     }
     if (endpoint === "register" && response.status === 409) {
-      throw new Error("Este e-mail já está cadastrado. Se a conta é sua, selecione 'Já tenho uma conta'.");
+      throw new Error("Este e-mail ou nome de usuário já está em uso. Escolha outro usuário ou entre na conta existente.");
     }
     if (response.status === 400) {
       throw new Error("Confira os dados informados e tente novamente.");
     }
     throw new Error(`Não foi possível ${endpoint === "login" ? "entrar" : "criar a conta"} (HTTP ${response.status}).`);
   }
-
   const result = await response.json() as AuthResult;
   saveAuthToken(result.token);
   return result;

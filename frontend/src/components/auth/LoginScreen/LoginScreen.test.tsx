@@ -37,10 +37,10 @@ describe("LoginScreen", () => {
     expect(screen.getByLabelText("Usuário ou e-mail")).toHaveValue("guest");
     expect(screen.getByLabelText("Senha")).toHaveValue("OrquestriaDemo2026!");
     await user.click(screen.getByRole("button", { name: "Já tenho uma conta" }));
-    expect(screen.getByLabelText("E-mail cadastrado")).toHaveValue("");
+    expect(screen.getByLabelText("Usuário ou e-mail")).toHaveValue("");
     expect(screen.getByLabelText("Senha")).toHaveValue("");
 
-    await user.type(screen.getByLabelText("E-mail cadastrado"), "pessoa@exemplo.com");
+    await user.type(screen.getByLabelText("Usuário ou e-mail"), "pessoa@exemplo.com");
     await user.type(screen.getByLabelText("Senha"), "MinhaSenhaSegura123!");
     await user.click(screen.getByRole("button", { name: "Entrar na minha conta" }));
     await waitFor(() => {
@@ -51,17 +51,29 @@ describe("LoginScreen", () => {
     expect(mockLogin).toHaveBeenCalledWith("Pessoa Teste", "pessoa@exemplo.com", "user-123");
   });
 
+  it("permite entrar na conta pessoal pelo nome de usuário", async () => {
+    const user = userEvent.setup();
+    render(<LoginScreen />);
+    await user.click(screen.getByRole("button", { name: "Já tenho uma conta" }));
+    await user.type(screen.getByLabelText("Usuário ou e-mail"), "pessoa.teste");
+    await user.type(screen.getByLabelText("Senha"), "MinhaSenhaSegura123!");
+    await user.click(screen.getByRole("button", { name: "Entrar na minha conta" }));
+    await waitFor(() => expect(mockAuthenticate).toHaveBeenCalledWith("login", {
+      identifier: "pessoa.teste", password: "MinhaSenhaSegura123!"
+    }));
+  });
   it("cria a conta e autentica automaticamente usando a senha cadastrada", async () => {
     const user = userEvent.setup();
     render(<LoginScreen />);
     await user.click(screen.getByRole("button", { name: "Criar minha conta" }));
-    await user.type(screen.getByLabelText("Nome"), "Pessoa Teste");
+    await user.type(screen.getByLabelText("Nome de exibição"), "Pessoa Teste");
+    await user.type(screen.getByLabelText("Nome de usuário"), "pessoa.teste");
     await user.type(screen.getByLabelText("E-mail"), "pessoa@exemplo.com");
     await user.type(screen.getByLabelText("Senha"), "MinhaSenhaSegura123!");
     await user.click(screen.getByRole("button", { name: "Criar conta e entrar" }));
     await waitFor(() => {
       expect(mockAuthenticate).toHaveBeenCalledWith("register", {
-        name: "Pessoa Teste", email: "pessoa@exemplo.com", password: "MinhaSenhaSegura123!"
+        name: "Pessoa Teste", username: "pessoa.teste", email: "pessoa@exemplo.com", password: "MinhaSenhaSegura123!"
       });
     });
     expect(mockLogin).toHaveBeenCalledWith("Pessoa Teste", "pessoa@exemplo.com", "user-123");

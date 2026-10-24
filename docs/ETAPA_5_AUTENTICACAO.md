@@ -11,7 +11,7 @@ A API exige `Authorization: Bearer <token>` nas rotas `/api/workspaces`, `/api/p
 - A conta guest não tem opção de exclusão. Nenhuma rotina automática de limpeza foi adicionada.
 ### Contas cadastradas
 
-- Cadastro com nome, email e senha (mínimo de dez caracteres).
+- Cadastro com nome de exibição, nome de usuário único, e-mail e senha (mínimo de dez caracteres).
 - Ao entrar, cada conta consulta somente seus projetos e workspaces.
 - Tentativas de ler ou modificar projetos de outras contas retornam `404` sem revelar os dados.
 - Nesta etapa não há convite, compartilhamento entre contas, recuperação de senha ou exclusão de conta. Essas funcionalidades ficam para fases posteriores.
@@ -41,10 +41,10 @@ A API exige `Authorization: Bearer <token>` nas rotas `/api/workspaces`, `/api/p
 Sem limpeza automática, exclusão de usuários, agendador, remoção de registros antigos ou alterações de quotas. A manutenção automática segue reservada para a Etapa 8 em commit separado. A conta guest será permanentemente protegida nessa futura política.
 ## Ajuste de usabilidade do login (Etapa 5)
 - O formulário separa **Entrar como guest**, **Já tenho uma conta** e **Criar minha conta**. O guest continua com credenciais públicas preenchidas por padrão.
-- A autenticação das contas pessoais utiliza **o e-mail cadastrado**, não o nome de exibição. O modo pessoal começa com a senha vazia, impedindo que a senha pré-preenchida do guest seja enviada para outra conta por engano.
-- Após o cadastro, o usuário continua entrando automaticamente. Depois do logout, seleciona **Já tenho uma conta** e informa seu e-mail e sua senha para entrar novamente.
+- A autenticação das contas pessoais aceita **nome de usuário único ou e-mail cadastrado** (o nome de exibição é independente). O modo pessoal começa com a senha vazia, impedindo que a senha pré-preenchida do guest seja enviada para outra conta por engano.
+- Após o cadastro, o usuário continua entrando automaticamente. Depois do logout, seleciona **Já tenho uma conta** e informa seu usuário ou e-mail e a senha para entrar novamente.
 - O console registra somente a operação (`login`/`register`), o status HTTP e o resultado da requisição, sem imprimir e-mails, senhas, tokens ou conteúdo da resposta. Se o login pessoal ainda falhar, o código HTTP permite diferenciar credenciais rejeitadas (`401`) de falhas de servidor.
-- Nenhuma migração, alteração de senha, criação de conta ou rotina de limpeza foi adicionada nesta correção.
+- A correção inicial de usabilidade não trouxe migrações; a extensão para nomes de usuário é documentada abaixo.
 
 ### Correção: campos guest editáveis
 - O formulário inicial ainda exibe as credenciais públicas do guest, mas **usuário/e-mail e senha são campos editáveis**, inclusive com Backspace.
@@ -54,11 +54,12 @@ Sem limpeza automática, exclusão de usuários, agendador, remoção de registr
 - Testes automatizados cobrem o preenchimento inicial, Backspace, troca de credenciais, troca de modo e login pessoal.
 - Esta entrega altera somente a interface, seus testes e a documentação: não exige alteração no Spring Boot, no Neon ou nas migrações.
 
-### Diagnóstico temporário de falha 401 no login pessoal
-- O `AuthService` registra no log da **API no Blitz** se a conta não foi encontrada (`motivo=conta_nao_encontrada`) ou se o BCrypt recusou a senha (`motivo=senha_incorreta`). O navegador continua recebendo o mesmo HTTP 401 genérico em ambos os casos.
-- Um cadastro concluído gera uma sessão automaticamente, sem autenticação por senha. A existência dessa sessão não comprova que um login posterior passará.
-- Os logs não contêm e-mail, nome, senha, hash, token, identificador de usuário ou JSON da requisição. Não habilitar logging de request bodies nem de headers Authorization no ambiente publicado.
-- Procedimento: publicar o backend no Blitz; aguardar que a nova versão esteja ativa; tentar entrar como guest para controle; sair; tentar login pessoal com o **e-mail** (não nome) e senha usados no cadastro; buscar `[Orquestria][auth]` nos logs do serviço do Blitz e compartilhar apenas `motivo=` e, se presente, `tipo_conta=`.
-- Se a falha for `conta_nao_encontrada`, verificar o e-mail cadastrado e se a API está conectada ao banco Neon esperado. Se for `senha_incorreta`, investigar diferença entre a senha informada no cadastro e no login e o hash persistido, sem revelar credenciais.
-- Este diagnóstico não altera contas existentes, hashes de senha, rotas, sessões, migrações ou políticas de retenção. Remover os logs de motivo específico após investigar o erro, mantendo a resposta pública genérica.
-- Testes automatizados adicionais cobrem registro seguido de login com BCrypt real e HTTP 401 uniforme nos dois motivos de falha.
+## Login por nome de usuário ou e-mail — V5
+
+- Novos cadastros pedem **nome de exibição** e **nome de usuário** (3–32 caracteres: letras, números, `.`, `_` ou `-`, começando com letra ou número); nomes de usuário não distinguem maiúsculas de minúsculas. `guest` é reservado.
+- `POST /api/auth/login` aceita `identifier` com **e-mail completo** ou **nome de usuário**, com a mesma senha de sempre. A resposta pública continua genérica (`401`) quando o login não é autorizado.
+- `V5__unique_usernames.sql` acrescenta `app_users.username`, preenche os registros existentes a partir dos nomes já cadastrados quando forem únicos e válidos para login, e cria índice exclusivo ignorando maiúsculas de minúsculas.
+- Quando existirem nomes de exibição repetidos entre contas antigas, a conta mais recente mantém esse nome como usuário e as demais ganham identificador estável baseado no UUID. Nomes antigos reservados, vazios ou com `@` também ganham um identificador alternativo; todos continuam entrando por e-mail. O campo `name` original não é alterado. Nenhum projeto, sessão, token ou hash de senha é apagado.
+- **Aplique a nova V5 após a V4**. Não altere migrações antigas. Confirme no Blitz `Successfully validated 5 migrations` e `Schema ... is now at version 5` antes de testar a interface no Netlify.
+- Teste: entrar como guest, entrar em conta antiga por usuário e por e-mail, sair/entrar novamente; registrar conta com nome de exibição diferente do usuário; impedir cadastro com nome de usuário duplicado.
+- Os logs de autenticação não devem registrar nome de usuário, e-mail, senha nem token.

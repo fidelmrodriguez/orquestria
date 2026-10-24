@@ -16,6 +16,8 @@ export function LoginScreen() {
   const [guestIdentifier, setGuestIdentifier] = useState(GUEST_IDENTIFIER);
   const [guestPassword, setGuestPassword] = useState(GUEST_PASSWORD);
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [personalIdentifier, setPersonalIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -47,10 +49,10 @@ export function LoginScreen() {
         login(guest ? "Guest" : name || email || "User", guest ? "guest@orquestria.demo" : email);
       } else {
         const result = registering
-          ? await authenticate("register", { name, email: email.trim(), password })
+          ? await authenticate("register", { name: name.trim(), username: username.trim(), email: email.trim(), password })
           : await authenticate("login", {
               // Use os valores editados, nunca constantes fixas no momento do login.
-              identifier: guest ? guestIdentifier.trim() : email.trim(),
+              identifier: guest ? guestIdentifier.trim() : personalIdentifier.trim(),
               password: guest ? guestPassword : password
             });
         login(result.name, result.email, result.id);
@@ -69,10 +71,10 @@ export function LoginScreen() {
       ? defaultGuestCredentials ? "Entrar como guest" : "Entrar com outras credenciais"
       : "Entrar na minha conta";
   const subtitle = registering
-    ? "Crie uma conta para ter projetos privados."
+    ? "Escolha um nome de usuário exclusivo para entrar sem precisar digitar o e-mail."
     : guest
       ? "As credenciais públicas vêm preenchidas, mas os dois campos podem ser editados."
-      : "Use o e-mail e a senha informados no cadastro.";
+      : "Entre com o usuário ou o e-mail cadastrado e sua senha.";
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,.16),_transparent_34%),linear-gradient(135deg,#f8fafc,#eef2ff)] p-4 text-slate-950 dark:bg-slate-950 dark:text-white sm:p-8">
@@ -110,20 +112,36 @@ export function LoginScreen() {
           </div>
           <div className="space-y-4">
             {registering && (
-              <label className="block space-y-2">
-                <span className="text-sm font-medium">Nome</span>
-                <input className="field" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={120} autoComplete="name" disabled={saving} />
-              </label>
+              <>
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium">Nome de exibição</span>
+                  <input className="field" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={120} autoComplete="name" disabled={saving} />
+                </label>
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium">Nome de usuário</span>
+                  <input className="field" value={username} onChange={(event) => setUsername(event.target.value.toLowerCase())}
+                    required minLength={3} maxLength={32} pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,31}"
+                    title="De 3 a 32 caracteres: letras, números, ponto, hífen ou sublinhado."
+                    placeholder="ex.: maria.silva" autoComplete="username" disabled={saving} />
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">Será usado para entrar na sua conta. Não pode conter espaços.</span>
+                </label>
+              </>
             )}
             {guest ? (
               <label className="block space-y-2">
                 <span className="text-sm font-medium">Usuário ou e-mail</span>
                 <input className="field" value={guestIdentifier} onChange={(event) => setGuestIdentifier(event.target.value)} required maxLength={190} autoComplete="off" disabled={saving} />
               </label>
+            ) : registering ? (
+              <label className="block space-y-2">
+                <span className="text-sm font-medium">E-mail</span>
+                <input className="field" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required maxLength={190} autoComplete="email" disabled={saving} />
+              </label>
             ) : (
               <label className="block space-y-2">
-                <span className="text-sm font-medium">E-mail {registering ? "" : "cadastrado"}</span>
-                <input className="field" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required maxLength={190} autoComplete="email" disabled={saving} />
+                <span className="text-sm font-medium">Usuário ou e-mail</span>
+                <input className="field" value={personalIdentifier} onChange={(event) => setPersonalIdentifier(event.target.value)}
+                  required maxLength={190} autoComplete="username" disabled={saving} />
               </label>
             )}
             <label className="block space-y-2">
@@ -137,7 +155,7 @@ export function LoginScreen() {
             </label>
             {!guest && !registering && (
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                O login utiliza o e-mail informado no cadastro, não o nome de exibição.
+                Informe o nome de usuário escolhido no cadastro ou seu e-mail completo.
               </p>
             )}
             {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}

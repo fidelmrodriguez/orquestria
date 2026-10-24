@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,16 +47,17 @@ public class AuthService {
     }
 
     @Transactional
-    public LoginResponse login(String email, String password) {
-        String address = email.trim().equalsIgnoreCase("guest")
-                ? GuestBootstrap.GUEST_EMAIL
-                : email.trim().toLowerCase(Locale.ROOT);
-
-        var found = users.findByEmailIgnoreCase(address);
+    public LoginResponse login(String identifier, String password) {
+        String identity = identifier.trim().toLowerCase(Locale.ROOT);
+        // E-mail, nome de usuário e guest usam a mesma senha cadastrada.
+        // Nunca consultar por nome de exibição: nomes de exibição podem ser repetidos.
+        var found = identity.contains("@")
+                ? users.findByEmailIgnoreCase(identity)
+                : users.findByUsernameIgnoreCase(identity);
         if (found.isEmpty()) {
             // Estes motivos aparecem somente no log do backend, nunca na resposta pública.
             // Não registrar e-mail, senha, hash, token, ID da conta ou corpo da requisição.
-            LOG.warn("[Orquestria][auth] login rejeitado motivo=conta_nao_encontrada");
+            LOG.warn("[Orquestria][auth] login rejeitado motivo=identificador_nao_encontrado");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
         }
 
@@ -70,14 +72,29 @@ public class AuthService {
     }
 
     @Transactional
-    public LoginResponse register(String name, String email, String password) {
+    public LoginResponse register(String name, String username, String email, String password) {
         String address = email.trim().toLowerCase(Locale.ROOT);
+        String handle = username.trim().toLowerCase(Locale.ROOT);
+        if (handle.equals("guest")) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Nome de usuário indisponível");
+        }
         if (users.existsByEmailIgnoreCase(address)) {
             LOG.info("[Orquestria][auth] cadastro rejeitado motivo=email_ja_cadastrado");
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail ou usuário já cadastrado");
         }
-
-        var user = users.save(new AppUser(name.trim(), address, passwords.encode(password), AccountType.USER));
+        if (users.existsByUsernameIgnoreCase(handle)) {
+            LOG.info("[Orquestria][auth] cadastro rejeitado motivo=usuario_ja_cadastrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail ou usuário já cadastrado");
+        }
+        AppUser user;
+        try {
+            // Força a verificação do índice único agora, inclusive com cadastros simultâneos.
+            user = users.saveAndFlush(new AppUser(name.trim(), handle, address,
+                    passwords.encode(password), AccountType.USER));
+        } catch (DataIntegrityViolationException exception) {
+            LOG.info("[Orquestria][auth] cadastro rejeitado motivo=identificador_indisponivel");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail ou usuário já cadastrado");
+        }
         LOG.info("[Orquestria][auth] cadastro concluido tipo_conta=USER");
         return createSession(user);
     }

@@ -10,14 +10,14 @@ No Orquestria, você pode navegar por workspaces e projetos, criar colunas, orga
 O quadro principal consulta a API Spring Boot sempre que `NEXT_PUBLIC_ORQUESTRIA_API_URL` estiver configurada. Nessa modalidade, projetos, colunas, tarefas e comentários são carregados do PostgreSQL. Criação, edições e movimentações são enviadas ao backend por HTTP; após cada gravação, a interface consulta os dados novamente. Enquanto uma operação está em andamento, um modal de carregamento bloqueia novas interações e indica a ação em curso.
 O modal fecha tanto no sucesso quanto na falha, e os erros continuam disponíveis no aviso do quadro.
 Se a variável da API não estiver configurada, o frontend continua disponível em **modo demonstrativo local**, com dados da DummyJSON, Zustand e `localStorage`. Esse modo serve apenas para a interface e não deve ser confundido com persistência no PostgreSQL.
-O acesso é protegido pelo **Spring Security**: visitantes encontram a conta pública **guest** com as credenciais preenchidas, mas podem editar ambos os campos para informar outras credenciais ou acessar os formulários de login pessoal e cadastro. Múltiplas sessões guest compartilham o mesmo Kanban; contas cadastradas têm workspaces e projetos separados por usuário. As senhas são armazenadas com BCrypt e as sessões usam tokens aleatórios revogáveis.
+O acesso é protegido pelo **Spring Security**: visitantes encontram a conta pública **guest** com as credenciais preenchidas, mas podem editar ambos os campos para informar outras credenciais ou acessar os formulários de login pessoal e cadastro. Múltiplas sessões guest compartilham o mesmo Kanban; contas cadastradas têm workspaces e projetos separados por usuário. Contas pessoais podem entrar por nome de usuário único ou e-mail. As senhas são armazenadas com BCrypt e as sessões usam tokens aleatórios revogáveis.
 O guest é um ambiente público. Use somente informações fictícias nele. A página de diagnóstico agora exige login para consultar ou alterar registros.
 ### Funcionalidades da API
 - Workspaces e projetos, incluindo associação de projetos a workspaces e alteração do nome do projeto.
 - Colunas do Kanban, com criação, listagem e alteração do título.
 - Tarefas, com criação, consulta, edição de detalhes, prioridade, responsável, tags, prazo e movimentação entre colunas do mesmo projeto.
 - Comentários em tarefas, validações de entrada e respostas HTTP de erro.
-- Migrações Flyway `V1` a `V4`, com histórico preservado e proprietários por usuário.
+- Migrações Flyway `V1` a `V5`, com histórico preservado e proprietários por usuário.
 - Cadastro, login, logout e sessões simultâneas com Spring Security.
 > Nesta fase ainda não há compartilhamento privado entre contas, exclusão de usuários, recuperação de senha, notificações em tempo real ou manutenção automática do banco.
 ## Tecnologias
@@ -39,7 +39,8 @@ orquestria/
 │       ├── V1__create_projects.sql
 │       ├── V2__workspaces_kanban_tasks.sql
 │       ├── V3__task_details_comments.sql
-│       └── V4__accounts_and_ownership.sql
+│       ├── V4__accounts_and_ownership.sql
+│       └── V5__unique_usernames.sql
 ├── docs/
 │   ├── README.md
 │   ├── ETAPA_0_FRONTEND.md
