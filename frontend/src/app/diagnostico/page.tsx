@@ -2,25 +2,52 @@
 
 import { FormEvent, useState } from "react";
 
-type Projeto = {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string;
-};
+type Projeto = { id: string; name: string; description: string | null; createdAt: string; workspaceId?: string | null };
+type Workspace = { id: string; name: string; description: string | null };
+type Coluna = { id: string; projectId: string; title: string; position: number; color: string };
+type Tarefa = { id: string; projectId: string; columnId: string; title: string; priority: string; position: number };
 
 const apiUrl = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL ?? "").trim().replace(/\/$/, "");
+
+async function parseJson(res: Response): Promise<unknown> {
+  const raw = await res.text();
+  try { return raw ? JSON.parse(raw) : null; } catch { return raw; }
+}
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${apiUrl}${path}`, { cache: "no-store", ...options });
+  const body = await parseJson(response);
+  if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+  return body as T;
+}
+const jsonPost = (value: unknown): RequestInit => ({
+  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value),
+});
 
 export default function DiagnosticoPage() {
   const [health, setHealth] = useState("Ainda não testado");
   const [projects, setProjects] = useState<Projeto[]>([]);
-  const [message, setMessage] = useState("");
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [columns, setColumns] = useState<Coluna[]>([]);
+  const [tasks, setTasks] = useState<Tarefa[]>([]);
+  const [selectedProject, setSelectedProject] = useState("");
+  const [selectedWorkspace, setSelectedWorkspace] = useState("");
   const [name, setName] = useState("");
+  const [workspaceName, setWorkspaceName] = useState("");
+  const [columnName, setColumnName] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskColumn, setTaskColumn] = useState("");
+  const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function parseJson(res: Response): Promise<unknown> {
-    const raw = await res.text();
-    try { return raw ? JSON.parse(raw) : null; } catch { return raw; }
+  async function loadBoard(projectId: string) {
+    if (!projectId) { setColumns([]); setTasks([]); return; }
+    const [loadedColumns, loadedTasks] = await Promise.all([
+      request<Coluna[]>(`/api/projects/${projectId}/columns`),
+      request<Tarefa[]>(`/api/projects/${projectId}/tasks`),
+    ]);
+    setColumns(loadedColumns);
+    setTasks(loadedTasks);
+    setTaskColumn(current => loadedColumns.some(c => c.id === current) ? current : (loadedColumns[0]?.id ?? ""));
   }
 
   async function check() {
@@ -28,84 +55,189 @@ export default function DiagnosticoPage() {
     setBusy(true);
     setMessage("");
     try {
-      console.info("[Orquestria] Verificando saúde da API", apiUrl);
-      const statusResponse = await fetch(`${apiUrl}/actuator/health`, { cache: "no-store" });
-      const statusData = await parseJson(statusResponse);
-      if (!statusResponse.ok) throw new Error(`Health HTTP ${statusResponse.status}`);
-      setHealth(JSON.stringify(statusData));
-
-      console.info("[Orquestria] Consultando projetos");
-      const projectsResponse = await fetch(`${apiUrl}/api/projects`, { cache: "no-store" });
-      const projectsData = await parseJson(projectsResponse);
-      if (!projectsResponse.ok || !Array.isArray(projectsData)) {
-        throw new Error(`Projetos HTTP ${projectsResponse.status}`);
-      }
-      setProjects(projectsData as Projeto[]);
-      setMessage(`API respondendo; ${projectsData.length} projeto(s) retornado(s).`);
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err);
-      console.error("[Orquestria] Falha na verificação da API:", detail);
-      setHealth("Falha ao verificar a API");
-      setMessage(`${detail}. Verifique a URL, o CORS e os logs do Render.`);
+      console.info("[Orquestria] Consultando API Java no Blitz");
+      const [status, list, spaces] = await Promise.all([
+        request<unknown>("/actuator/health"),
+        request<Projeto[]>("/api/projects"),
+        request<Workspace[]>("/api/workspaces"),
+      ]);
+      setHealth(JSON.stringify(status));
+      setProjects(list);
+      setWorkspaces(spaces);
+      const projectId = list.some(p => p.id === selectedProject) ? selectedProject : (list[0]?.id ?? "");
+      setSelectedProject(projectId);
+      await loadBoard(projectId);
+      setMessage(`API respondendo; ${list.length} projeto(s), ${spaces.length} workspace(s).`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      console.error("[Orquestria] Erro ao consultar API:", detail);
+      setMessage(detail);
     } finally { setBusy(false); }
   }
 
-  async function createProject(event: FormEvent<HTMLFormElement>) {
+  async function saveWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!apiUrl || !name.trim()) return;
+    if (!workspaceName.trim() || !apiUrl) return;
     setBusy(true);
-    setMessage("");
     try {
-      console.info("[Orquestria] Criando um projeto de teste");
-      const response = await fetch(`${apiUrl}/api/projects`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), description: "Criado pela página de diagnóstico do frontend" }),
-      });
-      const body = await parseJson(response);
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
+      const created = await request<Workspace>("/api/workspaces", jsonPost({name: workspaceName.trim()}));
+      setWorkspaces(previous => [created, ...previous]);
+      setSelectedWorkspace(created.id);
+      setWorkspaceName("");
+      setMessage(`Workspace "${created.name}" salvo no PostgreSQL.`);
+    } catch(error) { setMessage(String(error)); }
+    finally { setBusy(false); }
+  }
+
+  async function saveProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!name.trim() || !apiUrl) return;
+    setBusy(true);
+    try {
+      const created = await request<Projeto>("/api/projects", jsonPost({
+        name: name.trim(),
+        description: "Criado pela página de diagnóstico",
+        ...(selectedWorkspace ? {workspaceId: selectedWorkspace} : {}),
+      }));
+      setProjects(previous => [created, ...previous]);
+      setSelectedProject(created.id);
+      setColumns([]);
+      setTasks([]);
+      setTaskColumn("");
       setName("");
-      setMessage("Projeto de teste salvo no PostgreSQL. Clique em Verificar conexão para conferir.");
-      console.info("[Orquestria] Projeto criado:", body);
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err);
-      console.error("[Orquestria] Erro ao criar projeto:", detail);
-      setMessage(detail);
-    } finally { setBusy(false); }
+      setMessage("Projeto salvo no PostgreSQL. Atualize a página e consulte novamente.");
+    } catch(error) { setMessage(String(error)); }
+    finally { setBusy(false); }
+  }
+
+  async function saveColumn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!columnName.trim() || !selectedProject) return;
+    setBusy(true);
+    try {
+      await request<Coluna>(`/api/projects/${selectedProject}/columns`, jsonPost({
+        title: columnName.trim(), position: columns.length, color: "slate",
+      }));
+      setColumnName("");
+      await loadBoard(selectedProject);
+      setMessage("Coluna salva no PostgreSQL.");
+    } catch(error) { setMessage(String(error)); }
+    finally { setBusy(false); }
+  }
+
+  async function saveTask(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!taskTitle.trim() || !taskColumn || !selectedProject) return;
+    setBusy(true);
+    try {
+      await request<Tarefa>(`/api/projects/${selectedProject}/tasks`, jsonPost({
+        title: taskTitle.trim(), columnId: taskColumn, priority: "MEDIA", position: tasks.length,
+      }));
+      setTaskTitle("");
+      await loadBoard(selectedProject);
+      setMessage("Tarefa salva no PostgreSQL.");
+    } catch(error) { setMessage(String(error)); }
+    finally { setBusy(false); }
+  }
+
+  async function moveTask(task: Tarefa, columnId: string) {
+    if (!selectedProject || task.columnId === columnId) return;
+    setBusy(true);
+    try {
+      await request<Tarefa>(`/api/projects/${selectedProject}/tasks/${task.id}/move`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({columnId, position: tasks.length}),
+      });
+      await loadBoard(selectedProject);
+      setMessage(`Tarefa "${task.title}" movida e salva.`);
+    } catch(error) { setMessage(String(error)); }
+    finally { setBusy(false); }
   }
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-12 text-slate-900">
       <a className="text-sm underline" href="/">Voltar ao Orquestria</a>
       <h1 className="mt-6 text-3xl font-semibold">Diagnóstico da API</h1>
-      <p className="mt-3 text-slate-600">Página temporária para verificar a comunicação entre o frontend no Netlify e o backend Java no Render.</p>
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="mt-3 text-slate-600">Testes de integração entre o frontend no Netlify, o backend Java no Blitz e o PostgreSQL no Neon.</p>
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-sm text-slate-500">Endereço configurado da API</p>
-        <p className="mt-1 break-all font-mono text-sm">{apiUrl || "Não configurado. Defina NEXT_PUBLIC_ORQUESTRIA_API_URL no Netlify e faça novo deploy."}</p>
-        <p className="mt-4 text-sm"><strong>Saúde:</strong> {health}</p>
-        <button className="mt-4 rounded-lg bg-slate-900 px-4 py-3 text-white disabled:opacity-40" disabled={!apiUrl || busy} onClick={check} type="button">
-          {busy ? "Aguarde..." : "Verificar conexão e listar projetos"}
-        </button>
-        {message && <p aria-live="polite" className="mt-4 text-sm text-slate-700">{message}</p>}
-      </div>
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold">Criar projeto de teste</h2>
-        <p className="mt-2 text-sm text-slate-600">Esta API ainda não tem autenticação. Use somente dados fictícios; esta página é temporária.</p>
-        <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={createProject}>
-          <input aria-label="Nome do projeto" className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2" maxLength={120} onChange={e => setName(e.target.value)} placeholder="Ex.: Projeto de demonstração" value={name}/>
-          <button className="rounded-lg bg-slate-900 px-4 py-2 text-white disabled:opacity-40" disabled={!apiUrl || busy || !name.trim()} type="submit">Salvar no PostgreSQL</button>
+        <p className="mt-1 break-all font-mono text-sm">{apiUrl || "Configure NEXT_PUBLIC_ORQUESTRIA_API_URL no Netlify."}</p>
+        <p className="mt-4 break-all text-sm"><strong>Saúde:</strong> {health}</p>
+        <button className="mt-4 rounded-lg bg-slate-900 px-4 py-3 text-white disabled:opacity-40" disabled={!apiUrl || busy}
+          onClick={check} type="button">{busy ? "Consultando..." : "Verificar conexão e atualizar dados"}</button>
+        {message && <p className="mt-4 break-words text-sm text-slate-700" aria-live="polite">{message}</p>}
+      </section>
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold">Workspaces</h2>
+        <form className="mt-3 flex flex-col gap-2 sm:flex-row" onSubmit={saveWorkspace}>
+          <input className="min-w-0 flex-1 rounded-lg border border-slate-300 p-3" aria-label="Nome do workspace"
+            placeholder="Ex.: Operação Digital" maxLength={120} value={workspaceName} onChange={e => setWorkspaceName(e.target.value)}/>
+          <button className="rounded-lg bg-slate-900 px-4 py-2 text-white disabled:opacity-40" disabled={!apiUrl || busy || !workspaceName.trim()} type="submit">Criar workspace</button>
         </form>
-        <h3 className="mt-6 font-semibold">Projetos retornados pela API</h3>
-        {projects.length === 0 ? <p className="mt-2 text-sm text-slate-500">Nenhum projeto carregado.</p> : (
+        <p className="mt-3 text-sm text-slate-600">{workspaces.length} workspace(s) carregado(s).</p>
+        {workspaces.length > 0 && <ul className="mt-2 list-inside list-disc text-sm">{workspaces.map(w => <li key={w.id}>{w.name}</li>)}</ul>}
+      </section>
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold">Projetos</h2>
+        <p className="mt-2 text-sm text-slate-600">Crie projetos de demonstração e, se quiser, associe-os a um workspace.</p>
+        <form className="mt-3 flex flex-col gap-2" onSubmit={saveProject}>
+          <input className="rounded-lg border border-slate-300 p-3" aria-label="Nome do projeto"
+            placeholder="Ex.: Projeto de demonstração" maxLength={120} value={name} onChange={e => setName(e.target.value)}/>
+          <select className="rounded-lg border border-slate-300 p-3" value={selectedWorkspace} onChange={e => setSelectedWorkspace(e.target.value)} aria-label="Workspace do projeto">
+            <option value="">Sem workspace</option>
+            {workspaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+          <button className="rounded-lg bg-slate-900 px-4 py-2 text-white disabled:opacity-40" disabled={!apiUrl || busy || !name.trim()} type="submit">Salvar projeto no PostgreSQL</button>
+        </form>
+        <ul className="mt-4 divide-y divide-slate-200">
+          {projects.map(p => <li className="py-2" key={p.id}>
+            <p className="font-medium">{p.name}</p><p className="break-all font-mono text-xs text-slate-500">{p.id}</p>
+          </li>)}
+        </ul>
+      </section>
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold">Kanban — API Java</h2>
+        <p className="mt-2 text-sm text-slate-600">Selecione um projeto e teste colunas, tarefas e movimentação. Este painel é separado do quadro principal.</p>
+        <select className="mt-3 w-full rounded-lg border border-slate-300 p-3" aria-label="Projeto do quadro" value={selectedProject}
+          onChange={async e => {
+            const id = e.target.value;
+            setSelectedProject(id);
+            try { await loadBoard(id); } catch(err) { setMessage(String(err)); }
+          }}>
+          <option value="">Selecione um projeto</option>
+          {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        {selectedProject && <>
+          <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={saveColumn}>
+            <input className="min-w-0 flex-1 rounded-lg border border-slate-300 p-3" placeholder="Ex.: Backlog" aria-label="Nome da coluna"
+              maxLength={80} value={columnName} onChange={e => setColumnName(e.target.value)}/>
+            <button className="rounded-lg bg-slate-900 px-4 py-2 text-white disabled:opacity-40" type="submit" disabled={busy || !columnName.trim()}>Criar coluna</button>
+          </form>
+          <p className="mt-3 text-sm text-slate-600">Colunas: {columns.length}</p>
+          <ul className="mt-1 list-inside list-disc text-sm">{columns.map(c => <li key={c.id}>{c.title}</li>)}</ul>
+          <form className="mt-4 flex flex-col gap-2" onSubmit={saveTask}>
+            <input className="rounded-lg border border-slate-300 p-3" placeholder="Ex.: Implementar endpoints" aria-label="Título da tarefa"
+              maxLength={180} value={taskTitle} onChange={e => setTaskTitle(e.target.value)}/>
+            <select className="rounded-lg border border-slate-300 p-3" aria-label="Coluna inicial da tarefa" value={taskColumn} onChange={e => setTaskColumn(e.target.value)}>
+              <option value="">Selecione a coluna</option>
+              {columns.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+            </select>
+            <button className="rounded-lg bg-slate-900 px-4 py-2 text-white disabled:opacity-40" type="submit"
+              disabled={busy || !taskTitle.trim() || !taskColumn}>Criar tarefa</button>
+          </form>
+          <h3 className="mt-5 font-semibold">Tarefas no PostgreSQL ({tasks.length})</h3>
           <ul className="mt-2 divide-y divide-slate-200">
-            {projects.map(project => <li className="py-3" key={project.id}>
-              <span className="font-medium">{project.name}</span>
-              <p className="break-all font-mono text-xs text-slate-500">{project.id}</p>
+            {tasks.map(task => <li className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between" key={task.id}>
+              <span className="text-sm font-medium">{task.title}</span>
+              <select className="rounded-lg border border-slate-300 p-2 text-sm" aria-label={`Mover tarefa ${task.title}`} value={task.columnId}
+                disabled={busy} onChange={e => void moveTask(task, e.target.value)}>
+                {columns.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+              </select>
             </li>)}
           </ul>
-        )}
-      </div>
-      <p className="mt-6 text-sm text-slate-500">O quadro Kanban principal ainda utiliza dados demonstrativos. Esta página testa somente a API de projetos.</p>
+        </>}
+      </section>
+      <p className="mt-6 text-sm text-slate-600">Somente dados fictícios: a API ainda não possui autenticação. O Kanban principal permanece demonstrativo até a integração funcional.</p>
     </main>
   );
 }

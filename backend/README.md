@@ -1,6 +1,6 @@
 # Backend do Orquestria
 
-API REST em **Java 21 + Spring Boot 3.5**, com PostgreSQL, Spring Data JPA e migrações Flyway. Esta é a primeira etapa do backend: a API de projetos funciona de forma independente; o frontend publicado ainda usa dados demonstrativos e **não consome esses endpoints**.
+API REST em **Java 21 + Spring Boot 3.5**, com PostgreSQL, Spring Data JPA e migrações Flyway. A API evoluiu nesta etapa: a API de projetos funciona de forma independente; o frontend publicado ainda usa dados demonstrativos e **não consome esses endpoints**.
 
 ## Rodar localmente
 
@@ -31,6 +31,11 @@ Para usar outro banco, defina `DB_URL` (URL JDBC), `DB_USER` e `DB_PASSWORD` com
 | `POST` | `/api/projects` | Cria um projeto |
 | `GET` | `/api/projects` | Lista projetos, mais recentes primeiro |
 | `GET` | `/api/projects/{id}` | Consulta por identificador UUID |
+| `POST`/`GET` | `/api/workspaces` | Cria ou lista workspaces |
+| `GET` | `/api/workspaces/{id}` | Consulta workspace |
+| `POST`/`GET` | `/api/projects/{id}/columns` | Cria ou lista colunas |
+| `POST`/`GET` | `/api/projects/{id}/tasks` | Cria ou lista tarefas |
+| `PATCH` | `/api/projects/{id}/tasks/{taskId}/move` | Move tarefa para coluna do mesmo projeto |
 
 Criar um projeto:
 
@@ -69,6 +74,10 @@ src/test/java/com/orquestria/api/project/
 └── ProjectServiceTest.java
 ```
 
+## Etapa 3
+
+A migração `V2__workspaces_kanban_tasks.sql` adiciona novos modelos sem alterar os dados de projetos existentes. Consulte [o guia de testes](../docs/ETAPA_3_KANBAN_API.md).
+
 ## Próximos passos
 
 - Modelar workspaces, colunas e tarefas, com relacionamentos e regras de negócio.
@@ -77,8 +86,8 @@ src/test/java/com/orquestria/api/project/
 - Integrar gradualmente a API ao Next.js, retirando a dependência do `localStorage` para os dados de negócio.
 - Definir CORS, variáveis de produção e hospedagem HTTPS antes de expor endpoints publicamente.
 
-**Atenção:** esta API inicial ainda não tem autenticação nem rate limiting; use-a **localmente** até a etapa de segurança. As credenciais do Compose são apenas para desenvolvimento.
+**Atenção:** esta API inicial ainda não tem autenticação nem rate limiting; use-a **localmente** com dados exclusivamente fictícios até a etapa de segurança. As credenciais do Compose são apenas para desenvolvimento.
 
 ## Deploy em nuvem (sem IDE)
 
-Veja [docs/DEPLOY_CLOUD.md](../docs/DEPLOY_CLOUD.md). O build Docker executa os testes, o Render hospeda a API e o Neon fornece PostgreSQL via conexão JDBC TLS. As credenciais devem ser configuradas como variáveis privadas no Render.
+Veja [docs/DEPLOY_CLOUD.md](../docs/DEPLOY_CLOUD.md). O build Docker executa os testes, o Blitz hospeda a API e o Neon fornece PostgreSQL via conexão JDBC TLS. As credenciais devem ser configuradas como variáveis privadas no Blitz.

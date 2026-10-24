@@ -4,9 +4,9 @@ Gestão de projetos e tarefas com workspaces, quadros Kanban e organização do 
 
 **[Acessar o Orquestria](https://orquestria.netlify.app/)** · [Código do frontend](frontend/) · [Código do backend](backend/) · [Guia de publicação](docs/DEPLOY_NETLIFY.md)
 
-O Orquestria começou como uma aplicação frontend em **Next.js, React e TypeScript**. Essa versão está publicada no Netlify e já permite navegar por projetos, organizar tarefas e utilizar o quadro Kanban. O repositório também inclui agora o início da API em **Java e Spring Boot**, com PostgreSQL para persistência de projetos.
+O Orquestria começou como uma aplicação frontend em **Next.js, React e TypeScript**. Essa versão está publicada no Netlify e já permite navegar por projetos, organizar tarefas e utilizar o quadro Kanban. O repositório também inclui uma API em **Java e Spring Boot**, com PostgreSQL para persistência de projetos.
 
-O frontend e o backend ainda são **independentes**: a versão online continua demonstrativa. O repositório inclui agora configuração de deploy e uma página isolada para testar a API via navegador; o Kanban será integrado nas próximas etapas.
+O Kanban principal ainda usa dados demonstrativos; a página `/diagnostico/` consulta a API real. O repositório inclui agora configuração de deploy e uma página isolada para testar a API via navegador; o Kanban será integrado nas próximas etapas.
 
 ## O que já está funcionando
 
@@ -22,16 +22,23 @@ O frontend e o backend ainda são **independentes**: a versão online continua d
 
 A tela de entrada utiliza uma **sessão demonstrativa no navegador**, não autenticação de usuários no servidor. Os dados da aplicação online não são compartilhados entre pessoas ou dispositivos; recursos de colaboração entre usuários ainda não estão disponíveis.
 
-### Backend — primeira etapa
+### Backend — projetos, workspaces e Kanban (Etapa 3)
 
-O diretório [`backend/`](backend/) contém uma API REST inicial com Java 21, Spring Boot, JPA/Hibernate, PostgreSQL e Flyway. Os endpoints implementados permitem:
+O diretório [`backend/`](backend/) contém uma API REST com Java 21, Spring Boot, JPA/Hibernate, PostgreSQL e Flyway. Os endpoints implementados permitem:
 
 - Criar projetos: `POST /api/projects`.
 - Listar projetos: `GET /api/projects`.
 - Consultar um projeto: `GET /api/projects/{id}`.
 - Consultar a saúde da aplicação: `GET /actuator/health`.
+- Criar e listar workspaces.
+- Associar opcionalmente projetos a workspaces.
+- Criar e listar colunas e tarefas por projeto.
+- Mover tarefas entre colunas do mesmo projeto.
 
-A API tem validação dos dados recebidos e respostas HTTP para erros comuns. Há testes unitários iniciais para a camada de serviço. **A configuração para hospedagem no Render está incluída, mas o serviço ainda precisa ser criado. A tela principal do frontend ainda não está integrada.**
+A nova migração Flyway `V2` preserva os projetos gravados anteriormente no PostgreSQL.
+Veja [os novos endpoints e exemplos da Etapa 3](docs/ETAPA_3_KANBAN_API.md).
+
+A API tem validação dos dados recebidos e respostas HTTP para erros comuns. Há testes unitários iniciais para a camada de serviço. **A API atual está publicada no Blitz, usando o Neon. Os novos endpoints desta etapa entrarão em produção após o próximo deploy. A tela principal ainda utiliza dados demonstrativos.**
 
 ## Tecnologias
 
@@ -47,7 +54,7 @@ A API tem validação dos dados recebidos e respostas HTTP para erros comuns. H�
 ```text
 orquestria/
 ├── frontend/          # Next.js, publicado no Netlify
-├── backend/           # API Spring Boot: Docker/Render + PostgreSQL Neon
+├── backend/           # API Spring Boot: Docker/Blitz + PostgreSQL Neon
 │   ├── src/main/java/
 │   ├── src/main/resources/db/migration/
 │   ├── src/test/java/
@@ -56,7 +63,7 @@ orquestria/
 ├── docs/
 │   ├── DEPLOY_NETLIFY.md
 │   └── DEPLOY_CLOUD.md
-├── render.yaml         # Deploy da API Java no Render
+├── render.yaml         # Configuração legada, não usada no Blitz
 ├── netlify.toml
 └── README.md
 ```
@@ -70,20 +77,20 @@ Site online (Netlify)
         └── Zustand / localStorage (persistência local)
 
 API Java (deploy independente)
-    └── Java / Spring Boot (Render, quando configurado)
+    └── Java / Spring Boot (Blitz)
         └── Spring Data JPA / Hibernate
-            └── PostgreSQL (Neon, quando configurado)
+            └── PostgreSQL (Neon)
 ```
 
-O objetivo é que o frontend passe a consumir essa API por HTTPS, substituindo gradualmente os dados simulados pelas informações armazenadas no banco.
+A próxima integração é conectar o quadro principal do frontend a essa API por HTTPS, substituindo gradualmente os dados simulados pelas informações armazenadas no banco.
 
 ## Hospedagem e teste pelo navegador
 
-Sem instalar ferramentas: [passo a passo do Neon + Render + Netlify](docs/DEPLOY_CLOUD.md). O repositório contém `render.yaml` e `backend/Dockerfile` para implantar a API Java via Docker no Render.
+A API está publicada no Blitz, o frontend no Netlify e o banco no Neon. O repositório contém `backend/Dockerfile`, usado no build do Blitz.
 
-Depois de configurar a URL do Render em `NEXT_PUBLIC_ORQUESTRIA_API_URL` no Netlify, abra [Diagnóstico da API](https://orquestria.netlify.app/diagnostico/) para testar saúde, listagem e criação de projetos no PostgreSQL. Essa página está separada do Kanban e não substitui a integração funcional do frontend.
+Com a URL do Blitz em `NEXT_PUBLIC_ORQUESTRIA_API_URL` no Netlify, abra [Diagnóstico da API](https://orquestria.netlify.app/diagnostico/) para testar a API e a persistência de workspaces, projetos, colunas e tarefas após o deploy desta etapa. Essa página está separada do Kanban e não substitui a integração funcional do frontend.
 
-**Os serviços de nuvem não são criados automaticamente ao subir os arquivos no GitHub.**
+**O backend está hospedado no Blitz e já respondeu aos testes de API com PostgreSQL.**
 
 ## Executar localmente (opcional)
 
@@ -111,11 +118,11 @@ A API inicia em `http://localhost:8080`. Veja os comandos, endpoints e exemplos 
 
 ## Publicação
 
-A versão pública do frontend está em **https://orquestria.netlify.app/**. O Next.js é exportado como site estático (`frontend/out`). O Netlify não executa Java. O `render.yaml` configura o backend para o Render, e o banco será criado manualmente no Neon. A página `/diagnostico/` facilita os testes via navegador.
+A versão pública do frontend está em **https://orquestria.netlify.app/**. O Next.js é exportado como site estático (`frontend/out`). O Netlify não executa Java. O A API Java é implantada no Blitz a partir do Dockerfile do backend e usa o banco PostgreSQL criado no Neon. A página `/diagnostico/` facilita os testes via navegador, incluindo colunas e tarefas nesta etapa.
 
 ## Próximas etapas
 
-- Ampliar o domínio da API para workspaces, colunas, tarefas e comentários.
+- Ampliar o domínio para comentários, responsáveis e edição de tarefas.
 - Criar autenticação e autorização no backend com Spring Security.
 - Incluir testes de integração, documentação OpenAPI e infraestrutura para a API.
 - Conectar o frontend à API e substituir a persistência demonstrativa por dados no PostgreSQL.

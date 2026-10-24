@@ -7,6 +7,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import com.orquestria.api.workspace.Workspace;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,6 +31,10 @@ public class Project {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_id")
+    private Workspace workspace;
+
     protected Project() {
         // Exigido pelo JPA.
     }
@@ -43,6 +51,8 @@ public class Project {
         }
     }
 
+    public void setWorkspace(Workspace workspace) { this.workspace = workspace; }
+    public Workspace getWorkspace() { return workspace; }
     public UUID getId() { return id; }
     public String getName() { return name; }
     public String getDescription() { return description; }
