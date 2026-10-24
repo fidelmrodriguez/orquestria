@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 import { useBoardStore } from "@/store/board-store";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
-import { authenticate, GUEST_IDENTIFIER, GUEST_PASSWORD } from "@/lib/auth-client";
+import { authenticate, getAuthToken, restoreAuthSession, GUEST_IDENTIFIER, GUEST_PASSWORD } from "@/lib/auth-client";
 import { isApiMode } from "@/lib/remote-board";
 
 type AccessMode = "guest" | "personal" | "register";
@@ -22,6 +22,26 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // O store Zustand recomeça sem usuário após uma navegação completa.
+  // Enquanto houver token salvo, recupera o usuário real antes de exibir o login.
+  const [checkingSession, setCheckingSession] = useState(isApiMode);
+  useEffect(() => {
+    if (!isApiMode || !getAuthToken()) {
+      setCheckingSession(false);
+      return;
+    }
+    let active = true;
+    void restoreAuthSession()
+      .then((user) => {
+        if (active && user) login(user.name, user.email, user.id);
+      })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Falha ao verificar a sessão.");
+      })
+      .finally(() => { if (active) setCheckingSession(false); });
+    return () => { active = false; };
+  }, [login]);
 
   const registering = mode === "register";
   const guest = mode === "guest";
@@ -75,6 +95,14 @@ export function LoginScreen() {
     : guest
       ? "As credenciais públicas vêm preenchidas, mas os dois campos podem ser editados."
       : "Entre com o usuário ou o e-mail cadastrado e sua senha.";
+
+  if (checkingSession) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-white">
+        <p role="status" className="text-center text-sm font-medium">Restaurando sua sessão no Orquestria...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,.16),_transparent_34%),linear-gradient(135deg,#f8fafc,#eef2ff)] p-4 text-slate-950 dark:bg-slate-950 dark:text-white sm:p-8">

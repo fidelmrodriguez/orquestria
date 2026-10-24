@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getAuthToken } from "@/lib/auth-client";
+import { AUTH_TOKEN_STORAGE_KEY, getAuthToken, restoreAuthSession } from "@/lib/auth-client";
 import {
   apiRequest, humanName, targetPath, unpackList,
   type DeleteTarget, type Entity
@@ -17,6 +17,7 @@ const byName = (a: Entity, b: Entity) => humanName(a).localeCompare(humanName(b)
 export default function GerenciarPage() {
   const [token, setToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [workspaces, setWorkspaces] = useState<Entity[]>([]);
   const [projects, setProjects] = useState<Entity[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
@@ -30,8 +31,41 @@ export default function GerenciarPage() {
   const [confirmation, setConfirmation] = useState("");
 
   useEffect(() => {
-    setToken(getAuthToken());
-    setReady(true);
+    let active = true;
+    // A página de gerenciamento não monta o LoginScreen. Verifica /me por conta própria.
+    const verifySession = async () => {
+      setReady(false);
+      setSessionError(null);
+      try {
+        const user = await restoreAuthSession();
+        if (active) setToken(user ? getAuthToken() : null);
+      } catch (cause) {
+        if (active) {
+          setToken(null);
+          setSessionError(cause instanceof Error ? cause.message : "Falha ao verificar a sessão.");
+        }
+      } finally {
+        if (active) setReady(true);
+      }
+    };
+    void verifySession();
+    // Logout em outra aba deve remover imediatamente as operações destrutivas desta página.
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== AUTH_TOKEN_STORAGE_KEY) return;
+      if (!event.newValue) {
+        setToken(null);
+        setSelectedProjectId("");
+        setColumns([]);
+        setTasks([]);
+        setProjects([]);
+        setWorkspaces([]);
+        setReady(true);
+      } else {
+        void verifySession();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => { active = false; window.removeEventListener("storage", handleStorage); };
   }, []);
 
   const refreshOverview = useCallback(async (accessToken: string) => {
@@ -123,9 +157,9 @@ export default function GerenciarPage() {
           <a href="/" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900">Voltar ao Kanban</a>
         </header>
 
-        {!ready ? <p>Carregando sessão...</p> : !API_BASE ?
+        {!ready ? <p role="status">Verificando sua sessão no servidor...</p> : !API_BASE ?
           <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-800">URL da API não configurada no Netlify.</p> : !token ?
-          <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900">Não há sessão ativa. <a className="underline" href="/">Volte à página inicial para entrar</a>.</div> : <>
+          <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900">{sessionError || "Não há sessão ativa."} <a className="underline" href="/">Volte à página inicial para entrar</a>.</div> : <>
           <div aria-live="polite" className="space-y-2">
             {busy && <p className="rounded-xl bg-blue-50 p-3 text-sm text-blue-900 dark:bg-blue-950 dark:text-blue-200">Consultando ou atualizando dados no servidor...</p>}
             {error && <p role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950 dark:text-rose-200">{error}</p>}

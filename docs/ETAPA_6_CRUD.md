@@ -79,3 +79,44 @@ A exclusão de coluna fica desabilitada quando a listagem indica tarefas nela. M
 8. Voltar ao quadro principal e usar F5 para atualizar o estado local.
 
 **Limitações deliberadas:** os botões não foram adicionados diretamente ao quadro principal nesta entrega, pois a integração dependeria de editar e testar a versão exata de `AppShell` e `board-store`. A página independente permite validar a API sem sobrescrever esses componentes. A interface principal integrada e a revisão final de concorrência e paginação continuam pendentes. Sem acesso ao checkout atual do repositório, a compilação e o deploy completo do Netlify ainda precisam ser confirmados.
+
+
+## Correção transversal — Persistência de sessão (24/10/2026)
+
+A integração inicial de `/gerenciar` evidenciou uma limitação anterior da Etapa 5: o token era
+armazenado em `sessionStorage` (por aba), enquanto o estado visual do usuário era mantido no
+Zustand somente em memória. Por isso, outra aba não enxergava a sessão, e o F5 exibia novamente
+o formulário de login. A rota `/gerenciar` consultava somente o token da aba e informava
+incorretamente ausência de sessão.
+
+**Nesta correção**:
+
+- O token é salvo em `localStorage`, compartilhado entre abas da mesma origem; tokens
+  anteriores em `sessionStorage` são migrados na primeira leitura. Apenas o token é salvo,
+  nunca a senha ou o perfil.
+- Quando a tela de login aparece após um F5, o React consulta `GET /api/auth/me`
+  com o bearer armazenado e restaura `useBoardStore.login(nome, email, id)`.
+- `/gerenciar` verifica o mesmo `/me` antes de mostrar os controles e reage a logout
+  realizado em outra aba removendo imediatamente as operações de exclusão.
+- HTTP `401/403` da verificação limpa tokens inválidos; uma indisponibilidade temporária
+  da API não apaga uma sessão válida. Logout remove o token compartilhado e revoga-o
+  no backend como antes.
+
+### Testes manuais necessários
+
+1. Entrar com conta pessoal ou guest. Pressionar F5 na mesma aba: deve restaurar
+   a conta automaticamente e permanecer no Kanban.
+2. Abrir o Orquestria em **nova aba do mesmo navegador**: deve reconhecer a conta.
+3. Acessar `/gerenciar` diretamente em uma nova aba: deve carregar os recursos
+   após confirmar a sessão, sem exigir novo login.
+4. Sair da conta, pressionar F5 e visitar `/gerenciar`: não deve manter acesso.
+5. Simular token expirado ou revogado: a aplicação deve pedir novo login; não deve
+   autenticar automaticamente como guest.
+6. Bloquear temporariamente a API: exibir mensagem de verificação sem excluir
+   o token salvo; testar novamente quando o serviço voltar.
+
+**Nota de segurança:** `localStorage` é acessível a scripts da própria origem.
+Isso resolve o uso entre abas dentro do modelo atual de bearer tokens, mas não
+é equivalente a cookies HttpOnly. Uma futura evolução poderá migrar a sessão
+para cookie HttpOnly/SameSite com política adequada entre Netlify e Blitz.
+Esta correção não muda as regras de exclusão, as migrações Flyway ou o backend.

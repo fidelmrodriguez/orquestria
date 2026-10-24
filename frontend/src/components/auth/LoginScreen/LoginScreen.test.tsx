@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { authenticate } from "@/lib/auth-client";
+import { authenticate, getAuthToken, restoreAuthSession } from "@/lib/auth-client";
 import { LoginScreen } from "@/components/auth/LoginScreen/LoginScreen";
 
 const mockLogin = jest.fn();
@@ -15,9 +15,13 @@ jest.mock("@/lib/remote-board", () => ({ isApiMode: true }));
 jest.mock("@/lib/auth-client", () => ({
   GUEST_IDENTIFIER: "guest",
   GUEST_PASSWORD: "OrquestriaDemo2026!",
-  authenticate: jest.fn()
+  authenticate: jest.fn(),
+  getAuthToken: jest.fn(),
+  restoreAuthSession: jest.fn()
 }));
 const mockAuthenticate = authenticate as jest.MockedFunction<typeof authenticate>;
+const mockToken = getAuthToken as jest.MockedFunction<typeof getAuthToken>;
+const mockRestore = restoreAuthSession as jest.MockedFunction<typeof restoreAuthSession>;
 const sampleUser = {
   token: "token-de-teste", id: "user-123", name: "Pessoa Teste",
   email: "pessoa@exemplo.com", accountType: "USER" as const,
@@ -27,9 +31,30 @@ const sampleUser = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockAuthenticate.mockResolvedValue(sampleUser);
+  mockToken.mockReturnValue(null);
+  mockRestore.mockResolvedValue(null);
 });
 
 describe("LoginScreen", () => {
+  it("restaura a conta após F5 validando /me sem solicitar novo login", async () => {
+    mockToken.mockReturnValue("token-de-teste");
+    mockRestore.mockResolvedValue({
+      id: "user-123", name: "Pessoa Teste", email: "pessoa@exemplo.com", accountType: "USER"
+    });
+    render(<LoginScreen />);
+    expect(screen.getByRole("status")).toHaveTextContent("Restaurando sua sessão");
+    await waitFor(() => expect(mockLogin).toHaveBeenCalledWith("Pessoa Teste", "pessoa@exemplo.com", "user-123"));
+    expect(mockAuthenticate).not.toHaveBeenCalled();
+  });
+
+  it("exibe novamente o formulário quando /me identifica sessão expirada", async () => {
+    mockToken.mockReturnValue("token-vencido");
+    mockRestore.mockResolvedValue(null);
+    render(<LoginScreen />);
+    expect(await screen.findByRole("button", { name: "Acessar demonstração" })).toBeInTheDocument();
+    expect(mockLogin).not.toHaveBeenCalled();
+  });
+
   it("mantém o guest pré-preenchido sem misturar a senha com a conta pessoal", async () => {
     const user = userEvent.setup();
     render(<LoginScreen />);
