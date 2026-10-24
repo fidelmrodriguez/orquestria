@@ -14,6 +14,7 @@ import { useBootstrapBoard } from "@/hooks/use-bootstrap-board";
 import { useLiveSync } from "@/hooks/use-live-sync";
 import { useBoardStore } from "@/store/board-store";
 import { isApiMode } from "@/lib/remote-board";
+import { getAuthToken } from "@/lib/auth-client";
 
 export function AppShell() {
   const currentUser = useBoardStore((state) => state.currentUser);
@@ -32,6 +33,16 @@ export function AppShell() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  useEffect(() => {
+    if (!isApiMode) return;
+    const validateSession = () => {
+      if (!getAuthToken() && useBoardStore.getState().currentUser) useBoardStore.getState().logout();
+    };
+    validateSession();
+    window.addEventListener("orquestria:auth-expired", validateSession);
+    return () => window.removeEventListener("orquestria:auth-expired", validateSession);
+  }, []);
 
   if (!currentUser) {
     return <LoginScreen />;
@@ -71,8 +82,8 @@ export function AppShell() {
           <div className="min-w-0 flex-1">
             {isApiMode && (
               <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
-                <strong>Modo Java + PostgreSQL.</strong> Os dados do quadro são compartilhados nesta demonstração pública.
-                O login ainda é demonstrativo e não controla o acesso aos registros.
+                <strong>Modo Java + PostgreSQL.</strong> Conta guest: dados compartilhados entre visitantes.
+                Contas cadastradas: projetos e workspaces privados por usuário.
                 <button type="button" onClick={() => void reloadRemote()} className="ml-3 underline underline-offset-2">Atualizar do servidor</button>
               </div>
             )}

@@ -13,34 +13,35 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProjectService {
     private final ProjectRepository repository;
     private final WorkspaceRepository workspaces;
-    public ProjectService(ProjectRepository repository, WorkspaceRepository workspaces) {
-        this.repository = repository;
-        this.workspaces = workspaces;
+    private final com.orquestria.api.auth.OwnershipGuard guard;
+    public ProjectService(ProjectRepository repository, WorkspaceRepository workspaces,
+                          com.orquestria.api.auth.OwnershipGuard guard) {
+        this.repository=repository;this.workspaces=workspaces;this.guard=guard;
     }
     @Transactional
     public ProjectResponse create(CreateProjectRequest request) {
         String description = request.description() == null ? null : request.description().trim();
         Project project = new Project(request.name().trim(), description);
+        project.setOwner(guard.current());
         if (request.workspaceId() != null) {
-            Workspace workspace = workspaces.findById(request.workspaceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Workspace"));
+            Workspace workspace = guard.workspace(request.workspaceId());
             project.setWorkspace(workspace);
         }
         return ProjectResponse.from(repository.save(project));
     }
     @Transactional
     public ProjectResponse rename(UUID id, RenameProjectRequest request) {
-        Project project = repository.findById(id).orElseThrow(() -> new ProjectNotFoundException(id));
+        Project project = repository.findByIdAndOwner_Id(id,guard.current().getId()).orElseThrow(() -> new ProjectNotFoundException(id));
         project.rename(request.name().trim());
         return ProjectResponse.from(project);
     }
     @Transactional(readOnly = true)
     public List<ProjectResponse> list() {
-        return repository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+        return repository.findByOwner_IdOrderByCreatedAtDesc(guard.current().getId())
             .stream().map(ProjectResponse::from).toList();
     }
     @Transactional(readOnly = true)
     public ProjectResponse findById(UUID id) {
-        return ProjectResponse.from(repository.findById(id).orElseThrow(() -> new ProjectNotFoundException(id)));
+        return ProjectResponse.from(repository.findByIdAndOwner_Id(id,guard.current().getId()).orElseThrow(() -> new ProjectNotFoundException(id)));
     }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { getAuthToken } from "@/lib/auth-client";
 
 type Projeto = { id: string; name: string; description: string | null; createdAt: string; workspaceId?: string | null };
 type Workspace = { id: string; name: string; description: string | null };
@@ -14,7 +15,11 @@ async function parseJson(res: Response): Promise<unknown> {
   try { return raw ? JSON.parse(raw) : null; } catch { return raw; }
 }
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${apiUrl}${path}`, { cache: "no-store", ...options });
+  const token = getAuthToken();
+  if (path !== "/actuator/health" && !token) throw new Error("Entre no Orquestria antes de acessar o diagnóstico.");
+  const headers = new Headers(options?.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(`${apiUrl}${path}`, { cache: "no-store", ...options, headers });
   const body = await parseJson(response);
   if (!response.ok) throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
   return body as T;
@@ -278,7 +283,7 @@ export default function DiagnosticoPage() {
           </ul>
         </>}
       </section>
-      <p className="mt-6 text-sm text-slate-600">Somente dados fictícios: a API ainda não possui autenticação. O Kanban principal permanece demonstrativo até a integração funcional.</p>
+      <p className="mt-6 text-sm text-slate-600">Faça login no Orquestria antes de utilizar esta página. As consultas usam sua sessão e só mostram dados da sua conta. A conta guest é pública e compartilhada.</p>
     </main>
   );
 }

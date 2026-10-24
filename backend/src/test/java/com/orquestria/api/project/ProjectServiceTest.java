@@ -23,25 +23,29 @@ class ProjectServiceTest {
 
     @Mock
     private WorkspaceRepository workspaces;
+    @Mock private com.orquestria.api.auth.OwnershipGuard guard;
+    @Mock private com.orquestria.api.auth.AppUser user;
     private ProjectService service;
 
     @BeforeEach
     void setup() {
-        service = new ProjectService(repository, workspaces);
+        service = new ProjectService(repository, workspaces,guard);
+        when(guard.current()).thenReturn(user);
+        when(user.getId()).thenReturn(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"));
     }
 
     @Test
     void listReturnsProjectsWhenRepositoryIsEmpty() {
-        when(repository.findAll(any(Sort.class))).thenReturn(java.util.List.of());
+        when(repository.findByOwner_IdOrderByCreatedAtDesc(any())).thenReturn(java.util.List.of());
 
         assertEquals(0, service.list().size());
-        verify(repository).findAll(any(Sort.class));
+        verify(repository).findByOwner_IdOrderByCreatedAtDesc(any());
     }
 
     @Test
     void findByIdThrowsWhenProjectDoesNotExist() {
         UUID id = UUID.randomUUID();
-        when(repository.findById(id)).thenReturn(Optional.empty());
+        when(repository.findByIdAndOwner_Id(any(),any())).thenReturn(Optional.empty());
 
         assertThrows(ProjectNotFoundException.class, () -> service.findById(id));
     }

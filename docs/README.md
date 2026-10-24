@@ -11,6 +11,7 @@ O [README principal](../README.md) apresenta a aplicação e mostra como acessá
 | 2 | Hospedagem da API, conexão com Neon e testes do navegador | [Integração na nuvem](ETAPA_2_DEPLOY_NUVEM.md) |
 | 3 | Workspaces, colunas, tarefas e migração V2 | [Kanban na API](ETAPA_3_KANBAN_API.md) |
 | 4 | Kanban principal conectado ao backend, edições, comentários e migração V3 | [Integração do Kanban](ETAPA_4_INTEGRACAO.md) |
+| 5 | Spring Security, guest permanente, sessões, cadastro e isolamento de usuários | [Autenticação](ETAPA_5_AUTENTICACAO.md) |
 
 Esses documentos registram o escopo de cada entrega. Para consultar **o que está disponível hoje**, comece pelo [README principal](../README.md), pois algumas fases descrevem versões anteriores do projeto.
 
@@ -21,4 +22,4 @@ Esses documentos registram o escopo de cada entrega. Para consultar **o que est�
 
 ## O que ainda falta
 
-A API segue sem autenticação e autorização por usuário. O ambiente é público e deve usar apenas dados fictícios. A manutenção automática de dados foi adiada para uma entrega futura, em commit próprio; **não há exclusão agendada**.
+O guest é um ambiente público, enquanto usuários cadastrados têm dados separados. Compartilhamentos entre usuários, recuperação de senha e exclusão continuam fora do escopo. A manutenção automática de dados foi adiada para uma entrega futura, em commit próprio; **não há exclusão agendada**.

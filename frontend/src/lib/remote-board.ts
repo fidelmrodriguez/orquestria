@@ -1,4 +1,5 @@
 import type { Column, Member, Priority, Project, Task, Workspace } from "@/types/board";
+import { clearAuthToken, getAuthToken } from "@/lib/auth-client";
 
 export const apiUrl = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "").trim().replace(/\/+$/, "");
 export const isApiMode = Boolean(apiUrl);
@@ -16,7 +17,16 @@ export type ApiTask = {
 
 export async function requestApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!isApiMode) throw new Error("A URL da API Java não foi configurada.");
-  const response = await fetch(`${apiUrl}${path}`, { cache: "no-store", ...options });
+  const token = getAuthToken();
+  if (!token) throw new Error("Sessão ausente. Entre novamente.");
+  const headers = new Headers(options.headers);
+  headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(`${apiUrl}${path}`, { cache: "no-store", ...options, headers });
+  if (response.status === 401) {
+    clearAuthToken();
+    window.dispatchEvent(new Event("orquestria:auth-expired"));
+    throw new Error("A sessão expirou. Entre novamente.");
+  }
   if (!response.ok) {
     const body = (await response.text()).slice(0, 240);
     throw new Error(`API Java: HTTP ${response.status}${body ? ` — ${body}` : ""}`);

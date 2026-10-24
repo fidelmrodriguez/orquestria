@@ -14,7 +14,9 @@ O quadro principal consulta a API Spring Boot sempre que `NEXT_PUBLIC_ORQUESTRIA
 
 Se a variável da API não estiver configurada, o frontend continua disponível em **modo demonstrativo local**, com dados da DummyJSON, Zustand e `localStorage`. Esse modo serve apenas para a interface e não deve ser confundido com persistência no PostgreSQL.
 
-O login ainda é **demonstrativo**: não há autenticação ou isolamento por usuário no servidor. Os registros da API são compartilhados entre os visitantes e devem conter **somente dados fictícios**. O painel mostra um aviso sobre isso quando está conectado ao Java.
+O acesso é protegido pelo **Spring Security**: visitantes podem entrar na conta pública **guest** com os campos preenchidos ou criar uma conta individual. Múltiplas sessões guest compartilham o mesmo Kanban; contas cadastradas têm workspaces e projetos separados por usuário. As senhas são armazenadas com BCrypt e as sessões usam tokens aleatórios revogáveis.
+
+O guest é um ambiente público. Use somente informações fictícias nele. A página de diagnóstico agora exige login para consultar ou alterar registros.
 
 ### Funcionalidades da API
 
@@ -22,16 +24,17 @@ O login ainda é **demonstrativo**: não há autenticação ou isolamento por us
 - Colunas do Kanban, com criação, listagem e alteração do título.
 - Tarefas, com criação, consulta, edição de detalhes, prioridade, responsável, tags, prazo e movimentação entre colunas do mesmo projeto.
 - Comentários em tarefas, validações de entrada e respostas HTTP de erro.
-- Migrações Flyway `V1`, `V2` e `V3` e persistência com Spring Data JPA/Hibernate.
+- Migrações Flyway `V1` a `V4`, com histórico preservado e proprietários por usuário.
+- Cadastro, login, logout e sessões simultâneas com Spring Security.
 
-> Esta fase não inclui exclusão de registros, contas reais, permissões, notificações em tempo real entre usuários ou manutenção automática do banco.
+> Nesta fase ainda não há compartilhamento privado entre contas, exclusão de usuários, recuperação de senha, notificações em tempo real ou manutenção automática do banco.
 
 ## Tecnologias
 
 | Frontend | Backend e infraestrutura |
 | --- | --- |
 | Next.js 14, React 18 e TypeScript | Java 21 e Spring Boot 3.5 |
-| Zustand e TanStack Query | Spring Web e Spring Data JPA/Hibernate |
+| Zustand e TanStack Query | Spring Security, Spring Web e Spring Data JPA/Hibernate |
 | Tailwind CSS, React Hook Form e Zod | PostgreSQL (Neon), Flyway e Bean Validation |
 | Jest e React Testing Library | JUnit 5, Mockito e Maven |
 | Netlify (exportação estática) | Docker e Blitz |
@@ -46,7 +49,8 @@ orquestria/
 │   └── src/main/resources/db/migration/
 │       ├── V1__create_projects.sql
 │       ├── V2__workspaces_kanban_tasks.sql
-│       └── V3__task_details_comments.sql
+│       ├── V3__task_details_comments.sql
+│       └── V4__accounts_and_ownership.sql
 ├── docs/
 │   ├── README.md
 │   ├── ETAPA_0_FRONTEND.md
@@ -54,6 +58,7 @@ orquestria/
 │   ├── ETAPA_2_DEPLOY_NUVEM.md
 │   ├── ETAPA_3_KANBAN_API.md
 │   ├── ETAPA_4_INTEGRACAO.md
+│   ├── ETAPA_5_AUTENTICACAO.md
 │   ├── DEPLOY_NETLIFY.md
 │   └── DEPLOY_CLOUD.md
 ├── netlify.toml
@@ -72,7 +77,7 @@ No Netlify, a variável de build `NEXT_PUBLIC_ORQUESTRIA_API_URL` deve apontar p
 
 Ao publicar uma mudança no GitHub, aguarde a **nova versão do backend** estar online no Blitz antes de testar o novo frontend no Netlify. Quando uma API está suspensa no plano gratuito, a primeira requisição pode demorar.
 
-Consulte o [índice da documentação](docs/README.md), o [teste da integração completa](docs/ETAPA_4_INTEGRACAO.md) e o [guia de infraestrutura](docs/DEPLOY_CLOUD.md). A página de [diagnóstico](https://orquestria.netlify.app/diagnostico/) continua disponível para verificar a comunicação com a API.
+Consulte o [índice da documentação](docs/README.md), a [Etapa 5 de autenticação](docs/ETAPA_5_AUTENTICACAO.md), o [teste da integração completa](docs/ETAPA_4_INTEGRACAO.md) e o [guia de infraestrutura](docs/DEPLOY_CLOUD.md). A página de [diagnóstico](https://orquestria.netlify.app/diagnostico/) continua disponível para verificar a comunicação com a API.
 
 ## Executar localmente (opcional)
 
@@ -80,7 +85,7 @@ Frontend: `cd frontend && npm ci && npm run dev`. Backend: `cd backend && docker
 
 ## Próximas evoluções
 
-- Autenticação e autorização de verdade com Spring Security.
+- Recuperação de senha, compartilhamentos privados e permissões avançadas.
 - Testes de integração com PostgreSQL, documentação OpenAPI e tratamento de concorrência.
 - Operações de exclusão com regras explícitas e auditoria.
 - **Manutenção automática e política de retenção de dados: etapa futura, em commit independente.** Nenhuma rotina de limpeza foi adicionada nesta entrega.

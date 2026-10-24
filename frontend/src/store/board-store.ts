@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { buildWorkspaceFromSource, defaultColumns } from "@/lib/board";
 import { uid } from "@/lib/utils";
 import { isApiMode, UNASSIGNED_WORKSPACE_ID, loadRemoteBoard, postApi, toApiDate, toApiPriority } from "@/lib/remote-board";
+import { revokeSession } from "@/lib/auth-client";
 import type { Activity, SourceTodo, SourceUser, Member, Priority, Project, Task, Workspace } from "@/types/board";
 
 export type ThemeMode = "light" | "dark";
@@ -34,7 +35,7 @@ type BoardState = {
   setRemoteBoard: (workspaces: Workspace[]) => void;
   setRemoteError: (message: string) => void;
   reloadRemote: () => Promise<void>;
-  login: (name: string, email: string) => void;
+  login: (name: string, email: string, id?: string) => void;
   logout: () => void;
   hydrateFromSource: (todos: SourceTodo[], users: SourceUser[]) => void;
   setActiveWorkspace: (workspaceId: string) => void;
@@ -184,9 +185,9 @@ export const useBoardStore = create<BoardState>()(
         }
         finally { set({ remoteLoading: false, remoteActionLabel: "Salvando alterações..." }); }
       },
-      login: (name, email) => {
+      login: (name, email, id) => {
         const user: Member = {
-          id: "member-current-user",
+          id: id || "member-current-user",
           name: name.trim() || "User",
           email: email.trim() || "user@empresa.com",
           avatar: "https://api.dicebear.com/7.x/initials/svg?seed=User",
@@ -195,13 +196,16 @@ export const useBoardStore = create<BoardState>()(
 
         set((state) => ({
           currentUser: user,
+          workspaces: [], activeWorkspaceId: null, activeProjectId: null,
           remoteReady: false,
           remoteError: null,
           activities: appendActivity("User entrou no ambiente de trabalho.", "system", state.activities)
         }));
       },
       logout: () => {
-        set({ currentUser: null, selectedTaskId: null, remoteReady: false, remoteError: null });
+        if (isApiMode) void revokeSession();
+        set({ currentUser: null, workspaces: [], activeWorkspaceId: null, activeProjectId: null,
+          selectedTaskId: null, remoteReady: false, remoteError: null, bootstrapped: false, activities: [] });
       },
       hydrateFromSource: (todos, users) => {
         const state = get();

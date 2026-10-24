@@ -35,6 +35,11 @@ public class Project {
     @JoinColumn(name = "workspace_id")
     private Workspace workspace;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private com.orquestria.api.auth.AppUser owner;
+    public void setOwner(com.orquestria.api.auth.AppUser owner){this.owner=owner;}
+    public com.orquestria.api.auth.AppUser getOwner(){return owner;}
     protected Project() {
         // Exigido pelo JPA.
     }
