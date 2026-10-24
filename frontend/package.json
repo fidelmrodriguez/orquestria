@@ -1,0 +1,43 @@
+{
+  "name": "orquestria",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma de gestão de tarefas, projetos e colaboração para equipes.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "3.9.1",
+    "@tanstack/react-query": "5.59.16",
+    "clsx": "2.1.1",
+    "lucide-react": "0.468.0",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hook-form": "7.53.2",
+    "tailwind-merge": "2.5.4",
+    "zod": "3.23.8",
+    "zustand": "4.5.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.4.8",
+    "@testing-library/react": "15.0.7",
+    "@testing-library/user-event": "14.5.2",
+    "@types/jest": "29.5.14",
+    "@types/node": "20.14.15",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "10.4.20",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0",
+    "postcss": "8.4.49",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.5.4"
+  }
+}

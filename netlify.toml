@@ -1,0 +1,9 @@
+# O frontend Next.js está em /frontend.
+# O Netlify publica apenas o site Next.js — nao executa o backend Java.
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
