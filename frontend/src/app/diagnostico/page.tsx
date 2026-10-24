@@ -142,16 +142,57 @@ export default function DiagnosticoPage() {
 
   async function moveTask(task: Tarefa, columnId: string) {
     if (!selectedProject || task.columnId === columnId) return;
+    const projectId = selectedProject;
+    const targetColumn = columns.find(column => column.id === columnId)?.title ?? columnId;
     setBusy(true);
+    setMessage(`Movendo "${task.title}" para "${targetColumn}"...`);
+
     try {
-      await request<Tarefa>(`/api/projects/${selectedProject}/tasks/${task.id}/move`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({columnId, position: tasks.length}),
+      const updated = await request<Tarefa>(`/api/projects/${projectId}/tasks/${task.id}/move`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ columnId, position: task.position }),
       });
-      await loadBoard(selectedProject);
-      setMessage(`Tarefa "${task.title}" movida e salva.`);
-    } catch(error) { setMessage(String(error)); }
-    finally { setBusy(false); }
+      console.info("[Orquestria] Resposta do PATCH de tarefa", {
+        taskId: task.id, previousColumnId: task.columnId,
+        requestedColumnId: columnId, returnedColumnId: updated.columnId,
+      });
+      if (updated.columnId !== columnId) {
+        throw new Error("A API respondeu ao PATCH, mas devolveu a coluna anterior.");
+      }
+
+      // Consulta novamente o backend após o PATCH. A confirmação não depende do estado local.
+      // O parâmetro serve para distinguir a leitura de qualquer resposta cacheada em proxies.
+      const persistedTasks = await request<Tarefa[]>(
+        `/api/projects/${projectId}/tasks?verificacao=${Date.now()}`,
+        { cache: "no-store" },
+      );
+      setTasks(persistedTasks);
+      const persisted = persistedTasks.find(item => item.id === task.id);
+      console.info("[Orquestria] Leitura após mover tarefa", {
+        taskId: task.id, expectedColumnId: columnId,
+        persistedColumnId: persisted?.columnId ?? null,
+      });
+      if (!persisted) {
+        throw new Error("A API respondeu ao PATCH, mas a tarefa não apareceu na nova consulta.");
+      }
+      if (persisted.columnId !== columnId) {
+        throw new Error("A API aceitou a movimentação, mas a consulta seguinte retornou a coluna anterior.");
+      }
+      setMessage(`Confirmado no PostgreSQL: "${task.title}" está em "${targetColumn}". Você pode atualizar a página.`);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      console.error("[Orquestria] Falha ao mover ou confirmar tarefa", {
+        taskId: task.id, projectId, expectedColumnId: columnId, error: detail,
+      });
+      setMessage(`Movimentação não confirmada: ${detail}`);
+      // Restaura a apresentação usando a fonte real dos dados, sem simular sucesso.
+      try { await loadBoard(projectId); } catch (reloadError) {
+        console.error("[Orquestria] Não foi possível recarregar o quadro", reloadError);
+      }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
