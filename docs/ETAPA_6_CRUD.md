@@ -212,3 +212,15 @@ build do repositório e o preflight real no Blitz dependem do deploy.
 ### Validação e limitações
 
 Foram checadas a estrutura dos arquivos, a sintaxe dos TSX e as regras puras de dependência. A compilação Next.js/Jest integral exige o checkout atualizado do GitHub, que não estava acessível nesta preparação. O comportamento deve ser confirmado no Netlify usando dados descartáveis. Para evitar perder alterações do usuário, esta entrega usa um `template.tsx` aditivo, em vez de sobrescrever componentes centrais não verificados.
+
+
+### Correção de visibilidade do atalho no Kanban (24/10/2026)
+
+- O painel não desaparece mais quando `/api/auth/me` falha temporariamente, por exemplo durante o despertar do Blitz.
+- O atalho é exibido quando há token salvo, mas **nenhuma operação destrutiva é liberada só pela presença do token**. O clique no atalho exige nova validação pelo backend antes de consultar os dados.
+- A ausência ou expiração do token mantém o painel indisponível. Uma falha temporária apresenta mensagem e permite tentar novamente.
+- Logs de diagnóstico sem dados sensíveis: `[Orquestria][etapa6] template`, `disponibilidade do painel`, `validação inicial`, `falha ao abrir gerenciamento`. Não registrar `Authorization`, token, e-mail nem senha.
+- Conferir F5, troca de aba, wake-up do Blitz, abrir o painel e executar exclusões somente com dados descartáveis.
+- Se o log `template` não aparecer no console, investigar o uso do `src/app/template.tsx` na árvore do Next.js. Se aparecer com `painelMontado: true` e `tokenPresente: true`, o botão deve ficar visível mesmo enquanto a API está indisponível.
+
+- O botão e os diálogos são renderizados diretamente em `document.body` para contornar contextos de empilhamento e áreas com `overflow: hidden` do layout do Kanban.

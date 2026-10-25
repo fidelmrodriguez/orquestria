@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AUTH_TOKEN_STORAGE_KEY, getAuthToken, restoreAuthSession, type AuthUser } from "@/lib/auth-client";
 import {
   apiRequest, deleteActionPath, deleteOperation, humanName, unpackList,
@@ -11,13 +12,15 @@ import {
   requiresTypedConfirmation, taskCountInColumn
 } from "@/lib/kanban-deletion-policy";
 
-const API_BASE = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "").trim().replace(/\/+$/, "");
+const getApiBase = () => (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "").trim().replace(/\/+$/, "");
 const SUCCESS_NOTICE_KEY = "orquestria:etapa6:exclusao-confirmada";
 
 type Pending = { target: DeleteTarget; name: string; description: string };
 const order = (a: Entity, b: Entity) => (a.position ?? 0) - (b.position ?? 0);
 
 export default function BoardDeletionActions() {
+  const API_BASE = getApiBase();
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -35,17 +38,43 @@ export default function BoardDeletionActions() {
   const [notice, setNotice] = useState("");
   const mounted = useRef(true);
 
-  // /api/auth/me é fonte de verdade; não se basear só no token no storage.
+  // Renderiza fora da árvore visual do Kanban para não ficar oculto por overflow e stacking context.
+  useEffect(() => { setPortalRoot(document.body); }, []);
+
+  // O botão depende apenas da presença local de um token, não da disponibilidade
+  // momentânea da API. A autorização real continua obrigatória antes das consultas.
   const verifySession = useCallback(async () => {
+    const currentToken = getAuthToken();
+    if (!mounted.current) return;
+    setToken(currentToken);
+    console.info("[Orquestria][etapa6] disponibilidade do painel", {
+      tokenPresente: Boolean(currentToken), apiConfigurada: Boolean(API_BASE)
+    });
+    if (!currentToken) {
+      setUser(null);
+      setOpen(false);
+      setPending(null);
+      setWorkspaces([]); setProjects([]); setColumns([]); setTasks([]);
+      return;
+    }
     try {
       const currentUser = await restoreAuthSession();
-      if (!mounted.current) return;
+      // Não aplicar uma resposta antiga se houve troca de conta ou logout.
+      if (!mounted.current || getAuthToken() !== currentToken) return;
       setUser(currentUser);
-      setToken(currentUser ? getAuthToken() : null);
-      if (!currentUser) { setOpen(false); setPending(null); }
+      if (!currentUser) {
+        setToken(null);
+        setOpen(false);
+        setPending(null);
+      }
+      console.info("[Orquestria][etapa6] validação inicial", { sucesso: Boolean(currentUser) });
     } catch {
-      // Falha transitória no Blitz não remove a sessão, mas suspende controles destrutivos.
-      if (mounted.current) { setUser(null); setToken(null); setOpen(false); }
+      // Cold start ou falha de rede: o botão permanece acessível para nova tentativa.
+      if (mounted.current && getAuthToken() === currentToken) {
+        setUser(null);
+        setToken(currentToken);
+        console.warn("[Orquestria][etapa6] validação inicial indisponível; nova tentativa ao abrir o painel");
+      }
     }
   }, []);
 
@@ -101,13 +130,36 @@ export default function BoardDeletionActions() {
   }, []);
 
   async function openPanel() {
-    if (!token || !user || busy) return;
+    if (busy) return;
+    const currentToken = getAuthToken();
+    if (!currentToken) {
+      setUser(null); setToken(null);
+      setError("Sua sessão não está disponível. Entre novamente.");
+      return;
+    }
+    setToken(currentToken);
     setOpen(true); setBusy(true); setError(""); setLoaded(false);
+    setProjects([]); setWorkspaces([]); setColumns([]); setTasks([]);
+    setProjectId(""); setProjectLoaded(false); setPending(null);
     try {
-      await refreshOverview(token);
+      // A validação é repetida aqui: não permitir operações destrutivas
+      // apenas porque existe um token no localStorage.
+      const validUser = await restoreAuthSession();
+      if (!mounted.current || getAuthToken() !== currentToken) return;
+      if (!validUser) {
+        setUser(null); setToken(null);
+        setError("A sessão expirou. Volte ao login e entre novamente.");
+        return;
+      }
+      setUser(validUser);
+      await refreshOverview(currentToken);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Falha ao carregar seus projetos.");
-    } finally { setBusy(false); }
+      const message = cause instanceof Error ? cause.message : "Falha ao validar a sessão ou carregar projetos.";
+      console.warn("[Orquestria][etapa6] falha ao abrir gerenciamento", {
+        tipo: cause instanceof Error ? cause.name : "erro_desconhecido"
+      });
+      setError(message);
+    } finally { if (mounted.current) setBusy(false); }
   }
 
   async function selectProject(nextId: string) {
@@ -123,7 +175,7 @@ export default function BoardDeletionActions() {
   }
 
   async function confirmDeletion() {
-    if (!pending || !token || busy) return;
+    if (!pending || !token || !user || busy) return;
     if (requiresTypedConfirmation(pending.target.kind, user?.accountType === "GUEST") && typed !== "EXCLUIR") return;
     setBusy(true); setError("");
     const operation = deleteOperation(pending.target);
@@ -159,15 +211,16 @@ export default function BoardDeletionActions() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [open, busy]);
 
-  if (!user || !token || !API_BASE) return null;
+  // A falha transitória de /me não pode sumir com o atalho do Kanban.
+  if (!token || !API_BASE || !portalRoot) return null;
 
-  const isGuest = user.accountType === "GUEST";
+  const isGuest = user?.accountType === "GUEST";
   const selectedProject = projects.find(p => p.id === projectId);
   const needsTyping = pending && requiresTypedConfirmation(pending.target.kind, isGuest);
 
-  return (
+  return createPortal(
     <>
-      <div className="fixed bottom-20 right-5 z-[65] flex max-w-[min(92vw,360px)] flex-col items-end gap-2">
+      <div style={{ zIndex: 2147483000 }} className="fixed bottom-20 right-5 flex max-w-[min(92vw,360px)] flex-col items-end gap-2">
         {notice && <div role="status" className="rounded-xl border border-emerald-300 bg-white px-4 py-3 text-sm font-semibold text-emerald-900 shadow-lg dark:bg-slate-900 dark:text-emerald-200">
           {notice} <button type="button" onClick={() => setNotice("")} className="ml-2 underline">Fechar</button>
         </div>}
@@ -176,7 +229,7 @@ export default function BoardDeletionActions() {
         </button>}
       </div>
 
-      {open && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-3 sm:p-6">
+      {open && <div style={{ zIndex: 2147483001 }} className="fixed inset-0 flex items-center justify-center bg-slate-950/70 p-3 sm:p-6">
         <section role="dialog" aria-modal="true" aria-label="Excluir itens do Kanban" className="flex max-h-[95vh] w-full max-w-4xl flex-col rounded-2xl bg-white text-slate-900 shadow-2xl dark:bg-slate-900 dark:text-slate-100">
           <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-700">
             <div>
@@ -188,13 +241,13 @@ export default function BoardDeletionActions() {
 
           <div className="space-y-6 overflow-y-auto px-5 py-5">
             {isGuest && <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">Você está na conta guest: os dados são compartilhados com outros visitantes. Prefira uma conta pessoal para testar exclusões.</p>}
-            {busy && <p role="status" className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-900">Consultando ou atualizando a API...</p>}
+            {busy && <p role="status" className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-900">Validando sessão e consultando a API...</p>}
             {error && <div role="alert" className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
               {error}
               {!pending && <button type="button" disabled={busy} className="ml-3 underline" onClick={() => void openPanel()}>Tentar novamente</button>}
             </div>}
 
-            <section aria-label="Projetos e tarefas">
+            {user && <section aria-label="Projetos e tarefas">
               <h3 className="text-lg font-semibold">Projetos</h3>
               {loaded && projects.length === 0 && <p className="mt-2 text-sm text-slate-500">Nenhum projeto encontrado nesta conta.</p>}
               <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-700">
@@ -206,9 +259,9 @@ export default function BoardDeletionActions() {
                   </div>
                 </li>)}
               </ul>
-            </section>
+            </section>}
 
-            {selectedProject && <section aria-label="Tarefas e colunas selecionadas" className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+            {user && selectedProject && <section aria-label="Tarefas e colunas selecionadas" className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
               <h3 className="text-lg font-semibold">{humanName(selectedProject)} — colunas e tarefas</h3>
               {!projectLoaded && <p className="mt-2 text-sm">Carregando dados do projeto...</p>}
               {projectLoaded && columns.length === 0 && <p className="mt-2 text-sm">O projeto ainda não tem colunas.</p>}
@@ -230,7 +283,7 @@ export default function BoardDeletionActions() {
               {projectLoaded && tasks.some(task => !columns.some(column => column.id === task.columnId)) && <p className="mt-2 text-sm text-amber-700">Algumas tarefas não têm coluna reconhecida. Não tente excluir colunas até conferir o quadro.</p>}
             </section>}
 
-            <section aria-label="Workspaces">
+            {user && <section aria-label="Workspaces">
               <h3 className="text-lg font-semibold">Workspaces</h3>
               <ul className="mt-2 divide-y divide-slate-200 dark:divide-slate-700">
                 {workspaces.map(workspace => {
@@ -241,12 +294,12 @@ export default function BoardDeletionActions() {
                   </li>;
                 })}
               </ul>
-            </section>
+            </section>}
           </div>
         </section>
       </div>}
 
-      {pending && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/80 p-4">
+      {pending && <div style={{ zIndex: 2147483002 }} className="fixed inset-0 flex items-center justify-center bg-slate-950/80 p-4">
         <section role="alertdialog" aria-modal="true" aria-labelledby="delete-title" className="w-full max-w-lg rounded-2xl bg-white p-6 text-slate-900 shadow-2xl dark:bg-slate-900 dark:text-slate-100">
           <h2 id="delete-title" className="text-xl font-bold">Confirmar exclusão</h2>
           <p className="mt-3 text-sm">Você está prestes a excluir <strong>{pending.name}</strong>.</p>
@@ -262,6 +315,7 @@ export default function BoardDeletionActions() {
           </div>
         </section>
       </div>}
-    </>
+    </>,
+    portalRoot
   );
 }

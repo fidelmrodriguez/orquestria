@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import BoardDeletionActions from "@/components/board/BoardDeletionActions";
 
@@ -11,6 +11,11 @@ import BoardDeletionActions from "@/components/board/BoardDeletionActions";
  */
 export default function RootTemplate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  useEffect(() => {
+    console.info("[Orquestria][etapa6] template", {
+      rota: pathname, painelMontado: pathname === "/"
+    });
+  }, [pathname]);
   return (
     <>
       {children}
