@@ -180,3 +180,35 @@ As operações ainda ficam em `/gerenciar`; integração dos botões diretamente
 no Kanban e testes de concorrência completos continuam pendentes na Etapa 6.
 Não há alteração em Flyway, PostgreSQL, tokens ou login. A validação completa de
 build do repositório e o preflight real no Blitz dependem do deploy.
+
+## Integração no Kanban principal — Entrega de finalização (24/10/2026)
+
+### Painel de exclusões na tela do Kanban
+
+- `frontend/src/app/template.tsx` adiciona um painel contextual à rota principal `/` do Next.js App Router, sem substituir `AppShell.tsx` ou `board-store.ts`.
+- O botão **Gerenciar exclusões** aparece na própria tela do Kanban somente após validação da sessão em `/api/auth/me`.
+- O painel carrega projetos e workspaces da conta e, ao selecionar um projeto, consulta colunas e tarefas reais da API Java.
+- Excluir tarefa e coluna requer confirmação. Projeto e workspace exigem também digitar `EXCLUIR`. Na conta guest compartilhada, a confirmação digitada é exigida **para todas as exclusões**, como proteção extra contra alterações acidentais.
+- Colunas com tarefas e workspaces com projetos não oferecem operação habilitada. Uma nova mudança concorrente ainda pode produzir `409`, validado pela API Java.
+- As chamadas usam os aliases POST `.../delete` implementados e confirmados na correção anterior; as rotas DELETE permanecem disponíveis no backend.
+- Após `204`, a página é recarregada para reidratar o Kanban a partir dos dados remotos, evitando inconsistências com o estado em memória do Zustand. Uma mensagem de sucesso é preservada na aba para ser exibida após o recarregamento.
+- `auth-client.ts` dispara `orquestria:auth-changed` após login/logout para que o painel apareça ou suma na mesma aba, além de reagir ao evento `storage` entre abas.
+- Os logs já implementados em `kanban-deletion.ts` continuam registrando apenas tipo de operação, método e status, sem tokens, senhas ou IDs de recursos.
+
+### Testes da integração
+
+1. Confirme a publicação da nova versão do **Netlify**. Esta entrega não modifica o backend nem o banco, e não requer novo deploy no Blitz.
+2. Faça login em conta pessoal, acesse `/`, localize o botão **Gerenciar exclusões** dentro da tela do Kanban e abra-o.
+3. Crie um projeto descartável com uma coluna e uma tarefa; abra o painel, escolha o projeto e exclua a tarefa. Confirme `POST .../delete => 204`, recarregamento automático e tarefa ausente após o F5.
+4. Remova a coluna vazia, confira `204` e ausência da coluna após a atualização.
+5. Antes de remover uma coluna com tarefas, confirme que o botão está bloqueado; no backend, o caso com concorrência deve retornar `409`.
+6. Confirme que um workspace com projetos não pode ser excluído, e que um workspace vazio pode, mediante confirmação `EXCLUIR`.
+7. Exclua um projeto descartável digitando `EXCLUIR` e confirme que sua árvore de colunas, tarefas e comentários desapareceu.
+8. Reabra o Orquestria em outra aba e pressione F5 para verificar que a sessão continua válida. Faça logout e confirme que o painel deixa de aparecer.
+9. Faça login em uma segunda conta e confirme que os recursos da primeira não aparecem. O backend deve retornar `404` caso algum ID de outra conta seja usado manualmente.
+
+**Fora do escopo:** não foi criada exclusão automática ou agendada (Etapa 8); nem foram alteradas migrações ou regras Java. Paginação avançada e testes completos com PostgreSQL real/CI permanecem na Etapa 7 caso o volume de dados exija. A integração é um painel contextual sobre o Kanban, **não** ações embutidas nos menus de cada cartão ou coluna; isso exigiria editar a versão exata do `AppShell` atualmente no repositório.
+
+### Validação e limitações
+
+Foram checadas a estrutura dos arquivos, a sintaxe dos TSX e as regras puras de dependência. A compilação Next.js/Jest integral exige o checkout atualizado do GitHub, que não estava acessível nesta preparação. O comportamento deve ser confirmado no Netlify usando dados descartáveis. Para evitar perder alterações do usuário, esta entrega usa um `template.tsx` aditivo, em vez de sobrescrever componentes centrais não verificados.

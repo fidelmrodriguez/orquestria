@@ -25,6 +25,18 @@ describe("persistência da sessão entre abas", () => {
     expect(getAuthToken()).toBe("token-123");
   });
 
+  it("avisa o painel do Kanban quando o login ou logout muda na mesma aba", () => {
+    const listener = jest.fn();
+    window.addEventListener("orquestria:auth-changed", listener);
+    try {
+      saveAuthToken("token-compartilhado");
+      clearAuthToken();
+      expect(listener).toHaveBeenCalledTimes(2);
+    } finally {
+      window.removeEventListener("orquestria:auth-changed", listener);
+    }
+  });
+
   it("migra sem perda tokens antigos do sessionStorage", () => {
     window.sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, "token-legado");
     expect(getAuthToken()).toBe("token-legado");

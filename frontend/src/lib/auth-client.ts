@@ -33,6 +33,11 @@ export function getAuthToken(): string | null {
   } catch { return null; }
 }
 
+function emitAuthChanged(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("orquestria:auth-changed"));
+}
+
 export function saveAuthToken(token: string): void {
   if (typeof window === "undefined") return;
   // localStorage permite F5, nova aba e navegação direta para /gerenciar.
@@ -43,12 +48,14 @@ export function saveAuthToken(token: string): void {
     // Fallback somente para ambientes que desabilitam localStorage.
     window.sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
   }
+  emitAuthChanged();
 }
 
 export function clearAuthToken(): void {
   if (typeof window === "undefined") return;
   try { window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY); } catch { /* Sem impacto. */ }
   try { window.sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY); } catch { /* Sem impacto. */ }
+  emitAuthChanged();
 }
 
 export type AuthUser = {
