@@ -225,40 +225,23 @@ Foram checadas a estrutura dos arquivos, a sintaxe dos TSX e as regras puras de 
 
 - O botão e os diálogos são renderizados diretamente em `document.body` para contornar contextos de empilhamento e áreas com `overflow: hidden` do layout do Kanban.
 
-## Ajuste de usabilidade — gerenciamento de exclusões mais intuitivo (24/10/2026)
+## Etapa 6 — Navegação de gerenciamento na sidebar (25/10/2026)
 
-### Problemas observados na versão anterior
+A opção de exclusão não é mais um botão flutuante renderizado sobre o quadro, drawers ou splash de carregamento.
+`frontend/src/app/template.tsx` deixa de montar `BoardDeletionActions` e passa a montar `SidebarManagementLink` apenas em `/`.
 
-- O modal listava projetos sem destacar claramente **a qual workspace cada um pertencia**, o que causava confusão quando existiam nomes repetidos como `Projeto inicial`.
-- O fluxo misturava listagem de projetos, workspaces, colunas e tarefas sem uma hierarquia visual forte.
-- O botão flutuante **Gerenciar exclusões** ficava longe demais da borda e podia aparecer por cima de overlays e painéis laterais do Kanban.
+A nova entrada **Gerenciamento → Gerenciar itens** é montada na sidebar renderizada pelo `AppShell` e navega até a página `/gerenciar` já existente. Como o `AppShell` completo não foi disponibilizado nesta entrega, a integração usa um componente isolado que identifica a sidebar pelos títulos Workspaces e Projetos e adiciona o link à árvore visual. Essa abordagem não altera os estilos internos nem a lógica do `AppShell`. Caso a composição ou os títulos da sidebar mudem, a localização do ponto de montagem deverá ser revista; a integração diretamente no JSX do `AppShell` continua sendo a solução definitiva quando o arquivo estiver disponível.
 
-### Melhorias desta revisão
+A página `/gerenciar` foi organizada em duas colunas: filtro por workspace à esquerda e projetos agrupados por workspace à direita. Projetos de nome idêntico recebem uma identificação curta para evitar confusão. O painel do projeto selecionado lista colunas e tarefas e bloqueia a exclusão de colunas que ainda possuam tarefas. O workspace só pode ser excluído vazio. As exclusões continuam exigindo confirmação; projeto e workspace exigem a palavra `EXCLUIR`. Todas as ações continuam usando os endpoints `POST .../delete` autenticados que já retornaram 204 nos testes anteriores.
 
-- O painel foi reorganizado em **duas áreas**:
-  - **coluna lateral** com instruções, filtros por workspace e exclusão de workspaces;
-  - **área principal** com projetos agrupados por workspace e detalhes do projeto selecionado.
-- Cada projeto agora exibe explicitamente:
-  - **nome do workspace**;
-  - marcador de **nome repetido**, quando houver outro projeto com o mesmo nome;
-  - **ID curto** para diferenciar visualmente projetos duplicados.
-- O usuário primeiro escolhe o **workspace**, depois o **projeto**, e só então vê **colunas e tarefas** para excluir. Isso reduz ambiguidade no fluxo.
-- A seção do projeto selecionado mostra:
-  - workspace de origem;
-  - totais de colunas e tarefas;
-  - status visual de cada coluna (`coluna vazia` ou `remova as tarefas primeiro`);
-  - lista de tarefas por coluna com ação individual de exclusão.
-- O gatilho **Gerenciar exclusões** foi reposicionado para um pill compacto e centralizado, com menor `z-index`, diminuindo conflitos com drawers, overlays e modais do próprio Kanban.
+### Validação após deploy
 
-### Testes manuais recomendados
+1. Entrar no Orquestria e verificar que não existe mais botão flutuante, nem acima do quadro nem sobre o drawer de uma tarefa.
+2. Na sidebar, abrir **Gerenciar itens** e confirmar navegação para `/gerenciar`.
+3. Filtrar um workspace e observar que os projetos exibidos pertencem a ele; usar **Todos os workspaces** para voltar à visão geral.
+4. Verificar projetos homônimos em workspaces diferentes, identificados pelo contexto e ID curto.
+5. Selecionar um projeto, conferir suas colunas/tarefas e validar bloqueio de coluna com tarefas.
+6. Usar uma conta pessoal e dados descartáveis para verificar exclusões e persistência após F5.
+7. Confirmar que uma nova aba sem sessão não expõe operações de exclusão.
 
-1. Publicar o commit no Netlify e confirmar que o botão **Gerenciar exclusões** aparece de forma discreta no Kanban.
-2. Criar dois projetos com o mesmo nome em workspaces diferentes e abrir o painel.
-3. Confirmar que o modal distingue os dois projetos pelo **workspace** e pelo **ID curto**.
-4. Selecionar um projeto e verificar se colunas com tarefas ficam claramente bloqueadas para exclusão.
-5. Abrir o drawer lateral de detalhes da tarefa e conferir se o botão de gerenciamento não fica por cima do overlay de forma indevida.
-6. Executar uma exclusão de tarefa, coluna vazia, projeto descartável e workspace vazio para validar o fluxo completo.
-
-### Escopo
-
-Esta revisão não altera as regras de negócio da API Java nem o contrato das rotas de exclusão. O objetivo é exclusivamente melhorar a **clareza da interface**, a **descoberta das ações** e o **contexto visual** do gerenciamento de exclusões dentro do Kanban principal.
+Esta alteração é exclusiva do frontend e da documentação. Não modifica Java, PostgreSQL, Flyway, autenticação ou limpeza automática do banco.

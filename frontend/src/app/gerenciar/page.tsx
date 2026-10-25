@@ -21,6 +21,7 @@ export default function GerenciarPage() {
   const [workspaces, setWorkspaces] = useState<Entity[]>([]);
   const [projects, setProjects] = useState<Entity[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [workspaceFilter, setWorkspaceFilter] = useState("__all__");
   const [columns, setColumns] = useState<Entity[]>([]);
   const [tasks, setTasks] = useState<Entity[]>([]);
   const [dependenciesLoaded, setDependenciesLoaded] = useState(false);
@@ -166,101 +167,169 @@ export default function GerenciarPage() {
   const linkedProjects = (workspaceId: string) => projects.filter(project => project.workspaceId === workspaceId).length;
   const tasksInColumn = (columnId: string) => tasks.filter(task => task.columnId === columnId).length;
   const destructive = pending?.target.kind === "workspace" || pending?.target.kind === "project";
+  const workspaceMap = new Map(workspaces.map(workspace => [workspace.id, workspace]));
+  const workspaceName = (project: Entity) => project.workspaceId
+    ? humanName(workspaceMap.get(project.workspaceId) ?? { id: project.workspaceId })
+    : "Sem workspace";
+  const duplicateCounts = new Map<string, number>();
+  projects.forEach(project => duplicateCounts.set(humanName(project), (duplicateCounts.get(humanName(project)) ?? 0) + 1));
+  const visibleProjects = projects.filter(project => workspaceFilter === "__all__" ||
+    (workspaceFilter === "__none__" ? !project.workspaceId : project.workspaceId === workspaceFilter));
+  const groupIds = Array.from(new Set(visibleProjects.map(project => project.workspaceId || "__none__")));
+  const selectedWorkspaceName = selectedProject ? workspaceName(selectedProject) : "";
+  const hasOrphanTasks = tasks.some(task => !task.columnId || !columns.some(col => col.id === task.columnId));
+
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-8">
-      <div className="mx-auto max-w-5xl space-y-7">
+    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 dark:bg-slate-950 dark:text-slate-100 sm:px-8">
+      <div className="mx-auto max-w-6xl space-y-6">
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[.2em] text-blue-600 dark:text-blue-400">Orquestria · Etapa 6</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight">Gerenciar exclusões</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">Operações reais na API Java. Use uma conta pessoal e recursos descartáveis para testar.</p>
+            <p className="text-xs font-bold uppercase tracking-[.22em] text-blue-600">Orquestria / Gerenciamento</p>
+            <h1 className="mt-2 text-3xl font-bold">Gerenciar itens</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+              Selecione o workspace e depois o projeto. A exclusão é permanente e sempre exige confirmação.
+            </p>
           </div>
           <a href="/" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900">Voltar ao Kanban</a>
         </header>
 
-        {!ready ? <p role="status">Verificando sua sessão no servidor...</p> : !API_BASE ?
-          <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-800">URL da API não configurada no Netlify.</p> : !token ?
-          <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900">{sessionError || "Não há sessão ativa."} <a className="underline" href="/">Volte à página inicial para entrar</a>.</div> : <>
-          <div aria-live="polite" className="space-y-2">
-            {busy && <p className="rounded-xl bg-blue-50 p-3 text-sm text-blue-900 dark:bg-blue-950 dark:text-blue-200">Consultando ou atualizando dados no servidor...</p>}
-            {error && <p role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950 dark:text-rose-200">{error}</p>}
-            {message && <p className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">{message}</p>}
+        {!ready ? (
+          <p role="status" className="rounded-xl bg-white px-4 py-4 text-sm shadow-sm dark:bg-slate-900">Verificando sua sessão...</p>
+        ) : !API_BASE ? (
+          <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-800">URL da API não configurada no Netlify.</p>
+        ) : !token ? (
+          <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-950">
+            {sessionError || "Não há sessão ativa."} <a className="underline" href="/">Voltar ao login</a>
           </div>
+        ) : (
+          <>
+            <div aria-live="polite" className="space-y-2">
+              {busy && <p role="status" className="rounded-xl bg-blue-50 p-3 text-sm text-blue-900">Consultando o servidor...</p>}
+              {error && <p role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
+              {message && <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">{message}</p>}
+            </div>
 
-          <section aria-labelledby="projects-title" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 id="projects-title" className="text-xl font-semibold">Projetos</h2>
-            <p className="mt-1 text-sm text-slate-500">Excluir um projeto apaga também suas colunas, tarefas e comentários.</p>
-            <p className="mt-2 text-sm text-blue-700 dark:text-blue-300">Para excluir tarefas ou colunas, clique em <strong>Ver colunas e tarefas</strong> no projeto desejado.</p>
-            {projects.length === 0 && <p className="mt-4 text-sm">Nenhum projeto cadastrado nesta conta.</p>}
-            <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-700">
-              {projects.map(project => <li key={keyOf(project)} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <span className="font-medium">{humanName(project)}</span>
-                <div className="flex gap-2">
-                  <button type="button" disabled={busy} onClick={() => setSelectedProjectId(project.id)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700">Ver colunas e tarefas</button>
-                  <button type="button" disabled={busy} onClick={() => askDelete({ kind: "project", id: project.id }, humanName(project), "Todas as colunas, tarefas e comentários desse projeto serão removidos permanentemente.")} className="rounded-lg border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50 dark:text-rose-300">Excluir projeto</button>
+            <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
+              <aside className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div>
+                  <h2 className="text-lg font-bold">Workspaces</h2>
+                  <p className="mt-1 text-xs text-slate-500">Filtre os projetos pelo espaço de trabalho.</p>
                 </div>
-              </li>)}
-            </ul>
-          </section>
+                <div className="space-y-2">
+                  <button type="button" disabled={busy} onClick={() => {setWorkspaceFilter("__all__");setSelectedProjectId("");}} className={`w-full rounded-xl border px-3 py-3 text-left text-sm font-semibold ${workspaceFilter === "__all__" ? "border-blue-500 bg-blue-50 text-blue-900" : "border-slate-200"}`}>
+                    Todos os workspaces <span className="ml-1 text-xs font-normal text-slate-500">({projects.length})</span>
+                  </button>
+                  {workspaces.map(workspace => {
+                    const count = linkedProjects(workspace.id);
+                    return (
+                      <div key={workspace.id} className={`rounded-xl border px-3 py-3 ${workspaceFilter === workspace.id ? "border-blue-500 bg-blue-50" : "border-slate-200"}`}>
+                        <button type="button" disabled={busy} className="w-full text-left text-sm font-semibold" onClick={() => {setWorkspaceFilter(workspace.id);setSelectedProjectId("");}}>
+                          <span className="block break-words">{humanName(workspace)}</span>
+                          <span className="mt-1 block text-xs font-normal text-slate-500">{count} projeto{count === 1 ? "" : "s"}</span>
+                        </button>
+                        <button type="button" disabled={busy || count > 0} title={count ? "Exclua primeiro os projetos vinculados" : "Excluir workspace vazio"} onClick={() => askDelete({kind:"workspace",id:workspace.id},humanName(workspace),"O workspace vazio será removido permanentemente.")} className="mt-3 rounded-lg border border-rose-300 px-3 py-2 text-xs font-semibold text-rose-700 disabled:opacity-30">Excluir workspace</button>
+                      </div>
+                    );
+                  })}
+                  {projects.some(project=>!project.workspaceId) && (
+                    <button type="button" disabled={busy} onClick={() => {setWorkspaceFilter("__none__");setSelectedProjectId("");}} className={`w-full rounded-xl border px-3 py-3 text-left text-sm font-semibold ${workspaceFilter === "__none__" ? "border-blue-500 bg-blue-50 text-blue-900" : "border-slate-200"}`}>
+                      Projetos sem workspace
+                    </button>
+                  )}
+                  {workspaces.length === 0 && <p className="text-sm text-slate-500">Nenhum workspace cadastrado.</p>}
+                </div>
+              </aside>
 
-          {selectedProject && <section aria-labelledby="items-title" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 id="items-title" className="text-xl font-semibold">Quadro: {humanName(selectedProject)}</h2>
-            <p className="mt-1 text-sm text-slate-500">Primeiro exclua ou mova as tarefas. Uma coluna com tarefas não pode ser excluída.</p>
-            {!dependenciesLoaded ? <p className="mt-4 text-sm">Carregando colunas e tarefas para validação...</p> : projectError ?
-            <div role="alert" className="mt-4 space-y-3 rounded-lg border border-rose-300 bg-rose-50 p-4 text-rose-800">
-              <p>Não foi possível carregar colunas e tarefas: {projectError}</p>
-              <button type="button" disabled={busy} onClick={() => setRetryProject(value => value + 1)} className="rounded-lg border border-rose-400 px-3 py-2 text-sm font-semibold disabled:opacity-50">Tentar novamente</button>
-            </div> :
-            <div className="mt-5 space-y-5">
-              {columns.length === 0 && <p>O projeto não tem colunas.</p>}
-              {columns.map(column => {
-                const numberOfTasks = tasksInColumn(column.id);
-                const columnTasks = tasks.filter(task => task.columnId === column.id);
-                return <div key={column.id} className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+              <div className="space-y-5">
+                <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="font-semibold">{humanName(column)} <span className="text-xs font-normal text-slate-500">({numberOfTasks} tarefa{numberOfTasks !== 1 ? "s" : ""})</span></h3>
-                    <button type="button" disabled={busy || numberOfTasks > 0} title={numberOfTasks ? "Mova ou exclua as tarefas antes" : "Excluir coluna vazia"} onClick={() => askDelete({ kind: "column", projectId: selectedProjectId, id: column.id }, humanName(column), "A coluna vazia será removida do quadro.")} className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-rose-300">Excluir coluna</button>
+                    <div>
+                      <h2 className="text-xl font-bold">Projetos</h2>
+                      <p className="mt-1 text-sm text-slate-500">Cada projeto mostra seu workspace. Nomes repetidos são diferenciados por ID.</p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{visibleProjects.length} projeto{visibleProjects.length === 1 ? "" : "s"}</span>
                   </div>
-                  <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
-                    {columnTasks.map(task => <li key={task.id} className="flex items-center justify-between gap-3 py-3 text-sm">
-                      <span>{humanName(task)}</span>
-                      <button type="button" disabled={busy} onClick={() => askDelete({ kind: "task", projectId: selectedProjectId, id: task.id }, humanName(task), "A tarefa e seus comentários serão excluídos permanentemente.")} className="rounded-lg px-3 py-2 font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50 dark:text-rose-300">Excluir tarefa</button>
-                    </li>)}
-                  </ul>
-                </div>;
-              })}
-              {tasks.filter(task => !task.columnId || !columns.some(column => column.id === task.columnId)).length > 0 && <p className="text-sm text-amber-700">Há tarefas sem coluna correspondente na resposta da API; nenhuma exclusão de coluna é sugerida para elas.</p>}
-            </div>}
-          </section>}
+                  {visibleProjects.length === 0 && <p className="mt-5 text-sm text-slate-500">Nenhum projeto neste filtro.</p>}
+                  <div className="mt-4 space-y-4">
+                    {groupIds.map(groupId => {
+                      const groupProjects = visibleProjects.filter(project => (project.workspaceId || "__none__") === groupId);
+                      const groupName = groupId === "__none__" ? "Sem workspace" : humanName(workspaceMap.get(groupId) ?? {id:groupId});
+                      return (
+                        <div key={groupId} className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                          <div className="bg-slate-50 px-4 py-3 dark:bg-slate-800"><h3 className="text-sm font-bold">Workspace: {groupName}</h3></div>
+                          <ul className="divide-y divide-slate-200 dark:divide-slate-700">
+                            {groupProjects.map(project => <li key={project.id} className="flex flex-wrap items-center justify-between gap-4 px-4 py-4">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <strong className="break-words">{humanName(project)}</strong>
+                                  {selectedProjectId === project.id && <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-900">Selecionado</span>}
+                                </div>
+                                <p className="mt-1 text-xs text-slate-500">{workspaceName(project)}{(duplicateCounts.get(humanName(project)) ?? 0) > 1 && ` · ID: ${project.id.slice(0,8)}`}</p>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <button type="button" disabled={busy} onClick={() => setSelectedProjectId(project.id)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-50">Ver tarefas</button>
+                                <button type="button" disabled={busy} onClick={() => askDelete({kind:"project",id:project.id}, `${humanName(project)} (${workspaceName(project)})`,"Todas as colunas, tarefas e comentários do projeto serão removidos.")} className="rounded-lg border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-700 disabled:opacity-50">Excluir projeto</button>
+                              </div>
+                            </li>)}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
 
-          <section aria-labelledby="workspaces-title" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 id="workspaces-title" className="text-xl font-semibold">Workspaces</h2>
-            <p className="mt-1 text-sm text-slate-500">Um workspace só pode ser removido quando não possuir projetos vinculados.</p>
-            {workspaces.length === 0 && <p className="mt-4 text-sm">Nenhum workspace cadastrado nesta conta.</p>}
-            <ul className="mt-4 divide-y divide-slate-200 dark:divide-slate-700">
-              {workspaces.map(workspace => <li key={workspace.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <span>{humanName(workspace)} <span className="text-xs text-slate-500">· {linkedProjects(workspace.id)} projeto(s)</span></span>
-                <button type="button" disabled={busy || linkedProjects(workspace.id) > 0} title={linkedProjects(workspace.id) ? "Exclua ou mova os projetos vinculados antes" : "Excluir workspace vazio"} onClick={() => askDelete({ kind: "workspace", id: workspace.id }, humanName(workspace), "O workspace vazio será excluído permanentemente.")} className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-rose-300">Excluir workspace</button>
-              </li>)}
-            </ul>
-          </section>
-          <p className="text-xs text-slate-500">Esta página usa os endpoints da Etapa 6. A API é responsável por validar propriedade e dependências; nenhuma exclusão acontece sem confirmação.</p>
-        </>}
+                {selectedProject && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">Projeto selecionado</p>
+                  <h2 className="mt-2 text-xl font-bold">{humanName(selectedProject)}</h2>
+                  <p className="mt-1 text-sm text-slate-500">Workspace: <strong>{selectedWorkspaceName}</strong></p>
+                  <p className="mt-1 text-sm text-slate-500">Primeiro remova ou mova as tarefas; depois exclua a coluna vazia.</p>
+                  {!dependenciesLoaded ? <p role="status" className="mt-4 text-sm">Carregando colunas e tarefas...</p> : projectError ? (
+                    <div role="alert" className="mt-4 rounded-lg bg-rose-50 p-4 text-rose-800">
+                      {projectError}
+                      <button type="button" disabled={busy} onClick={() => setRetryProject(value => value + 1)} className="ml-3 underline">Tentar novamente</button>
+                    </div>
+                  ) : (
+                    <div className="mt-5 space-y-4">
+                      {columns.length === 0 && <p className="text-sm text-slate-500">Projeto sem colunas.</p>}
+                      {hasOrphanTasks && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Há tarefas sem coluna reconhecida. Confira os dados antes de excluir colunas.</p>}
+                      {columns.map(column => {
+                        const count = tasksInColumn(column.id);
+                        const columnTasks = tasks.filter(task => task.columnId === column.id);
+                        return <div key={column.id} className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <h3 className="font-bold">{humanName(column)} <span className="text-sm font-normal text-slate-500">({count} tarefa{count === 1 ? "" : "s"})</span></h3>
+                              <p className="mt-1 text-xs text-slate-500">{count ? "Remova as tarefas desta coluna primeiro." : "Coluna vazia, pode ser excluída."}</p>
+                            </div>
+                            <button type="button" disabled={busy || count > 0 || hasOrphanTasks} title={count ? "A coluna contém tarefas" : "Excluir coluna vazia"} onClick={() => askDelete({kind:"column",projectId:selectedProjectId,id:column.id}, humanName(column),"A coluna vazia será excluída.")} className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-700 disabled:cursor-not-allowed disabled:opacity-30">Excluir coluna</button>
+                          </div>
+                          {columnTasks.length > 0 && <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-700">
+                            {columnTasks.map(task => <li key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><strong>{humanName(task)}</strong><button type="button" disabled={busy} onClick={() => askDelete({kind:"task",projectId:selectedProjectId,id:task.id},humanName(task),"A tarefa e seus comentários serão excluídos permanentemente.")} className="rounded-lg border border-rose-200 px-3 py-2 font-semibold text-rose-700">Excluir tarefa</button></li>)}
+                          </ul>}
+                        </div>;
+                      })}
+                    </div>
+                  )}
+                </section>}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {pending && <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-8">
-        <section role="dialog" aria-modal="true" aria-labelledby="delete-heading" className="w-full max-w-lg rounded-2xl bg-white p-6 text-slate-900 shadow-2xl dark:bg-slate-900 dark:text-slate-100">
+      {pending && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4">
+        <section role="alertdialog" aria-modal="true" aria-labelledby="delete-heading" className="w-full max-w-lg rounded-2xl bg-white p-6 text-slate-950 shadow-2xl">
           <h2 id="delete-heading" className="text-xl font-bold">Confirmar exclusão</h2>
-          <p className="mt-3 text-sm">Você está prestes a excluir <strong>{pending.label}</strong>.</p>
-          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">{pending.impact}</p>
+          <p className="mt-3 text-sm">Item: <strong>{pending.label}</strong></p>
+          <p className="mt-2 text-sm text-rose-700">{pending.impact}</p>
           {destructive && <label className="mt-5 block text-sm font-medium">Digite <strong>EXCLUIR</strong> para confirmar:
-            <input className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-600" value={confirmation} onChange={event => setConfirmation(event.target.value)} autoComplete="off" autoFocus disabled={busy} />
+            <input autoFocus autoComplete="off" disabled={busy} value={confirmation} onChange={event => setConfirmation(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 p-2" />
           </label>}
-          {error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950 dark:text-rose-200">{error}</p>}
-          <div className="mt-6 flex flex-wrap justify-end gap-3">
-            <button type="button" disabled={busy} onClick={() => { setPending(null); setConfirmation(""); setError(null); }} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">Cancelar</button>
-            <button type="button" disabled={busy || (destructive && confirmation !== "EXCLUIR")} onClick={() => void confirmDelete()} className="rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">{busy ? "Excluindo..." : "Confirmar exclusão"}</button>
+          {error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
+          <div className="mt-6 flex justify-end gap-3">
+            <button type="button" disabled={busy} onClick={() => {setPending(null);setConfirmation("");setError(null);}} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancelar</button>
+            <button type="button" disabled={busy || (destructive && confirmation !== "EXCLUIR")} onClick={() => void confirmDelete()} className="rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{busy ? "Excluindo..." : "Confirmar exclusão"}</button>
           </div>
         </section>
       </div>}
