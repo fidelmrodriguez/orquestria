@@ -224,3 +224,41 @@ Foram checadas a estrutura dos arquivos, a sintaxe dos TSX e as regras puras de 
 - Se o log `template` não aparecer no console, investigar o uso do `src/app/template.tsx` na árvore do Next.js. Se aparecer com `painelMontado: true` e `tokenPresente: true`, o botão deve ficar visível mesmo enquanto a API está indisponível.
 
 - O botão e os diálogos são renderizados diretamente em `document.body` para contornar contextos de empilhamento e áreas com `overflow: hidden` do layout do Kanban.
+
+## Ajuste de usabilidade — gerenciamento de exclusões mais intuitivo (24/10/2026)
+
+### Problemas observados na versão anterior
+
+- O modal listava projetos sem destacar claramente **a qual workspace cada um pertencia**, o que causava confusão quando existiam nomes repetidos como `Projeto inicial`.
+- O fluxo misturava listagem de projetos, workspaces, colunas e tarefas sem uma hierarquia visual forte.
+- O botão flutuante **Gerenciar exclusões** ficava longe demais da borda e podia aparecer por cima de overlays e painéis laterais do Kanban.
+
+### Melhorias desta revisão
+
+- O painel foi reorganizado em **duas áreas**:
+  - **coluna lateral** com instruções, filtros por workspace e exclusão de workspaces;
+  - **área principal** com projetos agrupados por workspace e detalhes do projeto selecionado.
+- Cada projeto agora exibe explicitamente:
+  - **nome do workspace**;
+  - marcador de **nome repetido**, quando houver outro projeto com o mesmo nome;
+  - **ID curto** para diferenciar visualmente projetos duplicados.
+- O usuário primeiro escolhe o **workspace**, depois o **projeto**, e só então vê **colunas e tarefas** para excluir. Isso reduz ambiguidade no fluxo.
+- A seção do projeto selecionado mostra:
+  - workspace de origem;
+  - totais de colunas e tarefas;
+  - status visual de cada coluna (`coluna vazia` ou `remova as tarefas primeiro`);
+  - lista de tarefas por coluna com ação individual de exclusão.
+- O gatilho **Gerenciar exclusões** foi reposicionado para um pill compacto e centralizado, com menor `z-index`, diminuindo conflitos com drawers, overlays e modais do próprio Kanban.
+
+### Testes manuais recomendados
+
+1. Publicar o commit no Netlify e confirmar que o botão **Gerenciar exclusões** aparece de forma discreta no Kanban.
+2. Criar dois projetos com o mesmo nome em workspaces diferentes e abrir o painel.
+3. Confirmar que o modal distingue os dois projetos pelo **workspace** e pelo **ID curto**.
+4. Selecionar um projeto e verificar se colunas com tarefas ficam claramente bloqueadas para exclusão.
+5. Abrir o drawer lateral de detalhes da tarefa e conferir se o botão de gerenciamento não fica por cima do overlay de forma indevida.
+6. Executar uma exclusão de tarefa, coluna vazia, projeto descartável e workspace vazio para validar o fluxo completo.
+
+### Escopo
+
+Esta revisão não altera as regras de negócio da API Java nem o contrato das rotas de exclusão. O objetivo é exclusivamente melhorar a **clareza da interface**, a **descoberta das ações** e o **contexto visual** do gerenciamento de exclusões dentro do Kanban principal.

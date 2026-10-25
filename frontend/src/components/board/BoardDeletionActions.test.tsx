@@ -32,7 +32,7 @@ describe("BoardDeletionActions", () => {
     let respond!: (result: typeof user | null) => void;
     restore.mockImplementation(() => new Promise(resolve => { respond = resolve; }));
     render(<BoardDeletionActions />);
-    expect(await screen.findByRole("button", { name: "Gerenciar exclusões do Kanban" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Abrir gerenciamento de exclusões" })).toBeInTheDocument();
     expect(request).not.toHaveBeenCalled();
     await act(async () => { respond(user); });
   });
@@ -40,18 +40,40 @@ describe("BoardDeletionActions", () => {
   it("permite nova validação ao clicar se a API falhou durante a montagem", async () => {
     restore.mockRejectedValueOnce(new Error("API temporariamente indisponível"));
     render(<BoardDeletionActions />);
-    const btn = await screen.findByRole("button", { name: "Gerenciar exclusões do Kanban" });
+    const btn = await screen.findByRole("button", { name: "Abrir gerenciamento de exclusões" });
     await waitFor(() => expect(restore).toHaveBeenCalledTimes(1));
     await userEvent.click(btn);
     await waitFor(() => expect(restore).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(request).toHaveBeenCalledTimes(2));
-    expect(screen.getByRole("dialog", { name: "Excluir itens do Kanban" })).toBeInTheDocument();
+    expect(screen.getByText("Gerenciar exclusões do Kanban")).toBeInTheDocument();
+  });
+
+  it("mostra o workspace junto do projeto para diferenciar nomes repetidos", async () => {
+    request
+      .mockResolvedValueOnce([
+        { id: "ws-1", name: "Marketing" },
+        { id: "ws-2", name: "Operações" }
+      ])
+      .mockResolvedValueOnce([
+        { id: "projeto-1", name: "Projeto inicial", workspaceId: "ws-1" },
+        { id: "projeto-2", name: "Projeto inicial", workspaceId: "ws-2" }
+      ]);
+
+    render(<BoardDeletionActions />);
+    const btn = await screen.findByRole("button", { name: "Abrir gerenciamento de exclusões" });
+    await userEvent.click(btn);
+
+    expect(await screen.findByText("Marketing")).toBeInTheDocument();
+    expect(await screen.findByText("Operações")).toBeInTheDocument();
+    expect(await screen.findAllByText("Projeto inicial")).toHaveLength(2);
+    expect(await screen.findByText(/Workspace: Marketing/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Workspace: Operações/i)).toBeInTheDocument();
   });
 
   it("não exibe o atalho sem token", async () => {
     token.mockReturnValue(null);
     render(<BoardDeletionActions />);
     await waitFor(() => expect(restore).not.toHaveBeenCalled());
-    expect(screen.queryByRole("button", { name: "Gerenciar exclusões do Kanban" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Abrir gerenciamento de exclusões" })).not.toBeInTheDocument();
   });
 });
