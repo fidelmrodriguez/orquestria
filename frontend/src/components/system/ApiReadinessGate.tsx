@@ -15,6 +15,20 @@ type ReadinessPayload = { status?: string };
  */
 export default function ApiReadinessGate({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<GateStatus>("checking");
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  // Contador visual de tempo decorrido: não interfere nas tentativas de readiness.
+  // Calculado a partir do relógio, para não atrasar caso a aba fique em segundo plano.
+  useEffect(() => {
+    const startedAt = Date.now();
+    const updateElapsed = () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    };
+    const interval = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
 
   useEffect(() => {
     let disposed = false;
@@ -88,6 +102,9 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-600" aria-hidden="true" />
           Aguardando o servidor ficar disponível
         </div>
+        <p className="mt-3 font-mono text-2xl font-semibold tabular-nums tracking-wide text-slate-950" role="timer" aria-label={`Tempo decorrido: ${elapsedLabel}`} aria-live="off">
+          {elapsedLabel}
+        </p>
         <p className="mt-5 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
           <strong>Tempo de inicialização:</strong> quando o servidor está em repouso, o primeiro acesso pode levar cerca de 3 minutos. Isso é esperado no ambiente de demonstração.
         </p>

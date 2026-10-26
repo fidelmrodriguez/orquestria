@@ -45,3 +45,21 @@ Foi observado um despertar do Blitz aproximadamente entre **13h41 e 13h44**, ist
 4. Confirmar que não aparecem o aviso dinâmico de demora nem o botão **Verificar agora**.
 
 Esta revisão modifica apenas `ApiReadinessGate.tsx` e a documentação. Não altera proxy, rotas, backend, banco nem configuração de deploy.
+
+
+## Ajuste de experiência — contador de tempo decorrido no despertar
+
+- A tela **Preparando seu ambiente** exibe um contador `MM:SS` logo abaixo de **Aguardando o servidor ficar disponível**.
+- Começa em `00:00` ao montar a tela e aumenta a cada segundo enquanto a API não estiver pronta. É **tempo decorrido**, não previsão ou contagem regressiva.
+- O contador considera o relógio ao recalcular o tempo, evitando atrasos caso a aba fique em segundo plano. Não altera o intervalo de checagem da API (5 segundos) nem o timeout (12 segundos).
+- Mantido o aviso fixo de que o primeiro acesso pode levar **aproximadamente 3 minutos**, sem botão manual nem alerta dinâmico de demora.
+- Quando a API responde `HTTP 200 + JSON + status UP`, a tela desaparece automaticamente e o login ou a sessão anterior são restaurados como antes.
+
+### Teste rápido
+
+1. Abra o Orquestria quando o Blitz estiver em modo Sleeping: o contador deve aparecer em `00:00`.
+2. Observe `00:01`, `00:02` e a passagem de `00:59` para `01:00` (caso a inicialização dure esse tempo).
+3. Confirme que não há botão de verificação e que o aviso fixo de 3 minutos permanece.
+4. Assim que o backend estiver pronto, a tela deve desaparecer sem ação manual, tanto para um visitante quanto para uma sessão já autenticada.
+
+A mudança limita-se ao componente visual e à documentação, sem alteração de Java, Netlify, proxy ou banco.
