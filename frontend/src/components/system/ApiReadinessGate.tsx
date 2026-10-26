@@ -8,7 +8,7 @@ const SLOW_START_MS = 60000;
 
 type GateStatus = "checking" | "ready";
 
-type ReadinessPayload = { status?: "ready" | "waking" };
+type ReadinessPayload = { status?: string };
 
 /**
  * Bloqueia tanto o LoginScreen quanto o Kanban até o Java estar pronto.
@@ -51,15 +51,21 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
           headers: { Accept: "application/json" },
           signal: requestController.signal
         });
+        // O Netlify encaminha esta URL ao Spring Actuator, que responde
+        // {"status":"UP"}. HTML de wake-up ou JSON de erro não liberam a UI.
+        const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+        if (!response.ok || !contentType.includes("json")) return;
         const payload = await response.json() as ReadinessPayload;
         if (disposed) return;
-        if (response.ok && payload.status === "ready") {
+        if (payload && payload.status === "UP") {
           confirmedReady = true;
+          console.info("[Orquestria][readiness] API Java disponível");
           setStatus("ready");
           return;
         }
       } catch {
-        // Em queda do serviço ou falha de rede, manter o gate e tentar novamente.
+        // HTML da página de despertar, timeout ou rede indisponível:
+        // manter o gate e tentar novamente sem afetar a sessão existente.
       } finally {
         if (timeoutTimer) clearTimeout(timeoutTimer);
         timeoutTimer = null;

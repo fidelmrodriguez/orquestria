@@ -1,0 +1,4 @@
+# A URL pública do Next.js estático é resolvida pelo proxy do Netlify.
+# 200! força o proxy mesmo se existir um arquivo exportado neste caminho.
+# Não colocar regras genéricas (/*) acima desta rota.
+/api/orquestria-readiness  https://orquestria-api.fidelmrodriguez.blitz.cloud/actuator/health  200!
