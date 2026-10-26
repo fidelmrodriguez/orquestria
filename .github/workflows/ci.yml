@@ -1,0 +1,89 @@
+name: Orquestria CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend - Java 21 / PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: orquestria_test
+          POSTGRES_USER: orquestria_ci
+          POSTGRES_PASSWORD: local_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U orquestria_ci -d orquestria_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      # Exclusivo do Postgres descartável do job. Nunca conecta ao Neon de produção.
+      DB_URL: jdbc:postgresql://localhost:5432/orquestria_test
+      DB_USER: orquestria_ci
+      DB_PASSWORD: local_ci_only
+      APP_GUEST_PASSWORD: ci-test-guest-password-only
+      ORQUESTRIA_RUN_DB_TESTS: 'true'
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Unitários + integração + Flyway + relatório de cobertura
+        run: mvn --batch-mode --no-transfer-progress verify
+      - name: Publicar resultados e cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            backend/target/surefire-reports/
+            backend/target/site/jacoco/
+          if-no-files-found: warn
+
+  frontend:
+    name: Frontend - Next.js / TypeScript / Jest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Validar TypeScript
+        run: npm run typecheck
+      - name: Rodar testes Jest
+        run: npm test -- --runInBand --ci
+      - name: Validar build estático do Netlify
+        run: npm run build
