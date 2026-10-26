@@ -145,14 +145,15 @@ export function LoginScreen() {
                   <span className="text-sm font-medium">Nome de exibição</span>
                   <input className="field" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={120} autoComplete="name" disabled={saving} />
                 </label>
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium">Nome de usuário</span>
-                  <input className="field" value={username} onChange={(event) => setUsername(event.target.value.toLowerCase())}
+                <div className="block space-y-2">
+                  <label htmlFor="orquestria-register-username" className="block text-sm font-medium">Nome de usuário</label>
+                  <input id="orquestria-register-username" aria-describedby="orquestria-register-username-help"
+                    className="field" value={username} onChange={(event) => setUsername(event.target.value.toLowerCase())}
                     required minLength={3} maxLength={32} pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,31}"
                     title="De 3 a 32 caracteres: letras, números, ponto, hífen ou sublinhado."
                     placeholder="ex.: maria.silva" autoComplete="username" disabled={saving} />
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">Será usado para entrar na sua conta. Não pode conter espaços.</span>
-                </label>
+                  <span id="orquestria-register-username-help" className="block text-xs text-slate-500 dark:text-slate-400">Será usado para entrar na sua conta. Não pode conter espaços.</span>
+                </div>
               </>
             )}
             {guest ? (

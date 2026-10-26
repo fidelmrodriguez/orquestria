@@ -63,11 +63,19 @@ describe("BoardDeletionActions", () => {
     const btn = await screen.findByRole("button", { name: "Abrir gerenciamento de exclusões" });
     await userEvent.click(btn);
 
-    expect(await screen.findByText("Marketing")).toBeInTheDocument();
-    expect(await screen.findByText("Operações")).toBeInTheDocument();
-    expect(await screen.findAllByText("Projeto inicial")).toHaveLength(2);
-    expect(await screen.findByText(/Workspace: Marketing/i)).toBeInTheDocument();
-    expect(await screen.findByText(/Workspace: Operações/i)).toBeInTheDocument();
+    // O workspace aparece no filtro, no título do grupo e no contexto do projeto.
+    // Portanto não esperamos uma única ocorrência do mesmo nome na tela.
+    const duplicateProjects = await screen.findAllByText("Projeto inicial");
+    expect(duplicateProjects).toHaveLength(2);
+    const projectRows = duplicateProjects.map((element) => element.closest("li"));
+    expect(projectRows.every((row) => row !== null)).toBe(true);
+    // Valida as associações sem depender da ordem de exibição dos workspaces.
+    const descriptions = projectRows.map((row) => row?.textContent ?? "");
+    expect(descriptions).toEqual(expect.arrayContaining([
+      expect.stringMatching(/Workspace:\s*Marketing/i),
+      expect.stringMatching(/Workspace:\s*Operações/i)
+    ]));
+    expect(descriptions.every((description) => description.includes("nome repetido"))).toBe(true);
   });
 
   it("não exibe o atalho sem token", async () => {
