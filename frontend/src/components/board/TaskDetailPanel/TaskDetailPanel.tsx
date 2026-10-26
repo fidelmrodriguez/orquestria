@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { useEffect, useState } from "react";
+import { useAccessiblePanel } from "@/hooks/use-accessible-panel";
 import { isApiMode } from "@/lib/remote-board";
 import type { Task } from "@/types/board";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
@@ -34,8 +35,13 @@ export function TaskDetailPanel() {
   const workspace = useBoardStore(selectActiveWorkspace);
   const setSelectedTask = useBoardStore((state) => state.setSelectedTask);
   const updateTask = useBoardStore((state) => state.updateTask);
+  const moveTask = useBoardStore((state) => state.moveTask);
   const addComment = useBoardStore((state) => state.addComment);
   const { notify } = useToast();
+  const { panelRef, onKeyDown } = useAccessiblePanel<HTMLDivElement>(
+    Boolean(task && workspace),
+    () => setSelectedTask(null)
+  );
 
   if (!task || !workspace) return null;
 
@@ -49,11 +55,12 @@ export function TaskDetailPanel() {
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xl border-l border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-950 sm:top-0">
+    <div ref={panelRef} onKeyDown={onKeyDown} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="task-detail-heading"
+      className="fixed inset-y-0 right-0 z-50 w-full max-w-xl border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950 sm:top-0">
       <div className="flex h-full flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-slate-800">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Detalhes da tarefa</p>
+            <p id="task-detail-heading" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Detalhes da tarefa</p>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{column?.title || "Sem coluna"}</p>
           </div>
           <button type="button" onClick={() => setSelectedTask(null)} className="icon-button" aria-label="Fechar painel">
@@ -72,7 +79,7 @@ export function TaskDetailPanel() {
 
           <TaskDescriptionEditor task={task} onSave={updateTask} />
 
-          <TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={updateTask} />
+          <TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={updateTask} onMoveTask={moveTask} />
           <TaskPlanningCards task={task} onUpdateTask={updateTask} />
           <TaskCommentsSection task={task} members={workspace.members} fallbackMember={member} onSubmitComment={submitComment} />
         </div>

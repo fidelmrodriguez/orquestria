@@ -31,6 +31,15 @@ export function TaskCard({ task, member }: TaskCardProps) {
       }}
       onDragEnd={() => setDraggedTask(null)}
       onClick={() => setSelectedTask(task.id)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setSelectedTask(task.id);
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`Abrir tarefa: ${task.title}`}
       className="group cursor-grab rounded-3xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-1 hover:border-slate-300 active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700"
     >
       <div className="mb-3 flex items-start justify-between gap-3">

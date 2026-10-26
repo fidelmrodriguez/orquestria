@@ -18,7 +18,13 @@ type MobileWorkspaceMenuProps = {
 
 export function MobileWorkspaceMenu({ open, workspace, priorityFilter, assigneeFilter, onNavigate, onShare, onLogout, onPriorityChange, onAssigneeChange }: MobileWorkspaceMenuProps) {
   return (
-    <div className={cn("absolute left-3 right-3 top-[calc(100%+8px)] z-50 hidden max-h-[calc(100vh-120px)] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-4 shadow-card dark:border-slate-800 dark:bg-slate-950 lg:hidden", open ? "block" : "hidden")}>
+    <div id="orquestria-mobile-navigation" role="navigation" aria-label="Navegação mobile" aria-hidden={!open} onKeyDown={(event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onNavigate();
+        document.querySelector<HTMLButtonElement>('[aria-controls="orquestria-mobile-navigation"]')?.focus();
+      }
+    }} className={cn("absolute left-3 right-3 top-[calc(100%+8px)] z-50 max-h-[calc(100vh-120px)] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-4 shadow-card dark:border-slate-800 dark:bg-slate-950 lg:hidden", open ? "block" : "hidden")}>
       <Sidebar onNavigate={onNavigate} dropdown />
       <div className="mt-4 grid gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
         <div className="grid grid-cols-2 gap-2">

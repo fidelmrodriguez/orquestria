@@ -16,6 +16,7 @@ export function SearchField({ value, placeholder, className, onChange }: SearchF
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
       />
     </div>

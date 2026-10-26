@@ -101,3 +101,19 @@ aside::-webkit-scrollbar-thumb {
     overflow-x: hidden;
   }
 }
+
+/* Indicadores de foco visíveis ao navegar por teclado, inclusive em cartões e ícones. */
+:where(button, a, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

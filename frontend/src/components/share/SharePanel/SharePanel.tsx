@@ -3,6 +3,7 @@
 import { Copy, Link2, Shield, X } from "lucide-react";
 import { useMemo } from "react";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
+import { useAccessiblePanel } from "@/hooks/use-accessible-panel";
 import { selectActiveProject, selectActiveWorkspace, useBoardStore } from "@/store/board-store";
 
 type SharePanelProps = {
@@ -14,6 +15,7 @@ export function SharePanel({ open, onClose }: SharePanelProps) {
   const workspace = useBoardStore(selectActiveWorkspace);
   const project = useBoardStore(selectActiveProject);
   const { notify } = useToast();
+  const { panelRef, onKeyDown } = useAccessiblePanel<HTMLDivElement>(open && Boolean(workspace && project), onClose);
   const link = useMemo(() => {
     if (typeof window === "undefined" || !project) return "";
     return `${window.location.origin}/?workspace=${workspace?.id || ""}&project=${project.id}`;
@@ -31,12 +33,13 @@ export function SharePanel({ open, onClose }: SharePanelProps) {
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md border-l border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-950">
+    <div ref={panelRef} onKeyDown={onKeyDown} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="share-heading"
+      className="fixed inset-y-0 right-0 z-50 w-full max-w-md border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950">
       <div className="flex h-full flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-slate-800">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Compartilhamento</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-950 dark:text-white">Acesso ao projeto</h2>
+            <h2 id="share-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-950 dark:text-white">Acesso ao projeto</h2>
           </div>
           <button type="button" onClick={onClose} className="icon-button" aria-label="Fechar painel">
             <X className="size-5" />

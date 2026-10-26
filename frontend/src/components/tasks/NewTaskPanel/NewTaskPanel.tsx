@@ -9,6 +9,7 @@ import { apiUrl } from "@/lib/remote-board";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
+import { useAccessiblePanel } from "@/hooks/use-accessible-panel";
 import { selectActiveProject, selectActiveWorkspace, useBoardStore } from "@/store/board-store";
 import type { Priority } from "@/types/board";
 
@@ -35,6 +36,7 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   useEffect(() => { if (!open) setSelectedTags([]); }, [open]);
   const { notify } = useToast();
+  const { panelRef, onKeyDown } = useAccessiblePanel<HTMLDivElement>(open && Boolean(workspace && project), onClose, 'input[name="title"]');
   const columns = useMemo(() => {
     if (!workspace || !project) return [];
     return workspace.columns.filter((column) => column.projectId === project.id).sort((a, b) => a.order - b.order);
@@ -45,7 +47,7 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
     register,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors, isSubmitting }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     values: {
@@ -82,12 +84,13 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg border-l border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-950">
+    <div ref={panelRef} onKeyDown={onKeyDown} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="new-task-heading"
+      className="fixed inset-y-0 right-0 z-50 w-full max-w-lg border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950">
       <div className="flex h-full flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-slate-800">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Nova tarefa</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-950 dark:text-white">Criar atividade no projeto</h2>
+            <h2 id="new-task-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-slate-950 dark:text-white">Criar atividade no projeto</h2>
           </div>
           <button type="button" onClick={onClose} className="icon-button" aria-label="Fechar painel">
             <X className="size-5" />
@@ -97,39 +100,39 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
         <form onSubmit={handleSubmit(submit)} className="panel-scroll flex-1 space-y-4 overflow-y-auto p-5">
           <label className="block space-y-2">
             <span className="label">Título</span>
-            <input {...register("title")} className="field" placeholder="Ex.: Validar fluxo de aprovação" />
-            {errors.title && <span className="error-text">{errors.title.message}</span>}
+            <input {...register("title")} className="field" aria-invalid={Boolean(errors.title)} aria-describedby={errors.title ? "new-task-title-error" : undefined} placeholder="Ex.: Validar fluxo de aprovação" />
+            {errors.title && <span id="new-task-title-error" className="error-text">{errors.title.message}</span>}
           </label>
 
           <label className="block space-y-2">
             <span className="label">Descrição</span>
-            <textarea {...register("description")} className="field min-h-28 resize-none" placeholder="Contexto, objetivo e critérios de aceite" />
-            {errors.description && <span className="error-text">{errors.description.message}</span>}
+            <textarea {...register("description")} className="field min-h-28 resize-none" aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? "new-task-description-error" : undefined} placeholder="Contexto, objetivo e critérios de aceite" />
+            {errors.description && <span id="new-task-description-error" className="error-text">{errors.description.message}</span>}
           </label>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block space-y-2">
               <span className="label">Coluna</span>
-              <select {...register("columnId")} className="field">
+              <select {...register("columnId")} className="field" aria-invalid={Boolean(errors.columnId)} aria-describedby={errors.columnId ? "new-task-column-error" : undefined}>
                 {columns.map((column) => (
                   <option key={column.id} value={column.id}>
                     {column.title}
                   </option>
                 ))}
               </select>
-              {errors.columnId && <span className="error-text">{errors.columnId.message}</span>}
+              {errors.columnId && <span id="new-task-column-error" className="error-text">{errors.columnId.message}</span>}
             </label>
 
             <label className="block space-y-2">
               <span className="label">Responsável</span>
-              <select {...register("assigneeId")} className="field">
+              <select {...register("assigneeId")} className="field" aria-invalid={Boolean(errors.assigneeId)} aria-describedby={errors.assigneeId ? "new-task-assignee-error" : undefined}>
                 {workspace.members.map((member) => (
                   <option key={member.id} value={member.id}>
                     {member.name}
                   </option>
                 ))}
               </select>
-              {errors.assigneeId && <span className="error-text">{errors.assigneeId.message}</span>}
+              {errors.assigneeId && <span id="new-task-assignee-error" className="error-text">{errors.assigneeId.message}</span>}
             </label>
           </div>
 
@@ -146,8 +149,8 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
 
             <label className="block space-y-2">
               <span className="label">Prazo</span>
-              <input type="date" {...register("dueDate")} className="field" />
-              {errors.dueDate && <span className="error-text">{errors.dueDate.message}</span>}
+              <input type="date" {...register("dueDate")} className="field" aria-invalid={Boolean(errors.dueDate)} aria-describedby={errors.dueDate ? "new-task-due-error" : undefined} />
+              {errors.dueDate && <span id="new-task-due-error" className="error-text">{errors.dueDate.message}</span>}
             </label>
           </div>
 
@@ -155,8 +158,8 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
             apiBase={apiUrl} token={getAuthToken() || undefined} maxTags={12} />
 
           <div className="sticky bottom-0 -mx-5 mt-8 border-t border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
-            <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">
-              <Plus className="size-4" /> Criar tarefa
+            <button type="submit" disabled={isSubmitting} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-slate-950">
+              <Plus className="size-4" /> {isSubmitting ? "Salvando tarefa..." : "Criar tarefa"}
             </button>
           </div>
         </form>

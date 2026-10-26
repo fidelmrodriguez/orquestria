@@ -40,6 +40,8 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask, onShare 
           onClick={onToggleMobileMenu}
           className="icon-button lg:hidden"
           aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="orquestria-mobile-navigation"
         >
           {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>

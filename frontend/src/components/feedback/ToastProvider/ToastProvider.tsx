@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            role="status"
+            role={toast.type === "error" ? "alert" : "status"}
             className={cn(
               "flex items-start gap-3 rounded-2xl border bg-white/95 p-4 text-sm shadow-soft backdrop-blur dark:bg-slate-950/95",
               toast.type === "success" && "border-emerald-200 text-emerald-900 dark:border-emerald-900 dark:text-emerald-100",

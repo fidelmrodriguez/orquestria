@@ -72,8 +72,8 @@ export function AppShell() {
       <Topbar
         mobileMenuOpen={mobileMenuOpen}
         onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}
-        onNewTask={() => setNewTaskOpen(true)}
-        onShare={() => setShareOpen(true)}
+        onNewTask={() => { setMobileMenuOpen(false); setNewTaskOpen(true); }}
+        onShare={() => { setMobileMenuOpen(false); setShareOpen(true); }}
       />
 
       <main className="min-h-screen pt-[144px] lg:ml-72 lg:pt-[92px]">

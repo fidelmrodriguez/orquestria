@@ -27,7 +27,7 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, draggedTas
         onDragTask(null);
       }}
       className={cn(
-        "flex max-h-[calc(100vh-260px)] min-h-[360px] w-[310px] shrink-0 flex-col rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-3 transition dark:border-slate-800 dark:bg-slate-900/50",
+        "flex max-h-[calc(100vh-260px)] min-h-[360px] w-[calc(100vw-2rem)] shrink-0 sm:w-[310px] flex-col rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-3 transition dark:border-slate-800 dark:bg-slate-900/50",
         draggedTaskId && "border-dashed border-slate-400 dark:border-slate-600"
       )}
     >
@@ -54,7 +54,12 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, draggedTas
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} member={members.find((member) => member.id === task.assigneeId)} />
         ))}
-        {!tasks.length && (
+        {!tasks.length && totalTaskCount > 0 && (
+          <div className="grid min-h-32 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white/70 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400">
+            Nenhuma tarefa corresponde aos filtros atuais.
+          </div>
+        )}
+        {!tasks.length && totalTaskCount === 0 && (
           <button
             type="button"
             onClick={onNewTask}

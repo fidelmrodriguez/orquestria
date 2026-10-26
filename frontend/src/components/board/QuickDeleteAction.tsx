@@ -7,6 +7,7 @@ import { getAuthToken, restoreAuthSession } from "@/lib/auth-client";
 import { apiRequest, deleteActionPath, deleteOperation, type DeleteTarget } from "@/lib/kanban-deletion";
 import { useBoardStore } from "@/store/board-store";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
+import { useAccessiblePanel } from "@/hooks/use-accessible-panel";
 
 type Props = {
   target: DeleteTarget;
@@ -32,6 +33,7 @@ export default function QuickDeleteAction({ target, name, impact, label = "Exclu
   const setSelectedTask = useBoardStore(state => state.setSelectedTask);
   const { notify } = useToast();
   const mustType = guest || target.kind === "project" || target.kind === "workspace";
+  const { panelRef, onKeyDown } = useAccessiblePanel<HTMLElement>(open, () => { if (!busy) setOpen(false); }, mustType ? 'input[autocomplete="off"]' : undefined);
 
   async function openConfirmation() {
     if (disabledReason || validating || busy) return;
@@ -70,10 +72,10 @@ export default function QuickDeleteAction({ target, name, impact, label = "Exclu
     </button>
     {open && typeof document !== "undefined" && createPortal(
       <div className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/75 p-4" onMouseDown={e => { if (e.target === e.currentTarget && !busy) setOpen(false); }}>
-        <section role="alertdialog" aria-modal="true" aria-labelledby="orq-delete-heading" className="w-full max-w-md rounded-2xl bg-white p-6 text-slate-950 shadow-2xl dark:bg-slate-900 dark:text-white">
+        <section ref={panelRef} onKeyDown={event => { event.stopPropagation(); onKeyDown(event); }} tabIndex={-1} role="alertdialog" aria-modal="true" aria-labelledby="orq-delete-heading" aria-describedby="orq-delete-impact" className="w-full max-w-md rounded-2xl bg-white p-6 text-slate-950 shadow-2xl outline-none dark:bg-slate-900 dark:text-white">
           <h2 id="orq-delete-heading" className="text-xl font-bold">Confirmar exclusão</h2>
           <p className="mt-3 text-sm">Você está prestes a excluir <strong>{name}</strong>.</p>
-          <p className="mt-2 text-sm text-red-700 dark:text-red-300">{impact}</p>
+          <p id="orq-delete-impact" className="mt-2 text-sm text-red-700 dark:text-red-300">{impact}</p>
           {mustType && <label className="mt-4 block text-sm">Digite <strong>EXCLUIR</strong> para confirmar
             <input autoFocus autoComplete="off" value={typed} disabled={busy} onChange={e => setTyped(e.target.value)}
               className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900" />
