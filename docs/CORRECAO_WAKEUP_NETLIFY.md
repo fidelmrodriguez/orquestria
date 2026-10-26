@@ -26,3 +26,22 @@ O proxy do Netlify tem limite documentado de 26 segundos por requisição. O fro
 ## Escopo
 
 Correção exclusiva do frontend e da regra de proxy do Netlify. Sem novas migrações, sem mexer em credenciais, sem modificação do Java. O Blitz continua podendo dormir; a aplicação passa a aguardar e reabrir automaticamente quando acordar. Os testes de exclusão e isolamento da Etapa 6 continuam pendentes.
+
+## Ajuste de experiência — aviso fixo de duração do wake-up
+
+Foi observado um despertar do Blitz aproximadamente entre **13h41 e 13h44**, isto é, **3 minutos**. A duração é uma referência observada, não uma garantia de tempo de inicialização em acessos futuros.
+
+- Removido o botão manual **Verificar agora**.
+- Removido o aviso condicional de que a inicialização "está levando mais tempo que o habitual".
+- Exibido desde o começo um **único aviso fixo** de que o primeiro acesso, quando a API está adormecida, pode levar cerca de 3 minutos.
+- Mantida a verificação automática a cada 5 segundos entre tentativas (com timeout de 12 segundos por requisição) e a detecção de `HTTP 200 + JSON + status UP`.
+- Login, cadastro, Kanban e `/gerenciar` continuam bloqueados até a API estar pronta; o token existente não é removido durante o despertar e a sessão pode ser restaurada normalmente em seguida.
+
+### Testes desta revisão
+
+1. Com a API dormindo, abrir o site: a tela mostra **Preparando seu ambiente** e o disclaimer de ~3 minutos desde o primeiro instante, sem botão de verificação.
+2. Esperar o despertar: a página libera automaticamente a aplicação quando `status: UP` é recebido.
+3. Repetir com usuário previamente autenticado: a aplicação deve restaurar a sessão após o wake-up.
+4. Confirmar que não aparecem o aviso dinâmico de demora nem o botão **Verificar agora**.
+
+Esta revisão modifica apenas `ApiReadinessGate.tsx` e a documentação. Não altera proxy, rotas, backend, banco nem configuração de deploy.

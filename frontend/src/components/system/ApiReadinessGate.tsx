@@ -1,49 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 const POLL_INTERVAL_MS = 5000;
 const REQUEST_TIMEOUT_MS = 12000;
-const SLOW_START_MS = 60000;
 
 type GateStatus = "checking" | "ready";
-
 type ReadinessPayload = { status?: string };
 
 /**
- * Bloqueia tanto o LoginScreen quanto o Kanban até o Java estar pronto.
- * Funciona com ou sem token: a restauração de sessão existente acontece
- * depois, na aplicação, evitando 401/falhas durante o cold start.
+ * Aguarda a API Java ficar pronta antes de montar login, cadastro, Kanban
+ * ou a tela de gerenciamento, inclusive quando já existe uma sessão salva.
+ * O aviso de duração é estático; as verificações continuam automáticas.
  */
 export default function ApiReadinessGate({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<GateStatus>("checking");
-  const [slow, setSlow] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-  const runRef = useRef<(() => void) | null>(null);
-
-  const checkNow = useCallback(() => { runRef.current?.(); }, []);
 
   useEffect(() => {
     let disposed = false;
-    let active = false;
+    let checking = false;
     let confirmedReady = false;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    let slowTimer: ReturnType<typeof setTimeout> | null = null;
     let timeoutTimer: ReturnType<typeof setTimeout> | null = null;
     let controller: AbortController | null = null;
 
-    const schedule = () => {
-      if (disposed) return;
-      retryTimer = setTimeout(() => { void check(); }, POLL_INTERVAL_MS);
-    };
-
     const check = async () => {
-      if (disposed || active) return;
-      active = true;
-      setAttempt((previous) => previous + 1);
+      if (disposed || checking || confirmedReady) return;
+      checking = true;
       controller = new AbortController();
       const requestController = controller;
       timeoutTimer = setTimeout(() => requestController.abort(), REQUEST_TIMEOUT_MS);
+
       try {
         const response = await fetch("/api/orquestria-readiness", {
           method: "GET",
@@ -51,47 +38,34 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
           headers: { Accept: "application/json" },
           signal: requestController.signal
         });
-        // O Netlify encaminha esta URL ao Spring Actuator, que responde
-        // {"status":"UP"}. HTML de wake-up ou JSON de erro não liberam a UI.
+        // Não confundir a página HTML de wake-up do Blitz com saúde UP.
         const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-        if (!response.ok || !contentType.includes("json")) return;
-        const payload = await response.json() as ReadinessPayload;
-        if (disposed) return;
-        if (payload && payload.status === "UP") {
-          confirmedReady = true;
-          console.info("[Orquestria][readiness] API Java disponível");
-          setStatus("ready");
-          return;
+        if (response.ok && contentType.includes("json")) {
+          const payload = await response.json() as ReadinessPayload;
+          if (!disposed && payload?.status === "UP") {
+            confirmedReady = true;
+            console.info("[Orquestria][readiness] API Java disponível");
+            setStatus("ready");
+          }
         }
       } catch {
-        // HTML da página de despertar, timeout ou rede indisponível:
-        // manter o gate e tentar novamente sem afetar a sessão existente.
+        // Falhas de rede e timeout são normais durante o despertar do Blitz.
       } finally {
         if (timeoutTimer) clearTimeout(timeoutTimer);
         timeoutTimer = null;
-        active = false;
+        checking = false;
         controller = null;
         if (!disposed && !confirmedReady) {
-          // Não existe uma segunda consulta enquanto a anterior está em voo.
-          schedule();
+          // Apenas uma tentativa por vez, com nova consulta automática.
+          retryTimer = setTimeout(() => { void check(); }, POLL_INTERVAL_MS);
         }
       }
     };
 
-    runRef.current = () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      retryTimer = null;
-      void check();
-    };
-
-    slowTimer = setTimeout(() => { if (!disposed) setSlow(true); }, SLOW_START_MS);
     void check();
-
     return () => {
       disposed = true;
-      runRef.current = null;
       if (retryTimer) clearTimeout(retryTimer);
-      if (slowTimer) clearTimeout(slowTimer);
       if (timeoutTimer) clearTimeout(timeoutTimer);
       controller?.abort();
     };
@@ -114,20 +88,12 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-600" aria-hidden="true" />
           Aguardando o servidor ficar disponível
         </div>
-        {slow && (
-          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-            A inicialização está levando mais tempo que o habitual. A verificação continua automaticamente.
-          </p>
-        )}
-        <p className="mt-4 text-xs text-slate-500">
-          Não é necessário abrir o Blitz ou clicar em Wake. Esta tela sairá automaticamente quando a API estiver pronta.
+        <p className="mt-5 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
+          <strong>Tempo de inicialização:</strong> quando o servidor está em repouso, o primeiro acesso pode levar cerca de 3 minutos. Isso é esperado no ambiente de demonstração.
         </p>
-        {slow && (
-          <button type="button" onClick={checkNow} className="mt-5 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-            Verificar agora
-          </button>
-        )}
-        <span className="sr-only">Verificações efetuadas: {attempt}</span>
+        <p className="mt-4 text-xs text-slate-500">
+          A conexão é verificada automaticamente. Assim que a API estiver pronta, você seguirá para a aplicação sem precisar fazer nada.
+        </p>
       </section>
     </main>
   );
