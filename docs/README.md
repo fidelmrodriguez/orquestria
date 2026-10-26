@@ -1,25 +1,18 @@
-# Documentação do Orquestria
+# Documentação técnica
 
-O [README principal](../README.md) apresenta a aplicação e mostra como acessá-la. Aqui ficam as decisões de implementação e os testes de cada fase, para quem quiser conhecer a evolução do projeto.
+Esta documentação descreve a arquitetura, os contratos da API, a infraestrutura e os critérios de qualidade do Orquestria. O [README principal](../README.md) oferece uma visão geral do produto.
 
-## Evolução
+| Documento | Conteúdo |
+| --- | --- |
+| [Arquitetura](ARQUITETURA.md) | Componentes, fluxo de dados, persistência, sessão e decisões técnicas |
+| [API REST](API.md) | Rotas, autenticação, regras de integridade e respostas HTTP |
+| [Testes e CI](TESTES.md) | Estratégia de testes, GitHub Actions e banco PostgreSQL temporário |
+| [Deploy da API e banco](DEPLOY_CLOUD.md) | Hospedagem no Blitz, PostgreSQL no Neon e variáveis de ambiente |
+| [Deploy do frontend](DEPLOY_NETLIFY.md) | Next.js estático no Netlify e proxy de prontidão |
+| [Roadmap](ROADMAP.md) | Melhorias planejadas e critérios de conclusão |
 
-| Fase | Entrega | Documento |
-| --- | --- | --- |
-| 0 | Frontend Next.js, Kanban demonstrativo e publicação no Netlify | [Frontend inicial](ETAPA_0_FRONTEND.md) |
-| 1 | Primeira API Spring Boot, projetos, JPA e migração V1 | [API Java inicial](ETAPA_1_API_JAVA.md) |
-| 2 | Hospedagem da API, conexão com Neon e testes do navegador | [Integração na nuvem](ETAPA_2_DEPLOY_NUVEM.md) |
-| 3 | Workspaces, colunas, tarefas e migração V2 | [Kanban na API](ETAPA_3_KANBAN_API.md) |
-| 4 | Kanban principal conectado ao backend, edições, comentários e migração V3 | [Integração do Kanban](ETAPA_4_INTEGRACAO.md) |
-| 5 | Spring Security, guest permanente, sessões, cadastro e isolamento de usuários | [Autenticação](ETAPA_5_AUTENTICACAO.md) |
+## Organização
 
-Esses documentos registram o escopo de cada entrega. Para consultar **o que está disponível hoje**, comece pelo [README principal](../README.md), pois algumas fases descrevem versões anteriores do projeto.
+A documentação é organizada por **assunto** para que as informações permaneçam úteis independentemente de quando determinada funcionalidade foi adicionada. O histórico de alterações e implementações permanece disponível nos commits do Git.
 
-## Publicação
-
-- [Frontend no Netlify](DEPLOY_NETLIFY.md)
-- [API no Blitz e PostgreSQL no Neon](DEPLOY_CLOUD.md)
-
-## O que ainda falta
-
-O guest é um ambiente público, enquanto usuários cadastrados têm dados separados. Compartilhamentos entre usuários, recuperação de senha e exclusão continuam fora do escopo. A manutenção automática de dados foi adiada para uma entrega futura, em commit próprio; **não há exclusão agendada**.
+Quando houver divergência entre um texto e o comportamento efetivo do sistema, os contratos implementados no código e os testes automatizados são a referência para a correção da documentação.

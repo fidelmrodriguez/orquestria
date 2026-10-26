@@ -1,30 +1,47 @@
-# Frontend do Orquestria — Netlify
+# Deploy do frontend no Netlify
 
-A aplicação Next.js 14 é exportada como site estático e publicada separadamente da API Java.
+O Orquestria utiliza Next.js 14 com `output: "export"`. O resultado do build é uma aplicação estática publicada pelo Netlify; a API Java permanece em outro serviço.
 
-| Campo | Configuração |
+## Configuração de build
+
+| Campo | Valor |
 | --- | --- |
+| Branch | `main` |
 | Base directory | `frontend` |
 | Build command | `npm run build` |
-| Publish directory | `out` (relativo à base) |
-| Branch | `main` |
+| Publish directory | `out` (a partir de `frontend/`) |
 
-`frontend/next.config.mjs` define `output: "export"`. Não comite a pasta `out/`.
+Esses valores constam de `netlify.toml` e `frontend/next.config.mjs`. A pasta gerada `frontend/out/` não deve ser versionada.
 
-## API Java em produção
+## Configuração pública da API
 
-No Netlify, em **Project configuration → Environment variables**, configure a variável pública de build:
+Defina no ambiente de build do Netlify:
 
 ```text
 NEXT_PUBLIC_ORQUESTRIA_API_URL=https://orquestria-api.fidelmrodriguez.blitz.cloud
 ```
 
-Após salvar uma variável, faça um novo deploy; a URL fica incorporada ao JavaScript estático. Não configure usuário/senha do PostgreSQL no Netlify.
+A variável faz parte do JavaScript entregue ao navegador. **Não utilize variáveis públicas para segredos**, credenciais do Neon ou tokens administrativos. Mudanças nesse valor exigem um novo build.
 
-O Kanban principal usa a API Java como fonte de dados quando a variável está presente. Se não estiver, o frontend executa o modo demonstrativo local com DummyJSON e Zustand. O backend Spring Boot não roda no Netlify.
+## Prontidão do backend
 
-Para validar, visite `https://orquestria.netlify.app/` e siga [ETAPA_4_INTEGRACAO.md](ETAPA_4_INTEGRACAO.md). A página `/diagnostico/` permanece como ferramenta auxiliar.
+O arquivo `frontend/public/_redirects` configura o proxy:
 
-## Login real — Etapa 5
+```text
+/api/orquestria-readiness  https://orquestria-api.fidelmrodriguez.blitz.cloud/actuator/health  200!
+```
 
-O Netlify mantém somente `NEXT_PUBLIC_ORQUESTRIA_API_URL`, que é pública. A tela de login traz o guest preenchido, enquanto usuários cadastrados usam suas próprias credenciais. O token retornado pelo backend é guardado em `sessionStorage`; nenhum segredo de banco é enviado ao frontend. O backend precisa estar atualizado com a migração V4 antes da nova versão do Netlify.
+Ao abrir a aplicação, o frontend consulta `/api/orquestria-readiness` no próprio domínio do Netlify. A regra encaminha a requisição para o health do Spring Boot, evitando uma consulta cruzada direta nessa verificação.
+
+A interface é liberada somente quando a resposta indica `status: "UP"`. Até lá, o usuário vê **Preparando seu ambiente**, com um contador de tempo decorrido e novas verificações automáticas. Respostas HTML ou erros de gateway não são confundidos com disponibilidade. A aplicação não depende de uma rota Next.js dinâmica no ambiente de produção.
+
+A suspensão por inatividade é uma característica da hospedagem da API; o proxy melhora a experiência de inicialização, mas não impede que a API volte a dormir.
+
+## Verificações de publicação
+
+- Confirmar que o build exportou a pasta `out/` e que os recursos estáticos carregam.
+- Abrir `/api/orquestria-readiness` e verificar `status: "UP"` quando a API estiver pronta.
+- Verificar que o login ou a sessão existente aparece após a disponibilidade da API.
+- Conferir chamadas autenticadas a `/api/auth/me` e acesso aos workspaces do usuário.
+
+Para a infraestrutura de backend e banco, consulte [Deploy da API](DEPLOY_CLOUD.md).

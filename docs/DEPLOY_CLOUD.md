@@ -1,45 +1,47 @@
-# Deploy do Orquestria na nuvem
+# Deploy do backend e banco de dados
 
-**Netlify (Next.js)** → **Blitz (Java/Spring Boot)** → **Neon (PostgreSQL)**
+A API Java é executada no Blitz. O banco PostgreSQL é hospedado no Neon. A comunicação entre os serviços utiliza JDBC sobre TLS.
 
-## Backend: Blitz
+## Backend — Blitz
 
-O Blitz lê o repositório na branch `main`, com **Folder to build = `backend`**, `Dockerfile = Dockerfile`, e executa Java 21. As credenciais do Neon ficam somente nas variáveis do Blitz:
+A publicação utiliza a branch `main`, a pasta `backend/` e seu `Dockerfile`.
 
-| Variável | Exemplo sem credenciais |
+| Configuração | Valor |
 | --- | --- |
-| `DB_URL` | `jdbc:postgresql://HOST/neondb?sslmode=require` |
-| `DB_USER` | Usuário do Neon |
-| `DB_PASSWORD` | Senha do Neon |
-| `APP_CORS_ALLOWED_ORIGIN` | `https://orquestria.netlify.app` (opcional; já é o padrão) |
-| `APP_GUEST_PASSWORD` | Senha do guest (opcional antes do primeiro bootstrap; valor-padrão público no frontend) |
+| Diretório de build | `backend` |
+| Dockerfile | `backend/Dockerfile` |
+| Runtime | Java 21 (definido no build da aplicação) |
 
-Não é preciso criar um banco no Blitz. O Flyway executa migrações pendentes V1–V4 ao iniciar. O bootstrap cria a conta guest e associa a ela registros preexistentes. Não exclua os dados do Neon. **Nunca inclua senha de banco no GitHub.**
+Variáveis de ambiente necessárias no serviço:
 
-## Frontend: Netlify
+| Variável | Descrição |
+| --- | --- |
+| `DB_URL` | URL JDBC do Neon, com SSL/TLS |
+| `DB_USER` | Usuário do banco |
+| `DB_PASSWORD` | Senha do banco |
+| `APP_CORS_ALLOWED_ORIGIN` | Origem HTTPS permitida para chamadas do frontend |
+| `APP_GUEST_PASSWORD` | Senha utilizada ao inicializar a conta guest, se aplicável |
 
-O Netlify publica `frontend/` como exportação estática (`out/`). A variável de build é:
+As credenciais pertencem às configurações privadas do provedor e não devem ser armazenadas no Git ou copiadas para variáveis públicas do frontend.
 
-```text
-NEXT_PUBLIC_ORQUESTRIA_API_URL=https://orquestria-api.fidelmrodriguez.blitz.cloud
-```
+## Banco — Neon
 
-Essa variável é pública por natureza e deve conter somente a URL da API, nunca segredos. Alterá-la exige novo build no Netlify. Os endpoints de escrita dependem do backend atualizado no Blitz.
+O Flyway executa as migrações pendentes ao iniciar o Spring Boot. As versões `V1` a `V8` fazem parte do repositório em `backend/src/main/resources/db/migration/`. Em bases já inicializadas, novas versões devem ser **acrescentadas**, sem reescrever migrações anteriores.
 
-## Ordem recomendada para esta etapa
+Para verificar a aplicação em produção, consulte o log de inicialização do Spring Boot e as informações de validação do Flyway. Nunca execute testes de integração destrutivos contra o banco de produção.
 
-1. Faça um único commit contendo frontend, backend, README e docs.
-2. Confira primeiro o build do Blitz, inicialização do Spring e aplicação da migração V3.
-3. Depois confira o deploy publicado no Netlify, pois o novo frontend usa autenticação.
-4. Teste `GET /actuator/health` (público); `GET /api/projects` sem token agora deve retornar `401`.
-5. Entre com `guest` no Netlify, confira os dados antigos, cadastre outra conta e verifique que os projetos são privados.
-5. Use [ETAPA_4_INTEGRACAO.md](ETAPA_4_INTEGRACAO.md) para os testes detalhados.
+## Disponibilidade e saúde
 
-## Cuidados
+A URL de saúde da API é:
 
-- Os planos gratuitos podem suspender serviços por inatividade ou limitar recursos.
-- A aplicação usa Spring Security; o guest é compartilhado, contas cadastradas são isoladas.
-- Não expor tokens de sessão no GitHub, prints ou logs.
-- Não inclua dados pessoais na conta pública guest.
-- **Não há limpeza automática, exclusão periódica, agendador ou monitor de cotas nesta etapa.** Política de retenção será uma entrega separada.
-- `render.yaml` é um arquivo legado da primeira tentativa de deploy e não participa da publicação no Blitz.
+`https://orquestria-api.fidelmrodriguez.blitz.cloud/actuator/health`
+
+No ambiente atual, o Blitz pode suspender o processo após inatividade. A interface publicada no Netlify aguarda a resposta `status: "UP"` para liberar a navegação e o login. Esse mecanismo **não mantém a API acordada permanentemente** e não garante um tempo fixo de inicialização.
+
+Para diagnosticar indisponibilidade, separe falhas de build ou inicialização (logs do Blitz) de erros transitórios no processo de despertar. Uma resposta temporária de proxy ou gateway não significa necessariamente corrupção do banco.
+
+## Ordem de publicação
+
+Quando uma mudança envolve esquema ou contrato de API e interface, publique a versão compatível do backend e verifique as migrações antes de disponibilizar o frontend que depende delas.
+
+O frontend é publicado separadamente; consulte [Deploy do frontend](DEPLOY_NETLIFY.md). O [GitHub Actions](TESTES.md) usa PostgreSQL temporário, nunca o Neon.
