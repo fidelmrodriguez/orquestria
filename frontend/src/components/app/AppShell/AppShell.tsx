@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { RemoteOperationOverlay } from "@/components/feedback/RemoteOperationOverlay/RemoteOperationOverlay";
-import { ActivityFeed } from "@/components/activity/ActivityFeed/ActivityFeed";
 import { BoardView } from "@/components/board/BoardView/BoardView";
 import { LoginScreen } from "@/components/auth/LoginScreen/LoginScreen";
 import { NewTaskPanel } from "@/components/tasks/NewTaskPanel/NewTaskPanel";
@@ -78,8 +77,8 @@ export function AppShell() {
       />
 
       <main className="min-h-screen pt-[144px] lg:ml-72 lg:pt-[92px]">
-        <div className="flex gap-5 p-4 sm:p-6">
-          <div className="min-w-0 flex-1">
+        <div className="p-4 sm:p-6">
+          <div className="min-w-0">
             {isApiMode && (
               <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
                 <strong>Modo Java + PostgreSQL.</strong> Conta guest: dados compartilhados entre visitantes.
@@ -105,7 +104,6 @@ export function AppShell() {
             )}
             <BoardView onNewTask={() => setNewTaskOpen(true)} />
           </div>
-          <ActivityFeed />
         </div>
       </main>
 

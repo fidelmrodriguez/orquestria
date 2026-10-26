@@ -1,14 +1,17 @@
+import TagsInput from "@/components/tags/TagsInput";
+import { getAuthToken } from "@/lib/auth-client";
+import { apiUrl } from "@/lib/remote-board";
 import { CalendarDays } from "lucide-react";
 import type { Task } from "@/types/board";
 
 type TaskPlanningCardsProps = {
   task: Task;
-  onUpdateTask: (taskId: string, patch: Partial<Omit<Task, "id" | "comments">>) => void;
+  onUpdateTask: (taskId: string, patch: Partial<Omit<Task, "id" | "comments">>) => Promise<boolean> | void;
 };
 
 export function TaskPlanningCards({ task, onUpdateTask }: TaskPlanningCardsProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-3">
       <div className="rounded-3xl border border-slate-200 p-4 dark:border-slate-800">
         <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
           <CalendarDays className="size-4" /> Prazo
@@ -21,14 +24,8 @@ export function TaskPlanningCards({ task, onUpdateTask }: TaskPlanningCardsProps
         />
       </div>
       <div className="rounded-3xl border border-slate-200 p-4 dark:border-slate-800">
-        <p className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-100">Tags</p>
-        <div className="flex flex-wrap gap-2">
-          {task.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500 dark:bg-slate-900 dark:text-slate-300">
-              {tag}
-            </span>
-          ))}
-        </div>
+        <TagsInput label="Tags" value={task.tags} onChange={tags => onUpdateTask(task.id, { tags })}
+          maxTags={12} apiBase={apiUrl} token={getAuthToken() || undefined} />
       </div>
     </div>
   );

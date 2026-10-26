@@ -74,19 +74,24 @@ function mapTask(task: ApiTask, member: Member): Task {
 
 /** Dados do servidor são a fonte de verdade. Não importa dados locais ou DummyJSON. */
 export async function loadRemoteBoard(member: Member): Promise<Workspace[]> {
-  const [spaces, projects] = await Promise.all([
-    requestApi<ApiWorkspace[]>("/api/workspaces"), requestApi<ApiProject[]>("/api/projects")
+  const [spaces, projects, teammates] = await Promise.all([
+    requestApi<ApiWorkspace[]>("/api/workspaces"),
+    requestApi<ApiProject[]>("/api/projects"),
+    requestApi<{id:string;name:string;username:string}[]>("/api/team/members")
   ]);
+  const actualMembers: Member[] = [member, ...teammates.filter(user => user.id !== member.id).map(user => ({
+    id: user.id, name: user.name, email: "", avatar: "", role: "editor" as const
+  }))];
   const spaceMap = new Map<string, Workspace>();
   for (const space of spaces) {
     spaceMap.set(space.id, { id: space.id, name: space.name,
-      description: space.description || "", projects: [], columns: [], tasks: [], members: [member] });
+      description: space.description || "", projects: [], columns: [], tasks: [], members: [...actualMembers] });
   }
   if (projects.some((project) => !project.workspaceId || !spaceMap.has(project.workspaceId))) {
     spaceMap.set(UNASSIGNED_WORKSPACE_ID, {
       id: UNASSIGNED_WORKSPACE_ID, name: "Projetos sem workspace",
       description: "Projetos criados antes da associação a um workspace.",
-      projects: [], columns: [], tasks: [], members: [member]
+      projects: [], columns: [], tasks: [], members: [...actualMembers]
     });
   }
   const boardData = await Promise.all(projects.map(async (project) => {

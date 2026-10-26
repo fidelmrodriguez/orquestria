@@ -1,3 +1,4 @@
+import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 import { TaskCard } from "@/components/board/TaskCard/TaskCard";
 import { cn } from "@/lib/utils";
@@ -6,6 +7,7 @@ import type { Column, Member, Task } from "@/types/board";
 type BoardColumnProps = {
   column: Column;
   tasks: Task[];
+  totalTaskCount: number;
   members: Member[];
   draggedTaskId: string | null;
   onNewTask: () => void;
@@ -14,7 +16,7 @@ type BoardColumnProps = {
   onDragTask: (taskId: string | null) => void;
 };
 
-export function BoardColumn({ column, tasks, members, draggedTaskId, onNewTask, onMoveTask, onRenameColumn, onDragTask }: BoardColumnProps) {
+export function BoardColumn({ column, tasks, totalTaskCount, members, draggedTaskId, onNewTask, onMoveTask, onRenameColumn, onDragTask }: BoardColumnProps) {
   return (
     <div
       onDragOver={(event) => event.preventDefault()}
@@ -39,7 +41,13 @@ export function BoardColumn({ column, tasks, members, draggedTaskId, onNewTask, 
             className="max-w-[190px] text-sm font-semibold text-slate-800 dark:text-slate-100"
           />
         </div>
-        <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-950 dark:text-slate-400">{tasks.length}</span>
+        <div className="flex shrink-0 items-center gap-1">
+          <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-950 dark:text-slate-400">{totalTaskCount}</span>
+          <QuickDeleteAction target={{kind:"column",projectId:column.projectId,id:column.id}} name={`coluna ${column.title}`}
+            impact="A coluna será removida permanentemente." iconOnly label={`Excluir coluna ${column.title}`}
+            disabledReason={totalTaskCount > 0 ? "Exclua ou mova todas as tarefas antes de remover a coluna." : undefined}
+            className="rounded-lg p-1.5 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-25 dark:text-red-300" />
+        </div>
       </div>
 
       <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-auto pr-1">

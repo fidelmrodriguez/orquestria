@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Settings2, Tags, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { selectActiveWorkspace, useBoardStore } from "@/store/board-store";
 import { ProjectNavigation } from "./ProjectNavigation";
@@ -69,6 +70,12 @@ export function Sidebar({ onNavigate, dropdown = false }: SidebarProps) {
         onCreateProject={createProject}
       />
 
+      <nav aria-label="Gerenciamento" className="space-y-1 border-t border-slate-200 pt-3 dark:border-slate-800">
+        <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Gerenciamento</p>
+        <a href="/gerenciar" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><Settings2 className="size-4" /> Gerenciar itens</a>
+        <a href="/equipe" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><UsersRound className="size-4" /> Membros da equipe</a>
+        <a href="/tags" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><Tags className="size-4" /> Minhas tags</a>
+      </nav>
       <TeamPreview workspace={workspace} />
     </aside>
   );

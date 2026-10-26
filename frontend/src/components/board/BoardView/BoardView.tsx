@@ -45,6 +45,7 @@ export function BoardView({ onNewTask }: BoardViewProps) {
             key={column.id}
             column={column}
             tasks={filteredTasks.filter((task) => task.columnId === column.id)}
+            totalTaskCount={workspace.tasks.filter((task) => task.columnId === column.id && task.projectId === project.id).length}
             members={workspace.members}
             draggedTaskId={draggedTaskId}
             onNewTask={onNewTask}

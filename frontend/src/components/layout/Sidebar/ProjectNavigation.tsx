@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import type { Workspace } from "@/types/board";
 import { CreateNavigationItemForm } from "./CreateNavigationItemForm";
 
@@ -19,12 +20,12 @@ export function ProjectNavigation({ workspace, activeProjectId, projectName, onP
       </div>
       <div className="space-y-1">
         {workspace?.projects.map((project) => (
+          <div key={project.id} className="group flex items-center gap-1">
           <button
-            key={project.id}
             type="button"
             onClick={() => onSelectProject(project.id)}
             className={cn(
-              "flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium transition",
+              "flex min-w-0 flex-1 items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium transition",
               project.id === activeProjectId
                 ? "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-200"
                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
@@ -35,6 +36,10 @@ export function ProjectNavigation({ workspace, activeProjectId, projectName, onP
               {workspace.tasks.filter((task) => task.projectId === project.id).length}
             </span>
           </button>
+          <QuickDeleteAction target={{ kind: "project", id: project.id }} name={`projeto ${project.name}`}
+            impact="Todas as colunas, tarefas e comentários deste projeto serão excluídos permanentemente."
+            label={`Excluir projeto ${project.name}`} iconOnly className="rounded-lg p-1.5 text-red-600 opacity-70 hover:bg-red-50 group-hover:opacity-100 dark:text-red-300" />
+          </div>
         ))}
       </div>
       {workspace && (

@@ -2,6 +2,11 @@ package com.orquestria.api.task;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import com.orquestria.api.auth.AuthService;
+import com.orquestria.api.auth.AppUser;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.orquestria.api.board.BoardColumn;
 import com.orquestria.api.board.BoardColumnRepository;
@@ -21,6 +26,9 @@ class TaskServiceTest {
     @Mock ProjectRepository projects;
     @Mock BoardColumnRepository columns;
     @Mock TaskRepository tasks;
+    @Mock JdbcTemplate jdbc;
+    @Mock AuthService auth;
+    @Mock AppUser user;
     @InjectMocks TaskService service;
 
     @Test
@@ -38,6 +46,37 @@ class TaskServiceTest {
         when(columns.findById(columnId)).thenReturn(Optional.of(column));
         assertThrows(InvalidBoardOperationException.class, () ->
             service.create(expectedProjectId, new CreateTaskRequest("Tarefa", null, columnId, TaskPriority.MEDIA, 0, null, null, null)));
+    }
+
+    @Test
+    void rejectAssigneeOutsideCurrentTeam() {
+        UUID owner = UUID.randomUUID();
+        UUID unknown = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        UUID columnId = UUID.randomUUID();
+        Project project = new Project("Projeto A", null);
+        setId(project, projectId);
+        BoardColumn column = new BoardColumn(project, "Backlog", 0, "slate");
+        when(projects.findById(projectId)).thenReturn(Optional.of(project));
+        when(columns.findById(columnId)).thenReturn(Optional.of(column));
+        when(auth.currentUser()).thenReturn(user);
+        when(user.getId()).thenReturn(owner);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(owner), eq(unknown))).thenReturn(0);
+        assertThrows(ResponseStatusException.class, () ->
+            service.create(projectId, new CreateTaskRequest("Tarefa", null, columnId, TaskPriority.MEDIA, 0, null, unknown.toString(), null)));
+    }
+
+    @Test
+    void rejectMalformedAssigneeId() {
+        UUID projectId = UUID.randomUUID();
+        UUID columnId = UUID.randomUUID();
+        Project project = new Project("Projeto A", null);
+        setId(project, projectId);
+        BoardColumn column = new BoardColumn(project, "Backlog", 0, "slate");
+        when(projects.findById(projectId)).thenReturn(Optional.of(project));
+        when(columns.findById(columnId)).thenReturn(Optional.of(column));
+        assertThrows(ResponseStatusException.class, () ->
+            service.create(projectId, new CreateTaskRequest("Tarefa", null, columnId, TaskPriority.MEDIA, 0, null, "id-inventado", null)));
     }
 
     private void setId(Project project, UUID id) {

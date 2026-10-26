@@ -7,6 +7,10 @@ import com.orquestria.api.common.ResourceNotFoundException;
 import com.orquestria.api.project.Project;
 import com.orquestria.api.project.ProjectNotFoundException;
 import com.orquestria.api.project.ProjectRepository;
+import com.orquestria.api.auth.AuthService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -17,8 +21,31 @@ public class TaskService {
     private final ProjectRepository projects;
     private final BoardColumnRepository columns;
     private final TaskRepository tasks;
-    public TaskService(ProjectRepository projects, BoardColumnRepository columns, TaskRepository tasks) {
+    private final JdbcTemplate jdbc;
+    private final AuthService auth;
+    public TaskService(ProjectRepository projects, BoardColumnRepository columns, TaskRepository tasks,
+                       JdbcTemplate jdbc, AuthService auth) {
         this.projects = projects; this.columns = columns; this.tasks = tasks;
+        this.jdbc = jdbc; this.auth = auth;
+    }
+
+    /** Ninguém pode forjar IDs de responsáveis fora do proprietário ou da equipe cadastrada. */
+    private void validateAssignee(String assigneeId) {
+        if (assigneeId == null || assigneeId.isBlank()) return;
+        UUID target;
+        try { target = UUID.fromString(assigneeId); }
+        catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecione um usuário cadastrado na equipe");
+        }
+        UUID owner = auth.currentUser().getId();
+        if (owner.equals(target)) return;
+        Integer count = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM team_members WHERE owner_id = ? AND member_id = ?",
+            Integer.class, owner, target);
+        if (count == null || count == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "O responsável precisa ser o proprietário ou um membro da equipe");
+        }
     }
     private BoardColumn requireColumn(UUID projectId, UUID columnId) {
         BoardColumn column = columns.findById(columnId)
@@ -32,6 +59,7 @@ public class TaskService {
     public TaskResponse create(UUID projectId, CreateTaskRequest request) {
         Project project = projects.findById(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
         BoardColumn column = requireColumn(projectId, request.columnId());
+        validateAssignee(request.assigneeId());
         TaskPriority priority = request.priority() == null ? TaskPriority.MEDIA : request.priority();
         String desc = request.description() == null ? null : request.description().trim();
         Task task = tasks.save(new Task(project, column, request.title().trim(), desc,
@@ -53,6 +81,10 @@ public class TaskService {
     @Transactional
     public TaskResponse edit(UUID projectId, UUID taskId, UpdateTaskRequest request) {
         Task task = requireTask(projectId, taskId);
+        // Não impede editar tarefas antigas que já possuíam IDs legados de responsáveis.
+        if (!java.util.Objects.equals(task.getAssigneeId(), request.assigneeId())) {
+            validateAssignee(request.assigneeId());
+        }
         task.setDetails(request.title().trim(), request.description() == null ? null : request.description().trim(),
             request.priority(), request.dueDate(), request.assigneeId(), request.tags());
         return TaskResponse.from(tasks.saveAndFlush(task));

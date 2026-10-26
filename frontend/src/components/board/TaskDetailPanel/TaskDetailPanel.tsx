@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { useEffect, useState } from "react";
 import { isApiMode } from "@/lib/remote-board";
 import type { Task } from "@/types/board";
@@ -75,6 +76,11 @@ export function TaskDetailPanel() {
           <TaskPlanningCards task={task} onUpdateTask={updateTask} />
           <TaskCommentsSection task={task} members={workspace.members} fallbackMember={member} onSubmitComment={submitComment} />
         </div>
+        <footer className="border-t border-slate-200 bg-white px-5 py-3 dark:border-slate-800 dark:bg-slate-950">
+          <QuickDeleteAction target={{kind:"task",projectId:task.projectId,id:task.id}}
+            name={`tarefa ${task.title}`} impact="A tarefa e seus comentários serão excluídos permanentemente."
+            label="Excluir tarefa" className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300" />
+        </footer>
       </div>
     </div>
   );

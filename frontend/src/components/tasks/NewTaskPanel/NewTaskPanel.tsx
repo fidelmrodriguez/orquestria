@@ -2,7 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import TagsInput from "@/components/tags/TagsInput";
+import { getAuthToken } from "@/lib/auth-client";
+import { apiUrl } from "@/lib/remote-board";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
@@ -15,8 +18,7 @@ const schema = z.object({
   columnId: z.string().min(1, "Selecione a coluna."),
   assigneeId: z.string().min(1, "Selecione o responsável."),
   priority: z.enum(["baixa", "media", "alta", "critica"]),
-  dueDate: z.string().min(1, "Informe o prazo."),
-  tags: z.string().optional()
+  dueDate: z.string().min(1, "Informe o prazo.")
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -30,6 +32,8 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
   const workspace = useBoardStore(selectActiveWorkspace);
   const project = useBoardStore(selectActiveProject);
   const addTask = useBoardStore((state) => state.addTask);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  useEffect(() => { if (!open) setSelectedTags([]); }, [open]);
   const { notify } = useToast();
   const columns = useMemo(() => {
     if (!workspace || !project) return [];
@@ -50,8 +54,7 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
       columnId: columns[0]?.id || "",
       assigneeId: workspace?.members[0]?.id || "",
       priority: "media",
-      dueDate: defaultDate,
-      tags: "Produto, Operação"
+      dueDate: defaultDate
     }
   });
 
@@ -66,13 +69,14 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
       assigneeId: values.assigneeId,
       priority: values.priority as Priority,
       dueDate: new Date(values.dueDate).toISOString(),
-      tags: values.tags?.split(",").map((tag) => tag.trim()).filter(Boolean) || []
+      tags: selectedTags
     });
     if (saved === false) {
       notify("Não foi possível salvar a tarefa na API Java.", "error");
       return;
     }
     reset();
+    setSelectedTags([]);
     notify("Tarefa criada com sucesso.", "success");
     onClose();
   };
@@ -147,10 +151,8 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
             </label>
           </div>
 
-          <label className="block space-y-2">
-            <span className="label">Tags</span>
-            <input {...register("tags")} className="field" placeholder="Produto, Design, API" />
-          </label>
+          <TagsInput label="Tags" value={selectedTags} onChange={setSelectedTags}
+            apiBase={apiUrl} token={getAuthToken() || undefined} maxTags={12} />
 
           <div className="sticky bottom-0 -mx-5 mt-8 border-t border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
             <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">
