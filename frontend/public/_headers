@@ -1,0 +1,11 @@
+# Cabeçalhos servidos pelo Netlify para as páginas estáticas exportadas.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Impede cache indevido da página/rota usada na verificação de disponibilidade.
+# A resposta do proxy depende do comportamento do provedor de origem.
+/api/orquestria-readiness
+  Cache-Control: no-store, max-age=0

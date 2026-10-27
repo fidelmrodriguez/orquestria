@@ -54,4 +54,6 @@ Os testes Java que dependem de PostgreSQL utilizam `ORQUESTRIA_RUN_DB_TESTS=true
 - TypeScript sem erros e build estático concluído.
 - Logs e relatórios disponíveis para investigar falhas antes de integrar novas alterações.
 
+Os testes da camada de operação verificam o identificador de requisição, os cabeçalhos de não-cache, a normalização de respostas de erro e o comportamento seguro do frontend quando recebe HTML da hospedagem.
+
 Os resultados correntes do pipeline podem ser consultados na [aba Actions](https://github.com/fidelmrodriguez/orquestria/actions); este documento não presume que a execução mais recente esteja aprovada.

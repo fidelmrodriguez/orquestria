@@ -1,3 +1,4 @@
+import { readableApiError } from "@/lib/api-error";
 import type { Column, Member, Priority, Project, Task, Workspace } from "@/types/board";
 import { clearAuthToken, getAuthToken } from "@/lib/auth-client";
 
@@ -21,15 +22,29 @@ export async function requestApi<T>(path: string, options: RequestInit = {}): Pr
   if (!token) throw new Error("Sessão ausente. Entre novamente.");
   const headers = new Headers(options.headers);
   headers.set("Authorization", `Bearer ${token}`);
-  const response = await fetch(`${apiUrl}${path}`, { cache: "no-store", ...options, headers });
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}${path}`, { cache: "no-store", ...options, headers });
+  } catch {
+    // Não descartar a sessão: o Blitz pode estar acordando ou a rede pode ter caído.
+    throw new Error("Não foi possível conectar ao servidor. Sua sessão foi mantida; tente novamente.");
+  }
   if (response.status === 401) {
     clearAuthToken();
     window.dispatchEvent(new Event("orquestria:auth-expired"));
     throw new Error("A sessão expirou. Entre novamente.");
   }
   if (!response.ok) {
-    const body = (await response.text()).slice(0, 240);
-    throw new Error(`API Java: HTTP ${response.status}${body ? ` — ${body}` : ""}`);
+    const type = response.headers.get("content-type");
+    // Não ler corpos arbitrariamente grandes de páginas HTML do provedor.
+    const body = type?.toLowerCase().includes("json") ? (await response.text()).slice(0, 1024) : "";
+    throw new Error(readableApiError(response.status, type, body));
+  }
+  if (response.status === 204) return undefined as T;
+  const type = response.headers.get("content-type")?.toLowerCase() || "";
+  if (!type.includes("json")) {
+    // HTML 200 do Blitz durante um cold start não é uma resposta válida da API.
+    throw new Error("A API ainda está inicializando. Aguarde e tente novamente.");
   }
   return response.json() as Promise<T>;
 }

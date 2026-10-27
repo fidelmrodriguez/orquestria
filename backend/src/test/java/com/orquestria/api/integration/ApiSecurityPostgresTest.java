@@ -107,6 +107,23 @@ class ApiSecurityPostgresTest {
     }
 
     @Test
+    void apiResponsesAreNonCacheableAndHaveServerGeneratedRequestIds() throws Exception {
+        MvcResult result = mvc.perform(get("/api/workspaces"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
+                .andExpect(header().exists("X-Request-ID"))
+                .andReturn();
+        assertFalse(result.getResponse().getHeader("X-Request-ID").isBlank());
+
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{json quebrado} segredo=nao_expor"))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().exists("X-Request-ID"))
+                .andExpect(jsonPath("$.detail").value("JSON inválido ou incompatível."));
+    }
+
+    @Test
     void registrationLoginAndLogoutWorkWithRealDatabase() throws Exception {
         User user = register("login");
         JsonNode byName = postJson("/api/auth/login", null,

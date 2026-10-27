@@ -9,6 +9,7 @@ Esta documentação descreve a arquitetura, os contratos da API, a infraestrutur
 | [Testes e CI](TESTES.md) | Estratégia de testes, GitHub Actions e banco PostgreSQL temporário |
 | [Deploy da API e banco](DEPLOY_CLOUD.md) | Hospedagem no Blitz, PostgreSQL no Neon e variáveis de ambiente |
 | [Deploy do frontend](DEPLOY_NETLIFY.md) | Next.js estático no Netlify e proxy de prontidão |
+| [Segurança e operação](SEGURANCA_OPERACAO.md) | Autorização, respostas seguras, diagnóstico e observabilidade |
 | [Roadmap](ROADMAP.md) | Melhorias planejadas e critérios de conclusão |
 
 ## Organização
