@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import TagsInput from "@/components/tags/TagsInput";
 import { getAuthToken } from "@/lib/auth-client";
 import { apiUrl } from "@/lib/remote-board";
@@ -37,7 +37,7 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   useEffect(() => { if (!open) setSelectedTags([]); }, [open]);
   const { notify } = useToast();
-  const { panelRef, onKeyDown } = useAccessiblePanel<HTMLDivElement>(open && Boolean(workspace && project), onClose, 'input[name="title"]');
+  const { panelRef, onKeyDown } = useAccessiblePanel<HTMLDivElement>(open && Boolean(workspace && project), onClose, 'input[name="title"]', false);
   const columns = useMemo(() => {
     if (!workspace || !project) return [];
     return workspace.columns.filter((column) => column.projectId === project.id).sort((a, b) => a.order - b.order);
@@ -85,8 +85,10 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
   };
 
   return (
+    <Fragment>
+      <div className="fixed inset-0 z-[60] bg-slate-950/45 backdrop-blur-[1px] dark:bg-slate-950/70" aria-hidden="true" />
     <div ref={panelRef} onKeyDown={onKeyDown} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="new-task-heading"
-      className="fixed inset-y-0 right-0 z-50 w-full max-w-lg border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950">
+      className="fixed inset-y-0 right-0 z-[70] w-full max-w-lg border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950">
       <div className="flex h-full flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-slate-800">
           <div>
@@ -166,5 +168,6 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
         </form>
       </div>
     </div>
+    </Fragment>
   );
 }

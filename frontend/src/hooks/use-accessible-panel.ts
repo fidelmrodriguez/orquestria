@@ -11,11 +11,12 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])'
 ].join(", ");
 
-/** Gerencia foco, Tab, Escape e rolagem para painéis e diálogos modais. */
+/** Gerencia foco, Tab, Escape configurável e rolagem para painéis e diálogos modais. */
 export function useAccessiblePanel<T extends HTMLElement>(
   active: boolean,
   onClose: () => void,
-  initialFocusSelector?: string
+  initialFocusSelector?: string,
+  closeOnEscape = true
 ) {
   const panelRef = useRef<T>(null);
   const closeRef = useRef(onClose);
@@ -41,7 +42,7 @@ export function useAccessiblePanel<T extends HTMLElement>(
     if (event.key === "Escape") {
       event.stopPropagation();
       event.preventDefault();
-      closeRef.current();
+      if (closeOnEscape) closeRef.current();
       return;
     }
     if (event.key !== "Tab") return;

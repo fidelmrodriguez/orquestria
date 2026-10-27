@@ -1,4 +1,4 @@
-import { LogOut, Share2 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar/Sidebar";
 import { cn } from "@/lib/utils";
 import type { Priority, Workspace } from "@/types/board";
@@ -10,13 +10,12 @@ type MobileWorkspaceMenuProps = {
   priorityFilter: Priority | "todas";
   assigneeFilter: string | "todos";
   onNavigate: () => void;
-  onShare: () => void;
   onLogout: () => void;
   onPriorityChange: (value: Priority | "todas") => void;
   onAssigneeChange: (value: string | "todos") => void;
 };
 
-export function MobileWorkspaceMenu({ open, workspace, priorityFilter, assigneeFilter, onNavigate, onShare, onLogout, onPriorityChange, onAssigneeChange }: MobileWorkspaceMenuProps) {
+export function MobileWorkspaceMenu({ open, workspace, priorityFilter, assigneeFilter, onNavigate, onLogout, onPriorityChange, onAssigneeChange }: MobileWorkspaceMenuProps) {
   return (
     <div id="orquestria-mobile-navigation" role="navigation" aria-label="Navegação mobile" aria-hidden={!open} onKeyDown={(event) => {
       if (event.key === "Escape") {
@@ -38,9 +37,6 @@ export function MobileWorkspaceMenu({ open, workspace, priorityFilter, assigneeF
             assigneeClassName="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900"
           />
         </div>
-        <button type="button" onClick={onShare} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold dark:border-slate-800">
-          <Share2 className="size-4" /> Compartilhar projeto
-        </button>
         <button type="button" onClick={onLogout} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-red-600 dark:border-slate-800">
           <LogOut className="size-4" /> Sair
         </button>

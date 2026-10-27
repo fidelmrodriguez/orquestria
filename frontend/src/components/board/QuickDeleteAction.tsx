@@ -71,7 +71,7 @@ export default function QuickDeleteAction({ target, name, impact, label = "Exclu
       <Trash2 className="size-4 shrink-0" />{!iconOnly && <span>{validating ? "Verificando..." : label}</span>}
     </button>
     {open && typeof document !== "undefined" && createPortal(
-      <div className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/75 p-4" onMouseDown={e => { if (e.target === e.currentTarget && !busy) setOpen(false); }}>
+      <div className="fixed inset-0 z-[200] grid place-items-center bg-slate-950/75 p-4">
         <section ref={panelRef} onKeyDown={event => { event.stopPropagation(); onKeyDown(event); }} tabIndex={-1} role="alertdialog" aria-modal="true" aria-labelledby="orq-delete-heading" aria-describedby="orq-delete-impact" className="w-full max-w-md rounded-2xl bg-white p-6 text-slate-950 shadow-2xl outline-none dark:bg-slate-900 dark:text-white">
           <h2 id="orq-delete-heading" className="text-xl font-bold">Confirmar exclusão</h2>
           <p className="mt-3 text-sm">Você está prestes a excluir <strong>{name}</strong>.</p>

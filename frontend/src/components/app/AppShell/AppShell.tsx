@@ -5,7 +5,6 @@ import { RemoteOperationOverlay } from "@/components/feedback/RemoteOperationOve
 import { BoardView } from "@/components/board/BoardView/BoardView";
 import { LoginScreen } from "@/components/auth/LoginScreen/LoginScreen";
 import { NewTaskPanel } from "@/components/tasks/NewTaskPanel/NewTaskPanel";
-import { SharePanel } from "@/components/share/SharePanel/SharePanel";
 import { Sidebar } from "@/components/layout/Sidebar/Sidebar";
 import { TaskDetailPanel } from "@/components/board/TaskDetailPanel/TaskDetailPanel";
 import { Topbar } from "@/components/layout/Topbar/Topbar";
@@ -27,7 +26,6 @@ export function AppShell() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [newTaskColumnId, setNewTaskColumnId] = useState<string | undefined>(undefined);
   const openNewTask = (columnId?: string) => { setNewTaskColumnId(columnId); setNewTaskOpen(true); };
-  const [shareOpen, setShareOpen] = useState(false);
   const bootstrap = useBootstrapBoard(Boolean(currentUser));
   useLiveSync(Boolean(currentUser));
 
@@ -75,7 +73,6 @@ export function AppShell() {
         mobileMenuOpen={mobileMenuOpen}
         onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}
         onNewTask={() => { setMobileMenuOpen(false); openNewTask(); }}
-        onShare={() => { setMobileMenuOpen(false); setShareOpen(true); }}
       />
 
       <main className="min-h-screen pt-[144px] lg:ml-72 lg:h-dvh lg:min-h-0 lg:pt-[92px]">
@@ -111,7 +108,6 @@ export function AppShell() {
 
       <TaskDetailPanel />
       <NewTaskPanel key={newTaskColumnId || "default"} initialColumnId={newTaskColumnId} open={newTaskOpen} onClose={() => setNewTaskOpen(false)} />
-      <SharePanel open={shareOpen} onClose={() => setShareOpen(false)} />
       {isApiMode && <RemoteOperationOverlay open={remoteLoading} label={remoteActionLabel} />}
     </div>
   );

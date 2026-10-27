@@ -5,7 +5,7 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 ## Navegação e foco
 
 - Cartões de tarefa são acionáveis com **Enter** ou **Espaço**. A edição do responsável e da coluna também está disponível nos detalhes da tarefa, sem depender de arrastar e soltar.
-- Os painéis de detalhes, criação de tarefas e compartilhamento, além das confirmações de exclusão, identificam-se como diálogos, recebem foco na abertura, mantêm **Tab** dentro do painel e oferecem **Escape** para sair quando permitido.
+- Os painéis de detalhes e criação de tarefas, além das confirmações de exclusão, identificam-se como diálogos, recebem foco na abertura, mantêm **Tab** dentro do painel e exigem o **X** para fechar os drawers de tarefa (o fundo escuro e Escape não os dispensam). Em confirmações destrutivas, a ação **Cancelar** continua explícita.
 - Após fechar o painel, o foco retorna ao controle que estava ativo, caso continue no documento.
 - Os campos obrigatórios do formulário de nova tarefa relacionam mensagens de validação ao campo correspondente e indicam entradas inválidas.
 - Mensagens de erro temporárias são anunciadas como alertas; notificações informativas mantêm a semântica de status.
@@ -20,6 +20,9 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 - O menu lateral mantém a equipe visível; em telas de menor altura, somente a lista interna de navegação rola quando não houver espaço suficiente.
 - Cada comentário possui sua própria ação de exclusão com confirmação, sem remover a tarefa ou os demais comentários.
 - O botão de criar tarefa fica temporariamente indisponível durante o envio do formulário, evitando múltiplos cliques.
+- Os painéis laterais exibem um fundo escurecido e bloqueante: clicar fora ou pressionar Escape não os fecha. O usuário sai pelo X do painel, ou o formulário se fecha após a conclusão da criação. Ao iniciar uma operação remota, o diálogo de espera é exibido acima dos campos e menus de seleção.
+- Ao arrastar uma tarefa, o cartão acompanha o ponteiro e sai visualmente da coluna de origem. A coluna de destino recebe uma borda destacada; soltar na origem ou fora do quadro não envia requisições.
+- O botão de compartilhamento por link não integra a interface: a associação de membros à equipe não concede acesso a projetos privados.
 
 ## Verificação
 

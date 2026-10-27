@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 import { TaskCard } from "@/components/board/TaskCard/TaskCard";
@@ -10,26 +11,21 @@ type BoardColumnProps = {
   tasks: Task[];
   totalTaskCount: number;
   members: Member[];
-  draggedTaskId: string | null;
+  dragging: boolean;
+  dropTarget: boolean;
   onNewTask: () => void;
-  onMoveTask: (taskId: string, columnId: string) => void;
   onRenameColumn: (columnId: string, title: string) => void;
-  onDragTask: (taskId: string | null) => void;
+  onPrepareDrag: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
 };
 
-export function BoardColumn({ column, tasks, totalTaskCount, members, draggedTaskId, onNewTask, onMoveTask, onRenameColumn, onDragTask }: BoardColumnProps) {
+export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, onNewTask, onRenameColumn, onPrepareDrag }: BoardColumnProps) {
   return (
     <div
-      onDragOver={(event) => event.preventDefault()}
-      onDrop={(event) => {
-        event.preventDefault();
-        const id = event.dataTransfer.getData("text/plain") || draggedTaskId;
-        if (id) onMoveTask(id, column.id);
-        onDragTask(null);
-      }}
+      data-kanban-column-id={column.id}
       className={cn(
-        "flex h-full min-h-0 w-[calc(100vw-2rem)] shrink-0 flex-col rounded-[1.75rem] sm:w-[310px] border border-slate-200 bg-slate-50/80 p-3 transition dark:border-slate-800 dark:bg-slate-900/50",
-        draggedTaskId && "border-dashed border-slate-400 dark:border-slate-600"
+        "flex h-full min-h-0 w-[calc(100vw-2rem)] shrink-0 flex-col rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-3 transition-[border-color,background-color,box-shadow] duration-200 sm:w-[310px] dark:border-slate-800 dark:bg-slate-900/50",
+        dragging && !dropTarget && "border-dashed border-slate-300 dark:border-slate-700",
+        dropTarget && "kanban-drop-target border-blue-500 bg-blue-50/90 ring-4 ring-blue-100 dark:border-blue-400 dark:bg-blue-950/40 dark:ring-blue-900/40"
       )}
     >
       <div className="mb-3 flex items-center justify-between gap-3 px-1">
@@ -55,15 +51,16 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, draggedTas
       </div>
 
       <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-auto pr-1">
+        {dropTarget && <div aria-live="polite" className="rounded-2xl border-2 border-dashed border-blue-400 bg-white/80 p-4 text-center text-xs font-semibold text-blue-700 dark:bg-slate-900 dark:text-blue-200">Solte aqui para mover a tarefa</div>}
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} member={members.find((member) => member.id === task.assigneeId)} />
+          <TaskCard key={task.id} task={task} member={members.find((member) => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} />
         ))}
-        {!tasks.length && totalTaskCount > 0 && (
+        {!tasks.length && totalTaskCount > 0 && !dragging && (
           <div className="grid min-h-32 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white/70 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400">
             Nenhuma tarefa corresponde aos filtros atuais.
           </div>
         )}
-        {!tasks.length && totalTaskCount === 0 && (
+        {!tasks.length && totalTaskCount === 0 && !dragging && (
           <button
             type="button"
             onClick={onNewTask}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Cloud, LoaderCircle } from "lucide-react";
 
 type RemoteOperationOverlayProps = {
@@ -11,12 +12,16 @@ type RemoteOperationOverlayProps = {
 /** Bloqueia interações enquanto a API confirma uma gravação ou atualização. */
 export function RemoteOperationOverlay({ open, label }: RemoteOperationOverlayProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    if (!open) return;
+  useLayoutEffect(() => {
+    if (!open || !mounted) return;
 
     const previousOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // Encerrar o menu nativo aberto em <select> antes de colocar o bloqueio visual.
+    previousFocus?.blur();
     document.body.style.overflow = "hidden";
     modalRef.current?.focus();
 
@@ -24,12 +29,12 @@ export function RemoteOperationOverlay({ open, label }: RemoteOperationOverlayPr
       document.body.style.overflow = previousOverflow;
       previousFocus?.focus();
     };
-  }, [open]);
+  }, [open, mounted]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-[3px] dark:bg-slate-950/75">
+  return createPortal(
+    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-[3px] dark:bg-slate-950/75">
       <div
         ref={modalRef}
         role="dialog"
@@ -58,6 +63,7 @@ export function RemoteOperationOverlay({ open, label }: RemoteOperationOverlayPr
           Java + PostgreSQL
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

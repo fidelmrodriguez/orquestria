@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import QuickDeleteAction from "@/components/board/QuickDeleteAction";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useAccessiblePanel } from "@/hooks/use-accessible-panel";
 import { isApiMode } from "@/lib/remote-board";
 import type { Task } from "@/types/board";
@@ -41,7 +41,9 @@ export function TaskDetailPanel() {
   const { notify } = useToast();
   const { panelRef, onKeyDown } = useAccessiblePanel<HTMLDivElement>(
     Boolean(task && workspace),
-    () => setSelectedTask(null)
+    () => setSelectedTask(null),
+    undefined,
+    false
   );
 
   if (!task || !workspace) return null;
@@ -63,8 +65,10 @@ export function TaskDetailPanel() {
   };
 
   return (
+    <Fragment>
+      <div className="fixed inset-0 z-[60] bg-slate-950/45 backdrop-blur-[1px] dark:bg-slate-950/70" aria-hidden="true" />
     <div ref={panelRef} onKeyDown={onKeyDown} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="task-detail-heading"
-      className="fixed inset-y-0 right-0 z-50 w-full max-w-xl border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950 sm:top-0">
+      className="fixed inset-y-0 right-0 z-[70] w-full max-w-xl border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950 sm:top-0">
       <div className="flex h-full flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-slate-800">
           <div>
@@ -98,5 +102,6 @@ export function TaskDetailPanel() {
         </footer>
       </div>
     </div>
+    </Fragment>
   );
 }

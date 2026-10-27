@@ -37,7 +37,7 @@ Marque os itens apenas após a execução no ambiente publicado.
 
 ### Interface e operação
 
-- [ ] Verificar a navegação por teclado: Tab, Enter/Espaço nos cartões e Escape nos painéis.
+- [ ] Verificar a navegação por teclado: Tab, Enter/Espaço nos cartões, foco retido nos drawers e fechamento dos drawers apenas pelo X (não pelo fundo ou Escape).
 - [ ] Abrir o site em uma largura mobile e conferir menu, rolagem horizontal e formulários.
 - [ ] Conferir que os dois temas e os estados vazios/erros continuam legíveis.
 - [ ] Confirmar que indisponibilidade transitória do backend não apaga a sessão por erro de rede.

@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { buildWorkspaceFromSource, defaultColumns } from "@/lib/board";
 import { uid } from "@/lib/utils";
+import { shouldMoveTask } from "@/lib/kanban-drag";
 import { isApiMode, UNASSIGNED_WORKSPACE_ID, loadRemoteBoard, mapTask, postApi, toApiDate, toApiPriority, type ApiTask } from "@/lib/remote-board";
 import type { DeleteTarget } from "@/lib/kanban-deletion";
 import { revokeSession } from "@/lib/auth-client";
@@ -22,7 +23,6 @@ type BoardState = {
   activeWorkspaceId: string | null;
   activeProjectId: string | null;
   selectedTaskId: string | null;
-  draggedTaskId: string | null;
   search: string;
   priorityFilter: Priority | "todas";
   assigneeFilter: string | "todos";
@@ -42,7 +42,6 @@ type BoardState = {
   setActiveWorkspace: (workspaceId: string) => void;
   setActiveProject: (projectId: string) => void;
   setSelectedTask: (taskId: string | null) => void;
-  setDraggedTask: (taskId: string | null) => void;
   setSearch: (value: string) => void;
   setPriorityFilter: (value: Priority | "todas") => void;
   setAssigneeFilter: (value: string | "todos") => void;
@@ -143,7 +142,7 @@ async function runRemoteMutation(
     set({ remoteError: describeError(error) });
     return false;
   } finally {
-    set({ remoteLoading: false, remoteActionLabel: "Salvando alterações...", draggedTaskId: null });
+    set({ remoteLoading: false, remoteActionLabel: "Salvando alterações..." });
   }
 }
 
@@ -210,7 +209,7 @@ async function runRemoteTaskMutation(
     set({ remoteError: describeError(error) });
     return false;
   } finally {
-    set({ remoteLoading: false, remoteActionLabel: "Salvando alterações...", draggedTaskId: null });
+    set({ remoteLoading: false, remoteActionLabel: "Salvando alterações..." });
   }
 }
 
@@ -222,7 +221,6 @@ export const useBoardStore = create<BoardState>()(
       activeWorkspaceId: null,
       activeProjectId: null,
       selectedTaskId: null,
-      draggedTaskId: null,
       search: "",
       priorityFilter: "todas",
       assigneeFilter: "todos",
@@ -307,7 +305,6 @@ export const useBoardStore = create<BoardState>()(
       },
       setActiveProject: (projectId) => set({ activeProjectId: projectId, selectedTaskId: null }),
       setSelectedTask: (taskId) => set({ selectedTaskId: taskId }),
-      setDraggedTask: (taskId) => set({ draggedTaskId: taskId }),
       setSearch: (value) => set({ search: value }),
       setPriorityFilter: (value) => set({ priorityFilter: value }),
       setAssigneeFilter: (value) => set({ assigneeFilter: value }),
@@ -498,6 +495,8 @@ export const useBoardStore = create<BoardState>()(
         }));
       },
       moveTask: (taskId, columnId) => {
+        const existing = get().workspaces.flatMap((space) => space.tasks).find((task) => task.id === taskId);
+        if (!existing || !shouldMoveTask(existing.columnId, columnId)) return;
         if (isApiMode) return runRemoteTaskMutation(set, get, "Movendo tarefa...", async () => {
           const task = get().workspaces.flatMap((space) => space.tasks).find((item) => item.id === taskId);
           if (!task) throw new Error("Tarefa não encontrada.");
@@ -512,8 +511,7 @@ export const useBoardStore = create<BoardState>()(
               task.id === taskId ? { ...task, columnId, updatedAt: new Date().toISOString() } : task
             )
           })),
-          draggedTaskId: null,
-          activities: appendActivity("Tarefa movida entre colunas.", "task", state.activities)
+              activities: appendActivity("Tarefa movida entre colunas.", "task", state.activities)
         }));
       },
       addComment: (taskId, message) => {

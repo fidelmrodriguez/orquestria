@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageCircle, Tag } from "lucide-react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { cn, formatDate, getInitials } from "@/lib/utils";
 import { useBoardStore } from "@/store/board-store";
 import type { Member, Task } from "@/types/board";
@@ -15,21 +16,15 @@ const priorityStyles = {
 type TaskCardProps = {
   task: Task;
   member?: Member;
+  onPrepareDrag?: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
 };
 
-export function TaskCard({ task, member }: TaskCardProps) {
+export function TaskCard({ task, member, onPrepareDrag }: TaskCardProps) {
   const setSelectedTask = useBoardStore((state) => state.setSelectedTask);
-  const setDraggedTask = useBoardStore((state) => state.setDraggedTask);
 
   return (
     <article
-      draggable
-      onDragStart={(event) => {
-        event.dataTransfer.setData("text/plain", task.id);
-        event.dataTransfer.effectAllowed = "move";
-        setDraggedTask(task.id);
-      }}
-      onDragEnd={() => setDraggedTask(null)}
+      onPointerDown={(event) => onPrepareDrag?.(event, task)}
       onClick={() => setSelectedTask(task.id)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -40,7 +35,7 @@ export function TaskCard({ task, member }: TaskCardProps) {
       tabIndex={0}
       role="button"
       aria-label={`Abrir tarefa: ${task.title}`}
-      className="group cursor-grab rounded-3xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-1 hover:border-slate-300 active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700"
+      className="kanban-task-draggable group cursor-grab rounded-3xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-1 hover:border-slate-300 active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700"
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-950 dark:text-white">{task.title}</h3>
