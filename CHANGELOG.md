@@ -1,0 +1,22 @@
+# Histórico de versões
+
+Este arquivo registra mudanças relevantes do produto por versão. O histórico granular de commits permanece no Git.
+
+## [Unreleased]
+
+### Preparação da versão 1.0.0
+
+- Organização de workspaces e projetos em quadros Kanban com colunas e tarefas personalizáveis.
+- Cadastro de contas pessoais, login por nome de usuário ou e-mail e sessão persistente.
+- Separação de dados por conta e conta guest compartilhada para demonstração.
+- Detalhes de tarefas: responsáveis, prioridade, prazo, tags, comentários e movimentação entre colunas.
+- Diretório de usuários e seleção de membros da equipe para atribuição de tarefas.
+- Catálogo de tags por conta, com sugestões, renomeação e remoção.
+- Exclusões com confirmação e validações de integridade de colunas e workspaces.
+- Ajustes de acessibilidade para navegação por teclado, diálogos e menu responsivo.
+- Verificação de prontidão da API durante a inicialização da hospedagem.
+- Identificadores de requisição, mensagens de erro controladas e cabeçalhos de proteção de cache.
+- Testes de integração Java/PostgreSQL, testes Jest e workflow de CI.
+- Documentação da API, arquitetura, decisões técnicas e processo de publicação.
+
+A seção permanece **Unreleased** até a execução do checklist em [Publicação da versão 1.0.0](docs/RELEASE.md) e a criação da tag `v1.0.0`.

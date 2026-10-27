@@ -68,6 +68,25 @@ A infraestrutura da API pode suspender o processo por inatividade. Antes de exib
 
 Enquanto a API não está pronta, o frontend apresenta uma tela de preparação com contador de tempo decorrido, um aviso informativo e novas tentativas automáticas. Isso melhora a experiência durante o início a frio, mas não impede que o serviço seja suspenso por inatividade nem substitui a autorização da API.
 
+## Fluxo de requisição autenticada
+
+```mermaid
+sequenceDiagram
+    participant Browser as Navegador / Next.js
+    participant API as Spring Boot / Blitz
+    participant DB as PostgreSQL / Neon
+    Browser->>API: Authorization: Bearer token
+    API->>DB: Validar hash e expiração da sessão
+    DB-->>API: Sessão e usuário
+    API->>DB: Consultar recurso do proprietário
+    DB-->>API: Dados autorizados
+    API-->>Browser: JSON e X-Request-ID
+```
+
+A verificação de prontidão usa um fluxo separado: navegador → proxy do Netlify → `/actuator/health` na API. Ela não substitui autenticação ou autorização.
+
+As justificativas das escolhas de infraestrutura e modelo de acesso estão em [Decisões técnicas](DECISOES_TECNICAS.md).
+
 ## Limites atuais
 
 Não há compartilhamento de projetos entre contas com papéis de acesso, recuperação de senha, exclusão de conta nem edição colaborativa em tempo real. O [roadmap](ROADMAP.md) registra possíveis evoluções.

@@ -88,3 +88,5 @@ O catálogo é separado por conta. Tags com nomes equivalentes ignorando maiúsc
 | `409` | Conflito de integridade, como coluna ocupada ou membro com tarefas atribuídas |
 
 A verificação de propriedade acontece no servidor, não depende de filtros visuais do frontend. Para detalhes de execução e persistência, consulte [Arquitetura](ARQUITETURA.md) e [Backend](../backend/README.md).
+
+Para chamadas Bash com `curl` e exemplos de payloads coerentes com os DTOs do backend, consulte [Exemplos de uso da API](API_EXEMPLOS.md).

@@ -28,12 +28,21 @@ O workflow **Orquestria CI** é acionado em `push` e `pull_request` para `main` 
 
 Os dois jobs são independentes. Uma execução só deve ser considerada aprovada quando **ambos terminam com sucesso**. A presença do workflow no repositório ou a aprovação de apenas um job não equivale à aprovação da execução completa.
 
+## Documentação e release
+
+A etapa de frontend do CI também executa `node ../scripts/check-doc-links.mjs` para localizar links relativos quebrados nos arquivos Markdown do repositório. A verificação não depende de conexão com serviços externos e não valida links HTTP.
+
+A validação funcional antes de marcar uma versão segue o [checklist de publicação](RELEASE.md). O sucesso do CI **não** confirma sozinho que o ambiente publicado e os fluxos de negócio foram testados.
+
 ## Comandos
 
 ```bash
 # Backend (executar dentro de backend/)
 mvn test
 mvn verify
+
+# Documentação (executar na raiz do repositório)
+node scripts/check-doc-links.mjs
 
 # Frontend (executar dentro de frontend/)
 npm ci

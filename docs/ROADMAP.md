@@ -12,7 +12,11 @@ O roadmap reúne melhorias planejadas para a evolução do produto. O escopo e a
 - Catálogo de tags, autocomplete e edição no quadro.
 - Estrutura de testes automatizados e workflow de CI.
 
-## Próximas melhorias
+## Critérios de publicação da versão 1.0.0
+
+A base funcional, os ajustes de usabilidade/acessibilidade, o tratamento de erros e as rotinas de CI já fazem parte do código. A conclusão da versão estável depende da **aprovação do CI no commit da versão, da validação no ambiente publicado e da criação da tag `v1.0.0`**, conforme o [guia de publicação](RELEASE.md).
+
+## Melhorias contínuas
 
 | Área | Evolução planejada | Critério de conclusão |
 | --- | --- | --- |
@@ -20,7 +24,7 @@ O roadmap reúne melhorias planejadas para a evolução do produto. O escopo e a
 | **Usabilidade** | Revisar formulários, mensagens de erro, navegação mobile e estados vazios | Fluxos principais utilizáveis em diferentes tamanhos de tela, sem regressões |
 | **Acessibilidade** | Refinar rótulos, foco, teclado e interação com diálogos | Navegação essencial possível por teclado e controles adequadamente identificados |
 | **Segurança e operação** | Reavaliar autorização, tratamento de falhas, logs e limites de entrada | Testes de autorização e comportamento consistente sob falhas transitórias |
-| **Documentação e versão estável** | Consolidar referência de API, arquitetura, exemplos e validação de release | Documentação alinhada ao código, pipeline aprovado e versão marcada no Git |
+| **Documentação** | Manter contratos, exemplos, decisões técnicas e changelog alinhados ao código | Links locais válidos, exemplos revisados e mudanças descritas |
 
 ## Fora do escopo atual
 

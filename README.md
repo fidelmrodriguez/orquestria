@@ -4,6 +4,8 @@
 
 [**Acessar aplicação**](https://orquestria.netlify.app/) · [Arquitetura](docs/ARQUITETURA.md) · [API](docs/API.md) · [Documentação](docs/README.md)
 
+[![Orquestria CI](https://github.com/fidelmrodriguez/orquestria/actions/workflows/ci.yml/badge.svg)](https://github.com/fidelmrodriguez/orquestria/actions/workflows/ci.yml)
+
 ## Funcionalidades
 
 - **Organização:** workspaces, projetos e colunas personalizáveis em um quadro Kanban.
@@ -48,6 +50,15 @@ Como a hospedagem da API pode suspender processos inativos, a interface verifica
 
 Para conhecer as decisões e os fluxos completos, consulte a [arquitetura](docs/ARQUITETURA.md).
 
+## Primeiros passos
+
+1. Acesse a [aplicação publicada](https://orquestria.netlify.app/). Se a API estiver suspensa por inatividade, aguarde a tela de preparação concluir a verificação automática.
+2. Para conhecer o Kanban sem cadastro, entre na conta de demonstração. Utilize **apenas dados descartáveis**, pois são compartilhados.
+3. Para organizar dados privados, crie uma conta pessoal. Crie um workspace, associe um projeto a ele e organize tarefas nas colunas.
+4. Abra uma tarefa para ajustar responsável, prioridade, prazo, tags e comentários; use os menus contextuais para exclusões com confirmação.
+
+A inclusão de uma pessoa na equipe permite atribuir-lhe tarefas, mas **não compartilha** projetos privados com ela.
+
 ## Estrutura do repositório
 
 ```text
@@ -91,6 +102,10 @@ O repositório possui testes automatizados do frontend e backend, testes de inte
 - [Referência da API](docs/API.md)
 - [Deploy da API e do banco](docs/DEPLOY_CLOUD.md)
 - [Deploy do frontend](docs/DEPLOY_NETLIFY.md)
+- [Decisões técnicas](docs/DECISOES_TECNICAS.md)
+- [Exemplos da API](docs/API_EXEMPLOS.md)
+- [Publicação da versão 1.0.0](docs/RELEASE.md)
+- [Histórico de versões](CHANGELOG.md)
 - [Roadmap](docs/ROADMAP.md)
 
 ---
