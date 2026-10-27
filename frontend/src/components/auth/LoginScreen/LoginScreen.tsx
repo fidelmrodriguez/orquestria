@@ -13,11 +13,12 @@ export function LoginScreen() {
   const login = useBoardStore((state) => state.login);
   const { notify } = useToast();
   const [mode, setMode] = useState<AccessMode>("guest");
-  const [guestIdentifier, setGuestIdentifier] = useState(GUEST_IDENTIFIER);
-  const [guestPassword, setGuestPassword] = useState(GUEST_PASSWORD);
+  // Um único par de campos atende tanto a demonstração quanto o login pessoal.
+  // Assim, alternar o modo enquanto se digita não substitui os inputs nem perde foco.
+  const [loginIdentifier, setLoginIdentifier] = useState(GUEST_IDENTIFIER);
+  const [loginPassword, setLoginPassword] = useState(GUEST_PASSWORD);
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
-  const [personalIdentifier, setPersonalIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -45,17 +46,27 @@ export function LoginScreen() {
 
   const registering = mode === "register";
   const guest = mode === "guest";
-  const defaultGuestCredentials = guestIdentifier === GUEST_IDENTIFIER && guestPassword === GUEST_PASSWORD;
+  function updateLoginCredentials(identifier: string, nextPassword: string) {
+    setLoginIdentifier(identifier);
+    setLoginPassword(nextPassword);
+    // Só existe modo Guest se as DUAS credenciais públicas coincidirem.
+    // Qualquer alteração muda para conta pessoal; restaurar ambas volta ao Guest.
+    setMode(identifier === GUEST_IDENTIFIER && nextPassword === GUEST_PASSWORD ? "guest" : "personal");
+    setError(null);
+  }
 
   function changeMode(next: AccessMode) {
     if (saving) return;
     setMode(next);
-    setPassword(""); // A senha de demonstração não é reutilizada na conta pessoal.
     if (next === "guest") {
-      // Voltar à demonstração restaura as credenciais públicas padrão, sem bloquear a edição.
-      setGuestIdentifier(GUEST_IDENTIFIER);
-      setGuestPassword(GUEST_PASSWORD);
+      setLoginIdentifier(GUEST_IDENTIFIER);
+      setLoginPassword(GUEST_PASSWORD);
+    } else if (next === "personal") {
+      // Ação explícita: entrar em outra conta começa com campos vazios.
+      setLoginIdentifier("");
+      setLoginPassword("");
     }
+    setPassword(""); // O cadastro tem sua própria senha.
     setError(null);
   }
 
@@ -71,9 +82,9 @@ export function LoginScreen() {
         const result = registering
           ? await authenticate("register", { name: name.trim(), username: username.trim(), email: email.trim(), password })
           : await authenticate("login", {
-              // Use os valores editados, nunca constantes fixas no momento do login.
-              identifier: guest ? guestIdentifier.trim() : personalIdentifier.trim(),
-              password: guest ? guestPassword : password
+              // O modo é apenas visual; a API sempre recebe os valores digitados.
+              identifier: loginIdentifier.trim(),
+              password: loginPassword
             });
         login(result.name, result.email, result.id);
       }
@@ -88,7 +99,7 @@ export function LoginScreen() {
   const title = registering
     ? "Criar minha conta"
     : guest
-      ? defaultGuestCredentials ? "Entrar como guest" : "Entrar com outras credenciais"
+      ? "Entrar como guest"
       : "Entrar na minha conta";
   const subtitle = registering
     ? "Escolha um nome de usuário exclusivo para entrar sem precisar digitar o e-mail."
@@ -156,12 +167,7 @@ export function LoginScreen() {
                 </div>
               </>
             )}
-            {guest ? (
-              <label className="block space-y-2">
-                <span className="text-sm font-medium">Usuário ou e-mail</span>
-                <input className="field" value={guestIdentifier} onChange={(event) => setGuestIdentifier(event.target.value)} required maxLength={190} autoComplete="off" disabled={saving} />
-              </label>
-            ) : registering ? (
+            {registering ? (
               <label className="block space-y-2">
                 <span className="text-sm font-medium">E-mail</span>
                 <input className="field" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required maxLength={190} autoComplete="email" disabled={saving} />
@@ -169,15 +175,18 @@ export function LoginScreen() {
             ) : (
               <label className="block space-y-2">
                 <span className="text-sm font-medium">Usuário ou e-mail</span>
-                <input className="field" value={personalIdentifier} onChange={(event) => setPersonalIdentifier(event.target.value)}
-                  required maxLength={190} autoComplete="username" disabled={saving} />
+                <input className="field" value={loginIdentifier}
+                  onChange={(event) => updateLoginCredentials(event.target.value, loginPassword)}
+                  required maxLength={190} autoComplete={guest ? "off" : "username"} disabled={saving} />
               </label>
             )}
             <label className="block space-y-2">
               <span className="text-sm font-medium">Senha</span>
               <input
-                className="field" type="password" value={guest ? guestPassword : password}
-                onChange={(event) => guest ? setGuestPassword(event.target.value) : setPassword(event.target.value)}
+                className="field" type="password" value={registering ? password : loginPassword}
+                onChange={(event) => registering
+                  ? setPassword(event.target.value)
+                  : updateLoginCredentials(loginIdentifier, event.target.value)}
                 disabled={saving} required minLength={registering ? 10 : 1}
                 maxLength={100} autoComplete={guest ? "off" : registering ? "new-password" : "current-password"}
               />
@@ -190,7 +199,7 @@ export function LoginScreen() {
             {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
           </div>
           <button type="submit" disabled={saving} className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:shadow-card disabled:opacity-60 dark:bg-white dark:text-slate-950">
-            {saving ? "Conectando..." : registering ? "Criar conta e entrar" : guest ? defaultGuestCredentials ? "Acessar demonstração" : "Entrar com estas credenciais" : "Entrar na minha conta"} <ArrowRight className="size-4" />
+            {saving ? "Conectando..." : registering ? "Criar conta e entrar" : guest ? "Acessar demonstração" : "Entrar na minha conta"} <ArrowRight className="size-4" />
           </button>
           <div className="mt-5 space-y-3 text-center text-sm font-medium">
             {guest ? (

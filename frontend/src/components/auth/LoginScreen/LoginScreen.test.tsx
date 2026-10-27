@@ -133,7 +133,7 @@ describe("LoginScreen", () => {
     await user.clear(password);
     await user.type(password, "MinhaSenhaSegura123!");
 
-    await user.click(screen.getByRole("button", { name: "Entrar com estas credenciais" }));
+    await user.click(screen.getByRole("button", { name: "Entrar na minha conta" }));
     await waitFor(() => {
       expect(mockAuthenticate).toHaveBeenCalledWith("login", {
         identifier: "pessoa@exemplo.com", password: "MinhaSenhaSegura123!"
@@ -146,9 +146,58 @@ describe("LoginScreen", () => {
     render(<LoginScreen />);
     await user.clear(screen.getByLabelText("Usuário ou e-mail"));
     await user.type(screen.getByLabelText("Usuário ou e-mail"), "outro@exemplo.com");
-    await user.click(screen.getByRole("button", { name: "Já tenho uma conta" }));
+    expect(screen.getByRole("button", { name: "Entrar na minha conta" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Voltar ao guest" }));
     expect(screen.getByLabelText("Usuário ou e-mail")).toHaveValue("guest");
     expect(screen.getByLabelText("Senha")).toHaveValue("OrquestriaDemo2026!");
   });
+  it("troca imediatamente para login pessoal ao editar o usuário guest e volta ao restaurar", async () => {
+    const user = userEvent.setup();
+    render(<LoginScreen />);
+    const identifier = screen.getByLabelText("Usuário ou e-mail");
+    expect(screen.getByRole("heading", { name: "Entrar como guest" })).toBeInTheDocument();
+    await user.type(identifier, "x");
+    expect(identifier).toHaveValue("guestx");
+    expect(identifier).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Entrar na minha conta" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Entrar na minha conta" })).toBeInTheDocument();
+
+    await user.keyboard("{Backspace}");
+    expect(identifier).toHaveValue("guest");
+    expect(identifier).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Entrar como guest" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Acessar demonstração" })).toBeInTheDocument();
+  });
+
+  it("troca imediatamente para login pessoal ao editar a senha guest e volta ao restaurar", async () => {
+    const user = userEvent.setup();
+    render(<LoginScreen />);
+    const password = screen.getByLabelText("Senha");
+    await user.type(password, "x");
+    expect(password).toHaveValue("OrquestriaDemo2026!x");
+    expect(password).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Entrar na minha conta" })).toBeInTheDocument();
+    await user.keyboard("{Backspace}");
+    expect(password).toHaveValue("OrquestriaDemo2026!");
+    expect(password).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Entrar como guest" })).toBeInTheDocument();
+  });
+
+  it("só retorna ao guest quando usuário e senha originais são restaurados", async () => {
+    const user = userEvent.setup();
+    render(<LoginScreen />);
+    const identifier = screen.getByLabelText("Usuário ou e-mail");
+    const password = screen.getByLabelText("Senha");
+    await user.type(identifier, "x");
+    await user.type(password, "y");
+    await user.click(identifier);
+    await user.keyboard("{End}{Backspace}");
+    expect(identifier).toHaveValue("guest");
+    expect(screen.getByRole("heading", { name: "Entrar na minha conta" })).toBeInTheDocument();
+    await user.click(password);
+    await user.keyboard("{End}{Backspace}");
+    expect(password).toHaveValue("OrquestriaDemo2026!");
+    expect(screen.getByRole("heading", { name: "Entrar como guest" })).toBeInTheDocument();
+  });
+
 });
