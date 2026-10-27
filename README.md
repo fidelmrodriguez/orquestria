@@ -50,7 +50,7 @@ Blitz — API Spring Boot
 Neon — PostgreSQL
 ```
 
-O frontend utiliza a API para persistir os dados de trabalho. O Spring Security exige autenticação nas rotas privadas e verifica a titularidade dos recursos antes das operações. O esquema do banco é versionado com Flyway; as migrações disponíveis vão de **V1 a V9**.
+O frontend utiliza a API para persistir os dados de trabalho. O Spring Security exige autenticação nas rotas privadas e verifica a titularidade dos recursos antes das operações. O esquema do banco é versionado com Flyway; as migrações disponíveis vão de **V1 a V10**.
 
 Como a hospedagem da API pode suspender processos inativos, a interface verifica a disponibilidade do Spring Boot antes de apresentar as telas de login e do quadro. Durante a inicialização, apresenta o estado **Preparando seu ambiente**, com tempo decorrido; a espera não representa uma falha de autenticação. O endpoint de prontidão é encaminhado pelo proxy do Netlify.
 
@@ -63,7 +63,7 @@ Para conhecer as decisões e os fluxos completos, consulte a [arquitetura](docs/
 3. Para organizar dados privados, crie uma conta pessoal. Crie um workspace, associe um projeto a ele e organize tarefas nas colunas.
 4. Abra uma tarefa para ajustar responsável, prioridade, prazo, tags e comentários; use os menus contextuais para exclusões com confirmação.
 
-A inclusão de uma pessoa na equipe permite atribuir-lhe tarefas, mas **não compartilha** projetos privados com ela.
+Na página **Equipe**, o admin escolhe um projeto e adiciona um usuário cadastrado, concedendo acesso somente àquele projeto como **membro-admin**. Outros projetos continuam privados.
 
 ## Estrutura do repositório
 
@@ -121,3 +121,7 @@ O repositório possui testes automatizados do frontend e backend, testes de inte
 ---
 
 Desenvolvido por [Fidel M Rodriguez](https://github.com/fidelmrodriguez).
+
+## Colaboração entre contas
+
+Projetos podem ser compartilhados diretamente com usuários cadastrados, que recebem acesso como **membro-admin** sem expor os demais projetos do workspace. O admin controla os participantes. Veja [colaboração por projeto](docs/COLABORACAO.md).

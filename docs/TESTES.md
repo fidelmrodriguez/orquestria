@@ -68,3 +68,7 @@ Os testes Java que dependem de PostgreSQL utilizam `ORQUESTRIA_RUN_DB_TESTS=true
 Os testes da camada de operação verificam o identificador de requisição, os cabeçalhos de não-cache, a normalização de respostas de erro e o comportamento seguro do frontend quando recebe HTML da hospedagem.
 
 Os resultados correntes do pipeline podem ser consultados na [aba Actions](https://github.com/fidelmrodriguez/orquestria/actions); este documento não presume que a execução mais recente esteja aprovada.
+
+## Colaboração por projeto
+
+Os testes HTTP sobre PostgreSQL validam o isolamento entre projetos privados e compartilhados: um membro-admin só enxerga o projeto ao qual foi adicionado, pode operar colunas e tarefas desse projeto, não acessa o workspace do proprietário e não pode adicionar/remover membros. A revogação de acesso é imediata. Os testes de Flyway validam também a migração V10.

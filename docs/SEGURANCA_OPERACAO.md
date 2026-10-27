@@ -7,7 +7,7 @@ Este documento descreve as proteções aplicadas à API Java e ao frontend está
 - Recursos em `/api/**` exigem token Bearer, exceto login e cadastro. A validação da propriedade de projetos, workspaces, colunas e tarefas ocorre na API, não apenas no frontend.
 - A sessão tem validade definida pelo backend; o logout invalida o token de sessão correspondente. O frontend preserva a sessão em falhas transitórias de rede e a encerra ao receber HTTP 401.
 - O login limita o tamanho dos campos de identificação e senha. Essa validação **não é um mecanismo de limitação de tentativas**: rate limiting na borda ainda requer infraestrutura apropriada para identificar clientes atrás do proxy.
-- A conta Guest é compartilhada e serve apenas para demonstração; dados sensíveis não devem ser armazenados nela. A inclusão de um membro permite atribuir-lhe tarefas, mas **não compartilha automaticamente projetos privados**.
+- A conta Guest é compartilhada e serve apenas para demonstração; dados sensíveis não devem ser armazenados nela. A inclusão explícita de um membro em um projeto concede acesso somente ao projeto selecionado, não aos outros recursos do proprietário.
 
 ## Respostas e diagnóstico
 
@@ -37,4 +37,4 @@ O Netlify lê `frontend/public/_headers` na exportação estática e aplica `X-C
 
 ## Limites e pontos futuros
 
-Não há rate limiting distribuído, monitoramento externo de disponibilidade, infraestrutura de logs centralizados, recuperação de senha nem colaboração entre contas com permissões compartilhadas. Esses recursos exigem decisões de infraestrutura e autorização separadas. A autenticação utiliza um token no armazenamento do navegador; por isso, a prevenção de XSS, revisão de dependências e futuras políticas CSP devem continuar sendo tratadas como prioridades de segurança.
+Não há rate limiting distribuído, monitoramento externo de disponibilidade, infraestrutura de logs centralizados, recuperação de senha nem sincronização colaborativa em tempo real. O controle de acesso compartilhado por projeto existe e é descrito em [Colaboração](COLABORACAO.md). Esses recursos exigem decisões de infraestrutura e autorização separadas. A autenticação utiliza um token no armazenamento do navegador; por isso, a prevenção de XSS, revisão de dependências e futuras políticas CSP devem continuar sendo tratadas como prioridades de segurança.

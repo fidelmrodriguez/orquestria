@@ -72,12 +72,19 @@ export default function GerenciarPage() {
   }, []);
 
   const refreshOverview = useCallback(async (accessToken: string) => {
-    const [workspaceResult, projectResult] = await Promise.all([
+    const [workspaceResult, projectResult, invitedResult] = await Promise.all([
       apiRequest(API_BASE, "/api/workspaces", accessToken, "GET", "listar-workspaces"),
-      apiRequest(API_BASE, "/api/projects", accessToken, "GET", "listar-projetos")
+      apiRequest(API_BASE, "/api/projects", accessToken, "GET", "listar-projetos"),
+      apiRequest(API_BASE, "/api/projects/invited", accessToken, "GET", "listar-projetos")
     ]);
-    setWorkspaces(unpackList(workspaceResult).sort(byName));
-    setProjects(unpackList(projectResult).sort(byName));
+    const shared = unpackList(invitedResult).map(item => ({ ...item,
+      workspaceId: item.workspaceId ? `invited-${item.workspaceId}` : `invited-unassigned-${item.id}`
+    }));
+    const sharedSpaces = shared.map(item => ({ id: item.workspaceId!,
+      name: `${item.workspaceName || "Projetos compartilhados"} (convidado)`, invited: true }));
+    const ownedSpaces = unpackList(workspaceResult);
+    setWorkspaces([...ownedSpaces, ...sharedSpaces.filter((space, idx, all) => all.findIndex(entry => entry.id === space.id) === idx)].sort(byName));
+    setProjects([...unpackList(projectResult), ...shared].sort(byName));
   }, []);
 
   const refreshProject = useCallback(async (projectId: string, accessToken: string) => {
@@ -228,7 +235,7 @@ export default function GerenciarPage() {
                           <span className="block break-words">{humanName(workspace)}</span>
                           <span className="mt-1 block text-xs font-normal text-slate-500">{count} projeto{count === 1 ? "" : "s"}</span>
                         </button>
-                        <button type="button" disabled={busy || count > 0} title={count ? "Exclua primeiro os projetos vinculados" : "Excluir workspace vazio"} onClick={() => askDelete({kind:"workspace",id:workspace.id},humanName(workspace),"O workspace vazio será removido permanentemente.")} className="mt-3 rounded-lg border border-rose-300 px-3 py-2 text-xs font-semibold text-rose-700 disabled:opacity-30">Excluir workspace</button>
+                        {!workspace.invited && <button type="button" disabled={busy || count > 0} title={count ? "Exclua primeiro os projetos vinculados" : "Excluir workspace vazio"} onClick={() => askDelete({kind:"workspace",id:workspace.id},humanName(workspace),"O workspace vazio será removido permanentemente.")} className="mt-3 rounded-lg border border-rose-300 px-3 py-2 text-xs font-semibold text-rose-700 disabled:opacity-30">Excluir workspace</button>}
                       </div>
                     );
                   })}

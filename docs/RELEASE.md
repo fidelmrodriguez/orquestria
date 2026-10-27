@@ -7,7 +7,7 @@ Este documento reúne as verificações para publicar uma versão identificável
 - A branch `main` está sincronizada, sem alterações locais pendentes.
 - A execução do **Orquestria CI** para o commit escolhido terminou com os jobs **Backend** e **Frontend** aprovados. Não confundir o resultado de um commit anterior com o commit a ser publicado.
 - O deploy do backend no Blitz e o deploy do frontend no Netlify correspondem a versões compatíveis.
-- O Flyway validou e aplicou as migrações versionadas de `V1` a `V9` no ambiente correspondente. Mudanças posteriores exigem migrações novas.
+- O Flyway validou e aplicou as migrações versionadas de `V1` a `V10` no ambiente correspondente. Mudanças posteriores exigem migrações novas.
 - Os testes de fluxo abaixo foram repetidos na aplicação publicada, com contas e dados descartáveis.
 
 ## Checklist funcional de aceite
@@ -73,4 +73,4 @@ A tag não publica automaticamente Java no Blitz nem substitui a publicação do
 
 Manter o resultado da execução do CI, a referência do commit/tag e o estado dos deploys. Capturas de tela podem ser incluídas após revisão, utilizando uma conta com conteúdo de demonstração legível e sem dados pessoais.
 
-A conta guest é compartilhada; membros de equipe são responsáveis atribuíveis, **não** colaboradores com acesso a projetos privados; não existem permissões compartilhadas por convite, recuperação de senha, rate limiting distribuído ou disponibilidade contínua garantida no plano gratuito da API. Consulte [Segurança e operação](SEGURANCA_OPERACAO.md) e [Roadmap](ROADMAP.md).
+A conta guest é compartilhada. Projetos podem receber participantes com acesso explícito no papel membro-admin, mas não existe convite por e-mail com aceite, recuperação de senha, rate limiting distribuído ou disponibilidade contínua garantida no plano gratuito da API. Consulte [Segurança e operação](SEGURANCA_OPERACAO.md) e [Roadmap](ROADMAP.md).

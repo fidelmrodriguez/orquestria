@@ -25,3 +25,5 @@ Esta documentação descreve a arquitetura, os contratos da API, a infraestrutur
 A documentação é organizada por **assunto** para que as informações permaneçam úteis independentemente de quando determinada funcionalidade foi adicionada. O histórico de alterações e implementações permanece disponível nos commits do Git.
 
 Quando houver divergência entre um texto e o comportamento efetivo do sistema, os contratos implementados no código e os testes automatizados são a referência para a correção da documentação.
+
+- [Colaboração por projeto e permissões](COLABORACAO.md)

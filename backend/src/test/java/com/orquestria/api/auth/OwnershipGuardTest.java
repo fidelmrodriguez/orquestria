@@ -21,9 +21,9 @@ class OwnershipGuardTest {
         var otherProjectId=UUID.randomUUID();
         when(auth.currentUser()).thenReturn(user);
         when(user.getId()).thenReturn(ownerId);
-        when(projects.findByIdAndOwner_Id(otherProjectId,ownerId)).thenReturn(Optional.empty());
-        var guard=new OwnershipGuard(auth,workspaces,projects);
+        when(projects.findById(otherProjectId)).thenReturn(Optional.empty());
+        var guard=new OwnershipGuard(auth,workspaces,projects,org.mockito.Mockito.mock(org.springframework.jdbc.core.JdbcTemplate.class));
         assertThrows(ResourceNotFoundException.class, ()->guard.project(otherProjectId));
-        verify(projects,never()).findById(otherProjectId);
+        verify(projects).findById(otherProjectId);
     }
 }

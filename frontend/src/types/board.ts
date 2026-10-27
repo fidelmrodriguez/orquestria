@@ -5,7 +5,7 @@ export type Member = {
   name: string;
   email: string;
   avatar: string;
-  role: "admin" | "editor" | "viewer";
+  role: "admin" | "membro-admin" | "editor" | "viewer";
 };
 
 export type Comment = {
@@ -51,6 +51,8 @@ export type Project = {
 
 export type Workspace = {
   id: string;
+  invited?: boolean;
+  invitedOwner?: string;
   name: string;
   description: string;
   projects: Project[];

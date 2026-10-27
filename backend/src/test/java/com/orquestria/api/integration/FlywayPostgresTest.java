@@ -20,16 +20,17 @@ class FlywayPostgresTest {
     @Autowired private JdbcTemplate jdbc;
 
     @Test
-    void appliesAllMigrationsFromV1ThroughV9() {
+    void appliesAllMigrationsFromV1ThroughV10() {
         Set<String> applied = Arrays.stream(flyway.info().applied())
                 .filter(info -> info.getVersion() != null)
                 .map(info -> info.getVersion().toString())
                 .collect(Collectors.toSet());
-        for (int version = 1; version <= 9; version++) {
+        for (int version = 1; version <= 10; version++) {
             assertTrue(applied.contains(Integer.toString(version)), "Migração V" + version + " não aplicada");
         }
         assertNotNull(jdbc.queryForObject("SELECT COUNT(*) FROM app_users", Integer.class));
         assertNotNull(jdbc.queryForObject("SELECT COUNT(*) FROM team_members", Integer.class));
+        assertNotNull(jdbc.queryForObject("SELECT COUNT(*) FROM project_members", Integer.class));
         assertNotNull(jdbc.queryForObject("SELECT COUNT(*) FROM user_tags", Integer.class));
         assertNotNull(jdbc.queryForObject("SELECT COUNT(last_active_at) FROM app_users", Long.class));
     }

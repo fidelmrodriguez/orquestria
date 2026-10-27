@@ -30,8 +30,8 @@ class ProjectServiceTest {
     @BeforeEach
     void setup() {
         service = new ProjectService(repository, workspaces,guard);
-        when(guard.current()).thenReturn(user);
-        when(user.getId()).thenReturn(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"));
+        org.mockito.Mockito.lenient().when(guard.current()).thenReturn(user);
+        org.mockito.Mockito.lenient().when(user.getId()).thenReturn(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"));
     }
 
     @Test
@@ -45,8 +45,8 @@ class ProjectServiceTest {
     @Test
     void findByIdThrowsWhenProjectDoesNotExist() {
         UUID id = UUID.randomUUID();
-        when(repository.findByIdAndOwner_Id(any(),any())).thenReturn(Optional.empty());
+        when(guard.project(id)).thenThrow(new com.orquestria.api.common.ResourceNotFoundException("Projeto"));
 
-        assertThrows(ProjectNotFoundException.class, () -> service.findById(id));
+        assertThrows(com.orquestria.api.common.ResourceNotFoundException.class, () -> service.findById(id));
     }
 }

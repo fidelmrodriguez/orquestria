@@ -21,6 +21,9 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
   const activeWorkspaceId = useBoardStore((state) => state.activeWorkspaceId);
   const activeProjectId = useBoardStore((state) => state.activeProjectId);
   const workspace = useBoardStore(selectActiveWorkspace);
+  const ownedWorkspaces = workspaces.filter(item => !item.invited);
+  const invitedWorkspaces = workspaces.filter(item => item.invited);
+  const invitedActive = Boolean(workspace?.invited);
   const setActiveWorkspace = useBoardStore((state) => state.setActiveWorkspace);
   const setActiveProject = useBoardStore((state) => state.setActiveProject);
   const addWorkspace = useBoardStore((state) => state.addWorkspace);
@@ -38,7 +41,7 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
 
   const createProject = () => {
     const name = projectName.trim();
-    if (!workspace || !name) return;
+    if (!workspace || workspace.invited || !name) return;
     addProject(workspace.id, name);
     setProjectName("");
     onNavigate?.();
@@ -55,7 +58,7 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
         </button>
         <nav aria-label="Workspaces e projetos" className="sidebar-menu-scroll flex min-h-0 w-full flex-1 flex-col items-center gap-2 overflow-y-auto overflow-x-hidden py-2">
           <span className="sr-only">Workspaces</span>
-          {workspaces.map(item => (
+          {ownedWorkspaces.map(item => (
             <button key={item.id} type="button" title={`Workspace: ${item.name}`} aria-label={`Selecionar workspace ${item.name}`}
               aria-current={item.id === activeWorkspaceId ? "true" : undefined}
               onClick={() => { setActiveWorkspace(item.id); onNavigate?.(); }}
@@ -70,6 +73,16 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
             <Plus className="size-4" />
           </button>
           <span aria-hidden="true" className="my-1 h-px w-9 shrink-0 bg-slate-200 dark:bg-slate-700" />
+          {invitedWorkspaces.map(item => (
+            <button key={item.id} type="button" title={`Workspace convidado: ${item.name}`} aria-label={`Workspace convidado ${item.name}`}
+              onClick={() => { setActiveWorkspace(item.id); onNavigate?.(); }}
+              className={cn("grid size-11 shrink-0 place-items-center rounded-xl", item.id === activeWorkspaceId
+                ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200"
+                : "text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900")}>
+              <span className="flex flex-col items-center justify-center leading-none"><UsersRound className="size-4" /><span className="mt-0.5 text-[9px] font-semibold">{item.name.slice(0, 2).toUpperCase()}</span></span>
+            </button>
+          ))}
+          <span aria-hidden="true" className="my-1 h-px w-9 shrink-0 bg-slate-200 dark:bg-slate-700" />
           <span className="sr-only">Projetos</span>
           {workspace?.projects.map(project => (
             <button key={project.id} type="button" title={`Projeto: ${project.name}`} aria-label={`Selecionar projeto ${project.name}`}
@@ -81,13 +94,13 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
               <span className="flex flex-col items-center justify-center leading-none"><FolderOpen className="size-4" /><span className="mt-0.5 text-[9px] font-semibold">{project.name.trim().slice(0, 2).toLocaleUpperCase("pt-BR")}</span></span>
             </button>
           ))}
-          <button type="button" title="Criar projeto" aria-label="Criar projeto" onClick={onToggleCollapsed}
+          {!invitedActive && <button type="button" title="Criar projeto" aria-label="Criar projeto" onClick={onToggleCollapsed}
             className="grid size-10 shrink-0 place-items-center rounded-xl border border-dashed border-slate-300 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-900">
             <Plus className="size-4" />
-          </button>
+          </button>}
           <span aria-hidden="true" className="my-1 h-px w-9 shrink-0 bg-slate-200 dark:bg-slate-700" />
           <a href="/gerenciar" aria-label="Gerenciar itens" title="Gerenciar itens" className="grid size-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"><Settings2 className="size-5" /></a>
-          <a href="/equipe" aria-label="Membros da equipe" title="Membros da equipe" className="grid size-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"><UsersRound className="size-5" /></a>
+          {!invitedActive && <a href={activeProjectId ? `/equipe?projectId=${encodeURIComponent(activeProjectId)}` : "/equipe"} aria-label="Membros da equipe" title="Membros da equipe" className="grid size-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"><UsersRound className="size-5" /></a>}
           <a href="/tags" aria-label="Minhas tags" title="Minhas tags" className="grid size-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"><Tags className="size-5" /></a>
         </nav>
         <button type="button" onClick={onToggleCollapsed} aria-label="Expandir navegação e opções" title="Expandir navegação e opções"
@@ -110,7 +123,7 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
 
       <div className="sidebar-menu-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
       <WorkspaceNavigation
-        workspaces={workspaces}
+        workspaces={ownedWorkspaces}
         activeWorkspaceId={activeWorkspaceId}
         workspaceName={workspaceName}
         onWorkspaceNameChange={setWorkspaceName}
@@ -121,7 +134,25 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
         onCreateWorkspace={createWorkspace}
       />
 
-      <ProjectNavigation
+      {invitedWorkspaces.length > 0 && <section className="space-y-2" aria-label="Workspaces convidados">
+        <p className="px-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Workspaces convidados</p>
+        {invitedWorkspaces.map(item => <div key={item.id} className="space-y-1">
+          <button type="button" onClick={() => { setActiveWorkspace(item.id); onNavigate?.(); }}
+            aria-expanded={item.id === activeWorkspaceId}
+            className={cn("flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium", item.id === activeWorkspaceId
+              ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-200"
+              : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900")}>
+            <UsersRound className="size-4 shrink-0" /><span className="truncate">{item.name}</span>
+          </button>
+          {item.id === activeWorkspaceId && item.projects.map(project => <button key={project.id} type="button"
+            onClick={() => { setActiveProject(project.id); onNavigate?.(); }}
+            className={cn("block w-full truncate rounded-lg py-2 pl-9 pr-2 text-left text-sm", activeProjectId === project.id
+              ? "font-semibold text-indigo-700 dark:text-indigo-300" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900")}
+            title={`${project.name} · membro-admin`}>{project.name}</button>)}
+        </div>)}
+      </section>}
+
+      {!invitedActive && <ProjectNavigation
         workspace={workspace}
         activeProjectId={activeProjectId}
         projectName={projectName}
@@ -131,16 +162,16 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
           onNavigate?.();
         }}
         onCreateProject={createProject}
-      />
+      />}
 
       <nav aria-label="Gerenciamento" className="space-y-1 border-t border-slate-200 pt-3 dark:border-slate-800">
         <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Gerenciamento</p>
         <a href="/gerenciar" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><Settings2 className="size-4" /> Gerenciar itens</a>
-        <a href="/equipe" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><UsersRound className="size-4" /> Membros da equipe</a>
+        {!invitedActive && <a href={activeProjectId ? `/equipe?projectId=${encodeURIComponent(activeProjectId)}` : "/equipe"} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><UsersRound className="size-4" /> Membros da equipe</a>}
         <a href="/tags" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><Tags className="size-4" /> Minhas tags</a>
       </nav>
       </div>
-      <TeamPreview workspace={workspace} />
+      <TeamPreview workspace={workspace} projectId={activeProjectId} />
     </aside>
   );
 }

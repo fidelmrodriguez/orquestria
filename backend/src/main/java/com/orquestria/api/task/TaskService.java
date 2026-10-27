@@ -30,14 +30,16 @@ public class TaskService {
     }
 
     /** Ninguém pode forjar IDs de responsáveis fora do proprietário ou da equipe cadastrada. */
-    private void validateAssignee(String assigneeId) {
+    private void validateAssignee(UUID projectId, String assigneeId) {
         if (assigneeId == null || assigneeId.isBlank()) return;
         UUID target;
         try { target = UUID.fromString(assigneeId); }
         catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecione um usuário cadastrado na equipe");
         }
-        UUID owner = auth.currentUser().getId();
+        UUID owner = projects.findById(projectId)
+            .orElseThrow(() -> new ProjectNotFoundException(projectId))
+            .getOwner().getId();
         if (owner.equals(target)) return;
         Integer count = jdbc.queryForObject(
             "SELECT COUNT(*) FROM team_members WHERE owner_id = ? AND member_id = ?",
@@ -59,7 +61,7 @@ public class TaskService {
     public TaskResponse create(UUID projectId, CreateTaskRequest request) {
         Project project = projects.findById(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
         BoardColumn column = requireColumn(projectId, request.columnId());
-        validateAssignee(request.assigneeId());
+        validateAssignee(projectId, request.assigneeId());
         TaskPriority priority = request.priority() == null ? TaskPriority.MEDIA : request.priority();
         String desc = request.description() == null ? null : request.description().trim();
         Task task = tasks.save(new Task(project, column, request.title().trim(), desc,
@@ -83,7 +85,7 @@ public class TaskService {
         Task task = requireTask(projectId, taskId);
         // Não impede editar tarefas antigas que já possuíam IDs legados de responsáveis.
         if (!java.util.Objects.equals(task.getAssigneeId(), request.assigneeId())) {
-            validateAssignee(request.assigneeId());
+            validateAssignee(projectId, request.assigneeId());
         }
         task.setDetails(request.title().trim(), request.description() == null ? null : request.description().trim(),
             request.priority(), request.dueDate(), request.assigneeId(), request.tags());

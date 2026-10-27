@@ -29,8 +29,8 @@ A base funcional, os ajustes de usabilidade/acessibilidade, o tratamento de erro
 
 ## Fora do escopo atual
 
-- Compartilhamento de projetos entre contas com papéis, convites e permissões por membro.
+- Convites por e-mail com aceite, políticas adicionais de acesso e histórico de alterações colaborativas.
 - Recuperação de senha e exclusão de contas por solicitação do próprio usuário.
 - Notificações em tempo real e colaboração simultânea.
 
-Ser membro da equipe permite ser escolhido como responsável por tarefas, mas **não concede acesso aos projetos de outra conta**. Colaboração com permissões compartilhadas exige modelagem e autorização adicionais.
+O vínculo de membro-admin concede colaboração restrita ao projeto explicitamente compartilhado; a gestão de participantes é reservada ao admin. As demais áreas do workspace não são compartilhadas. Veja [Colaboração](COLABORACAO.md).

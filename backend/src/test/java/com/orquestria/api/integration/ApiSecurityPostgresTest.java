@@ -249,6 +249,54 @@ class ApiSecurityPostgresTest {
         assertFalse(getJson("/api/tags", owner, 200).toString().contains("Importante"));
     }
     @Test
+    void memberAdminCanWorkOnlyOnExplicitlySharedProjectAndCannotManageMembers() throws Exception {
+        User admin = register("collabadmin");
+        User invited = register("collabmember");
+        User outsider = register("collabother");
+        String workspaceId = idOf(createWorkspace(admin));
+        String sharedId = idOf(createProject(admin, workspaceId));
+        String privateId = idOf(createProject(admin, workspaceId));
+        String columnId = idOf(createColumn(admin, sharedId));
+
+        getJson("/api/projects/" + sharedId, invited, 404);
+        getJson("/api/projects/" + sharedId + "/tasks", invited, 404);
+        postJson("/api/projects/" + sharedId + "/members", invited,
+                Map.of("userId", outsider.id().toString()), 404);
+
+        postJson("/api/projects/" + sharedId + "/members", admin,
+                Map.of("userId", invited.id().toString()), 204);
+        postJson("/api/projects/" + sharedId + "/members", admin,
+                Map.of("userId", invited.id().toString()), 409);
+        JsonNode visible = getJson("/api/projects/invited", invited, 200);
+        assertEquals(1, visible.size());
+        assertEquals(sharedId, visible.get(0).path("id").asText());
+        assertEquals("membro-admin", visible.get(0).path("role").asText());
+        assertTrue(getJson("/api/projects/invited", outsider, 200).isEmpty());
+        assertEquals(0, getJson("/api/workspaces", invited, 200).size());
+        getJson("/api/workspaces/" + workspaceId, invited, 404);
+        getJson("/api/projects/" + privateId, invited, 404);
+        getJson("/api/projects/" + privateId + "/columns", invited, 404);
+        assertFalse(getJson("/api/projects", invited, 200).toString().contains(privateId));
+        JsonNode team = getJson("/api/projects/" + sharedId + "/members", invited, 200);
+        assertEquals(2, team.size());
+        assertEquals("admin", team.get(0).path("role").asText());
+        assertEquals("membro-admin", team.get(1).path("role").asText());
+
+        String taskId = idOf(createTask(invited, sharedId, columnId, invited.id().toString(), 201));
+        String spareColumn = idOf(createColumn(invited, sharedId));
+        call(authenticated(post("/api/projects/" + sharedId + "/columns/" + spareColumn + "/delete"), invited), 204);
+        postJson("/api/projects/" + sharedId + "/members", invited,
+                Map.of("userId", outsider.id().toString()), 404);
+        call(authenticated(post("/api/projects/" + sharedId + "/members/" + invited.id() + "/remove"), invited), 404);
+        postJson("/api/projects/" + sharedId + "/rename", invited, Map.of("name", "Renomeado"), 200);
+        call(authenticated(post("/api/projects/" + sharedId + "/tasks/" + taskId + "/delete"), invited), 204);
+        call(authenticated(post("/api/projects/" + sharedId + "/members/" + invited.id() + "/remove"), admin), 204);
+        getJson("/api/projects/" + sharedId, invited, 404);
+        assertEquals(0, getJson("/api/projects/invited", invited, 200).size());
+        getJson("/api/projects/" + sharedId, admin, 200);
+    }
+
+    @Test
     void commentsCanBeDeletedOnlyThroughTheirOwnTaskAndProject() throws Exception {
         User owner = register("commentowner");
         User other = register("commentother");

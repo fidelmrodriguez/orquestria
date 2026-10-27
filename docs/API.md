@@ -56,7 +56,7 @@ As exclusões também possuem métodos `DELETE` correspondentes. As rotas de aç
 
 A exclusão de comentários exige autenticação, valida a propriedade do projeto e confirma que o comentário pertence à tarefa. Retorna `404` para IDs inválidos ou de outros recursos. As operações de escrita de tarefas e comentários retornam a tarefa atualizada em JSON, permitindo atualizar apenas o item alterado no frontend.
 
-A API valida a pertença dos recursos ao projeto e ao proprietário. Colunas ocupadas retornam conflito em vez de excluir tarefas implicitamente. A exclusão explícita de projeto remove seus dados associados em transação.
+A API valida o vínculo dos recursos ao projeto e o acesso do proprietário ou de um membro-admin autorizado. Colunas ocupadas retornam conflito em vez de excluir tarefas implicitamente. A exclusão explícita de projeto remove seus dados associados em transação.
 
 ## Equipe
 
@@ -67,7 +67,7 @@ A API valida a pertença dos recursos ao projeto e ao proprietário. Colunas ocu
 | `POST` | `/api/team/members` | Adicionar membro (`{"userId":"UUID"}`) |
 | `POST` | `/api/team/members/{memberId}/remove` | Remover membro sem tarefas atribuídas |
 
-A equipe é uma lista de usuários que podem ser atribuídos como responsáveis a tarefas da conta proprietária. Adicionar um membro **não permite acessar** os projetos privados dessa conta. Um membro não pode ser removido enquanto ainda houver tarefas atribuídas a ele.
+A lista legada `/api/team/members` permite organizar responsáveis e não libera projetos automaticamente. Para permitir acesso, o admin deve adicionar explicitamente o usuário ao projeto por `/api/projects/{projectId}/members` (detalhes abaixo). A remoção de um membro exige reatribuir suas tarefas primeiro.
 
 ## Tags
 
@@ -98,3 +98,16 @@ Para chamadas Bash com `curl` e exemplos de payloads coerentes com os DTOs do ba
 ### Ordenação das tarefas
 
 `POST /api/projects/{projectId}/tasks/{taskId}/move` recebe `{"columnId":"uuid-da-coluna","position":0}`. `position` é o índice da tarefa **após sua remoção da posição anterior**, começando em zero. Também permite reordenação dentro da mesma coluna. A API recalcula as posições sequenciais das tarefas afetadas na origem e no destino em uma transação e retorna a tarefa movimentada. O cliente não envia a operação quando a posição não muda.
+
+## Colaboração por projeto
+
+As seguintes operações exigem autenticação Bearer:
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | `/api/projects/invited` | Lista somente os projetos explicitamente compartilhados com a conta autenticada; inclui nome do workspace para a sidebar |
+| GET | `/api/projects/{projectId}/members` | Lista o admin e os membro-admin daquele projeto para usuários com acesso |
+| POST | `/api/projects/{projectId}/members` | Adiciona usuário cadastrado (`{ "userId": "UUID" }`); somente o admin |
+| POST | `/api/projects/{projectId}/members/{memberId}/remove` | Revoga vínculo do membro, após reatribuição das tarefas; somente o admin |
+
+O membro-admin pode usar os endpoints de tarefas, colunas, comentários, renomeação e exclusão do projeto compartilhado. Ele não recebe acesso às rotas do workspace inteiro nem a outros projetos do mesmo proprietário. Veja [Colaboração](COLABORACAO.md).

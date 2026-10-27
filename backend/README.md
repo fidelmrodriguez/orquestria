@@ -45,7 +45,7 @@ Não armazene senhas reais ou tokens no repositório. O Flyway aplica as migraç
 | Tags | `GET/POST /api/tags`, `POST /api/tags/{id}/rename`, `POST /api/tags/{id}/remove` |
 | Saúde | `GET /actuator/health` |
 
-Os endpoints privados exigem `Authorization: Bearer <token>`. O servidor verifica o proprietário do recurso. Algumas operações de atualização ou exclusão usam `POST` para compatibilidade com o ambiente de hospedagem. Consulte [a referência da API](../docs/API.md) para detalhes.
+Os endpoints privados exigem `Authorization: Bearer <token>`. O servidor confere o proprietário ou o acesso explícito do membro-admin ao projeto. Algumas operações de atualização ou exclusão usam `POST` para compatibilidade com o ambiente de hospedagem. Consulte [a referência da API](../docs/API.md) para detalhes.
 
 ## Regras relevantes
 
@@ -54,11 +54,11 @@ Os endpoints privados exigem `Authorization: Bearer <token>`. O servidor verific
 - Responsáveis por tarefas devem ser o proprietário ou usuários cadastrados como membros da equipe.
 - Um membro atribuído a tarefas não pode ser removido antes da reatribuição.
 - Tags são catalogadas por proprietário, com prevenção de nomes duplicados sem diferenciar maiúsculas/minúsculas.
-- Membros da equipe **não recebem acesso automático** aos projetos privados do proprietário.
+- Membros têm acesso somente aos projetos em que foram explicitamente adicionados; os demais projetos permanecem privados.
 
 ## Banco e migrações
 
-As migrações Flyway disponíveis são `V1` a `V9`: projetos; domínio Kanban; detalhes e comentários; contas e propriedade; nomes de usuário únicos; membros de equipe; catálogo de tags; importação de tags existentes; retenção e atividade das contas. **Não modifique versões de migrações já executadas**; crie uma nova versão para alterações posteriores.
+As migrações Flyway disponíveis são `V1` a `V10`: projetos; domínio Kanban; detalhes e comentários; contas e propriedade; nomes de usuário únicos; membros de equipe; catálogo de tags; importação de tags existentes; retenção e atividade das contas; colaboração por projeto (V10). **Não modifique versões de migrações já executadas**; crie uma nova versão para alterações posteriores.
 
 ## Testes
 
@@ -71,3 +71,7 @@ mvn verify
 O workflow do GitHub Actions disponibiliza um PostgreSQL 16 temporário para os testes de integração. Os testes que dependem do banco são habilitados com `ORQUESTRIA_RUN_DB_TESTS=true` e as variáveis `DB_*` apontando para um banco descartável. Nenhum teste de CI utiliza o banco de produção.
 
 Consulte [Testes e CI](../docs/TESTES.md), [Deploy](../docs/DEPLOY_CLOUD.md) e [Exemplos de consumo da API](../docs/API_EXEMPLOS.md).
+
+## Controle de acesso por projeto
+
+O backend diferencia **admin** (`projects.owner_id`) e **membro-admin** (`project_members`). O membro-admin pode operar somente os projetos vinculados; não recebe acesso a outros projetos do workspace e não pode alterar participantes. Veja [colaboração por projeto](../docs/COLABORACAO.md).

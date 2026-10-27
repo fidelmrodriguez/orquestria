@@ -16,7 +16,7 @@ O Orquestria mantém frontend, API e persistência em serviços separados. As de
 
 **Motivo:** cada workspace, projeto, coluna e tarefa pertence a uma conta. A API valida a titularidade dos recursos durante consultas e alterações.
 
-**Consequências:** o token Bearer é usado em requisições privadas e as verificações de acesso precisam ser cobertas por testes entre contas. A existência de uma pessoa na equipe não lhe dá acesso aos dados privados do proprietário.
+**Consequências:** o token Bearer é usado em requisições privadas e as verificações de acesso precisam ser cobertas por testes entre contas. A associação de uma pessoa a um projeto específico dá acesso somente àquele projeto, sem expor os outros dados do proprietário.
 
 ## Sessão persistida no navegador
 
@@ -28,7 +28,7 @@ O Orquestria mantém frontend, API e persistência em serviços separados. As de
 
 ## Esquema evolutivo com Flyway
 
-**Decisão:** versionar o esquema PostgreSQL em migrações imutáveis (`V1` a `V9` no estado atual).
+**Decisão:** versionar o esquema PostgreSQL em migrações imutáveis (`V1` a `V10` no estado atual).
 
 **Motivo:** reproduzir o ambiente de desenvolvimento e os bancos usados em testes de integração.
 
@@ -48,7 +48,7 @@ O Orquestria mantém frontend, API e persistência em serviços separados. As de
 
 **Motivo:** permitir conhecer o fluxo do produto sem tornar dados privados acessíveis a visitantes.
 
-**Consequências:** não armazenar informações sensíveis na conta guest. Associação a uma equipe não implementa compartilhamento de projeto, convites ou funções de acesso. Essas funcionalidades necessitariam de regras explícitas no backend.
+**Consequências:** não armazenar informações sensíveis na conta guest. O compartilhamento é explícito por projeto: a pessoa adicionada atua como membro-admin e não pode gerenciar participantes. Convites por e-mail não fazem parte deste fluxo.
 
 ## Disponibilidade da API na hospedagem
 

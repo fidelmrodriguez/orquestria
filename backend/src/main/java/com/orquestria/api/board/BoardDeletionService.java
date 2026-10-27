@@ -19,10 +19,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class BoardDeletionService {
     private final JdbcTemplate jdbc;
     private final AuthService auth;
+    private final com.orquestria.api.auth.OwnershipGuard guard;
 
-    public BoardDeletionService(JdbcTemplate jdbc, AuthService auth) {
+    public BoardDeletionService(JdbcTemplate jdbc, AuthService auth, com.orquestria.api.auth.OwnershipGuard guard) {
         this.jdbc = jdbc;
         this.auth = auth;
+        this.guard = guard;
     }
 
     private record TaskPosition(UUID columnId, int position) {}
@@ -37,9 +39,7 @@ public class BoardDeletionService {
     }
 
     private void requireOwnedProject(UUID projectId, UUID ownerId) {
-        if (count("SELECT COUNT(*) FROM projects WHERE id = ? AND owner_id = ?", projectId, ownerId) == 0) {
-            throw notFound();
-        }
+        guard.project(projectId);
     }
 
     private void requireOwnedWorkspace(UUID workspaceId, UUID ownerId) {
@@ -99,7 +99,7 @@ public class BoardDeletionService {
         // O FK tasks.column_id NÃO possui ON DELETE CASCADE.
         jdbc.update("DELETE FROM tasks WHERE project_id = ?", projectId);
         jdbc.update("DELETE FROM board_columns WHERE project_id = ?", projectId);
-        if (jdbc.update("DELETE FROM projects WHERE id = ? AND owner_id = ?", projectId, ownerId) != 1) {
+        if (jdbc.update("DELETE FROM projects WHERE id = ?", projectId) != 1) {
             throw notFound();
         }
     }

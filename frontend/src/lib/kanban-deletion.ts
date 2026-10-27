@@ -4,6 +4,9 @@ export type Entity = {
   name?: string;
   title?: string;
   workspaceId?: string | null;
+  workspaceName?: string;
+  ownerName?: string;
+  invited?: boolean;
   projectId?: string;
   columnId?: string | null;
   position?: number;

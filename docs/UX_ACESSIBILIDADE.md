@@ -11,7 +11,6 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 - Mensagens de erro temporárias são anunciadas como alertas; notificações informativas mantêm a semântica de status.
 - O menu em telas menores informa se está expandido e oferece um nome acessível.
 - Controles acionáveis exibem indicação de foco de teclado, e a interface respeita a preferência por movimento reduzido do sistema operacional.
-- Campos de pesquisa, descrição, comentários, tags e membros usam um contorno de foco cinza fino, evitando o destaque azul espesso ao clicar. Os controles acionáveis mantêm indicador de foco para navegação por teclado.
 
 ## Estados vazios e telas pequenas
 
@@ -23,7 +22,7 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 - O botão de criar tarefa fica temporariamente indisponível durante o envio do formulário, evitando múltiplos cliques.
 - Os painéis laterais exibem um fundo escurecido e bloqueante: clicar fora ou pressionar Escape não os fecha. O usuário sai pelo X do painel, ou o formulário se fecha após a conclusão da criação. Durante uma operação remota, o diálogo de espera é exibido acima dos campos e bloqueia ações. Os controles de responsável, prioridade e coluna no drawer usam listas personalizadas acessíveis, evitando menus de `<select>` nativos desenhados acima do overlay pelo navegador.
 - Ao arrastar uma tarefa, o cartão acompanha o ponteiro e sai visualmente da coluna de origem. A coluna de destino recebe uma borda destacada; soltar na origem ou fora do quadro não envia requisições.
-- O botão de compartilhamento por link não integra a interface: a associação de membros à equipe não concede acesso a projetos privados.
+- O botão de compartilhamento por link não integra a interface: o acesso de membros é concedido diretamente por projeto, com escopo definido no backend.
 
 - Ao editar o nome de uma coluna, a contagem de tarefas e os atalhos de criação e exclusão ficam ocultos temporariamente; os botões de salvar e cancelar continuam visíveis. A tela principal não apresenta a faixa permanente de ambiente Java/PostgreSQL nem a faixa de contagem de colunas. Erros reais de conexão continuam sendo exibidos.
 

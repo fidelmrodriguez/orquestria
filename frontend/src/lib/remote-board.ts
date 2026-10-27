@@ -8,6 +8,8 @@ export const UNASSIGNED_WORKSPACE_ID = "workspace-sem-vinculo";
 
 export type ApiWorkspace = { id: string; name: string; description: string | null };
 export type ApiProject = { id: string; name: string; description: string | null; workspaceId: string | null; createdAt: string };
+export type ApiInvitedProject = ApiProject & { workspaceName: string | null; ownerName: string; role: "membro-admin" };
+export type ApiProjectMember = { id: string; name: string; username: string; role: "admin" | "membro-admin" };
 export type ApiColumn = { id: string; projectId: string; title: string; position: number; color: string };
 export type ApiComment = { id: string; authorId: string; message: string; createdAt: string };
 export type ApiTask = {
@@ -90,10 +92,11 @@ export function mapTask(task: ApiTask, member: Member): Task {
 
 /** Dados do servidor são a fonte de verdade. Não importa dados locais ou DummyJSON. */
 export async function loadRemoteBoard(member: Member): Promise<Workspace[]> {
-  const [spaces, projects, teammates] = await Promise.all([
+  const [spaces, projects, teammates, invited] = await Promise.all([
     requestApi<ApiWorkspace[]>("/api/workspaces"),
     requestApi<ApiProject[]>("/api/projects"),
-    requestApi<{id:string;name:string;username:string}[]>("/api/team/members")
+    requestApi<{id:string;name:string;username:string}[]>("/api/team/members"),
+    requestApi<ApiInvitedProject[]>("/api/projects/invited")
   ]);
   const actualMembers: Member[] = [member, ...teammates.filter(user => user.id !== member.id).map(user => ({
     id: user.id, name: user.name, email: "", avatar: "", role: "editor" as const
@@ -110,16 +113,36 @@ export async function loadRemoteBoard(member: Member): Promise<Workspace[]> {
       projects: [], columns: [], tasks: [], members: [...actualMembers]
     });
   }
-  const boardData = await Promise.all(projects.map(async (project) => {
-    const [columns, tasks] = await Promise.all([
+  // Shared workspaces are navigation containers only: never load the owner's other projects.
+  for (const project of invited) {
+    const groupId = `invited-${project.workspaceId || `unassigned-${project.id}`}`;
+    if (!spaceMap.has(groupId)) spaceMap.set(groupId, {
+      id: groupId, name: project.workspaceName || "Projetos compartilhados",
+      description: `Compartilhado por ${project.ownerName}`,
+      invited: true, invitedOwner: project.ownerName,
+      projects: [], columns: [], tasks: [], members: []
+    });
+  }
+  const boardData = await Promise.all([...projects, ...invited].map(async (project) => {
+    const [columns, tasks, projectMembers] = await Promise.all([
       requestApi<ApiColumn[]>(`/api/projects/${project.id}/columns`),
-      requestApi<ApiTask[]>(`/api/projects/${project.id}/tasks`)
+      requestApi<ApiTask[]>(`/api/projects/${project.id}/tasks`),
+      requestApi<ApiProjectMember[]>(`/api/projects/${project.id}/members`)
     ]);
-    return { project, columns, tasks };
+    return { project, columns, tasks, projectMembers };
   }));
-  for (const { project, columns, tasks } of boardData) {
-    const workspace = (project.workspaceId && spaceMap.get(project.workspaceId)) || spaceMap.get(UNASSIGNED_WORKSPACE_ID);
+  for (const { project, columns, tasks, projectMembers } of boardData) {
+    const isInvited = "role" in project && project.role === "membro-admin";
+    const workspace = isInvited
+      ? spaceMap.get(`invited-${project.workspaceId || `unassigned-${project.id}`}`)
+      : (project.workspaceId && spaceMap.get(project.workspaceId)) || spaceMap.get(UNASSIGNED_WORKSPACE_ID);
     if (!workspace) continue;
+    workspace.members = projectMembers.reduce<Member[]>((list, person) => {
+      if (!list.some(item => item.id === person.id)) list.push({
+        id: person.id, name: person.name, email: "", avatar: "", role: person.role
+      });
+      return list;
+    }, workspace.invited ? [] : [...workspace.members]);
     workspace.projects.push({ id: project.id, workspaceId: workspace.id, name: project.name,
       description: project.description || "", visibility: "equipe", createdAt: project.createdAt } satisfies Project);
     workspace.columns.push(...columns.map(mapColumn));

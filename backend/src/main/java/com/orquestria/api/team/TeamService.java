@@ -96,6 +96,11 @@ public class TeamService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Reatribua as tarefas deste membro antes de removê-lo da equipe");
         }
+        // Rota legada de remoção global: revoga também os acessos concedidos pelo proprietário.
+        jdbc.update("""
+            DELETE FROM project_members pm USING projects p
+            WHERE pm.project_id = p.id AND p.owner_id = ? AND pm.member_id = ?
+            """, owner, memberId);
         if (jdbc.update("DELETE FROM team_members WHERE owner_id = ? AND member_id = ?", owner, memberId) != 1) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Membro não encontrado na sua equipe");
         }

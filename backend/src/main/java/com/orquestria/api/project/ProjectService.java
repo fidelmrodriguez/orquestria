@@ -31,7 +31,7 @@ public class ProjectService {
     }
     @Transactional
     public ProjectResponse rename(UUID id, RenameProjectRequest request) {
-        Project project = repository.findByIdAndOwner_Id(id,guard.current().getId()).orElseThrow(() -> new ProjectNotFoundException(id));
+        Project project = guard.project(id);
         project.rename(request.name().trim());
         return ProjectResponse.from(project);
     }
@@ -42,6 +42,6 @@ public class ProjectService {
     }
     @Transactional(readOnly = true)
     public ProjectResponse findById(UUID id) {
-        return ProjectResponse.from(repository.findByIdAndOwner_Id(id,guard.current().getId()).orElseThrow(() -> new ProjectNotFoundException(id)));
+        return ProjectResponse.from(guard.project(id));
     }
 }

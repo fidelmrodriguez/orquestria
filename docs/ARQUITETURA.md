@@ -43,6 +43,7 @@ O Flyway controla a evolução do esquema. As migrações versionadas são:
 | V7 | Catálogo de tags por conta |
 | V8 | Migração de tags anteriores para o catálogo |
 | V9 | Metadados de atividade e retenção das contas |
+| V10 | Membros autorizados por projeto (`project_members`) |
 
 Migrações aplicadas não são reescritas. Alterações de estrutura devem ser introduzidas por novas versões.
 
@@ -50,9 +51,9 @@ Migrações aplicadas não são reescritas. Alterações de estrutura devem ser 
 
 O Spring Security utiliza sessões identificadas por tokens Bearer aleatórios. A API armazena o hash SHA-256 do token e usa BCrypt para senhas. O token enviado ao navegador é armazenado no `localStorage`, permitindo a restauração da sessão após atualização ou abertura de uma nova aba. O cliente remove o token ao sair da conta. O armazenamento no navegador exige proteção contra XSS e não substitui a autorização no servidor.
 
-Workspaces e projetos pertencem a uma conta. As rotas privadas verificam a identidade e a titularidade antes de consultar ou modificar registros. A conta **guest** permite uma demonstração pública e seus dados são compartilhados; contas pessoais têm dados isolados.
+Workspaces e projetos têm proprietário. As rotas privadas verificam a identidade e o vínculo de acesso ao projeto antes de consultar ou modificar registros. A conta **guest** permite uma demonstração pública e seus dados são compartilhados; contas pessoais têm dados isolados.
 
-A lista de equipe serve para escolher responsáveis por tarefas. A inclusão de um usuário na equipe **não concede acesso aos workspaces ou projetos privados**. O sistema não implementa edição colaborativa multiusuário com permissões compartilhadas.
+A equipe de cada projeto concede acesso explícito ao projeto selecionado. Usuários adicionados aparecem como **membro-admin** e não podem gerenciar participantes. Outros projetos do workspace permanecem privados, assim como as rotas do workspace do proprietário. Veja [Colaboração](COLABORACAO.md).
 
 ## Regras de integridade
 
@@ -90,4 +91,4 @@ As justificativas das escolhas de infraestrutura e modelo de acesso estão em [D
 
 ## Limites atuais
 
-Não há compartilhamento de projetos entre contas com papéis de acesso, recuperação de senha, exclusão de conta nem edição colaborativa em tempo real. O [roadmap](ROADMAP.md) registra possíveis evoluções.
+A colaboração por projeto tem dois papéis (admin e membro-admin); ainda não há convite por e-mail, recuperação de senha, exclusão de conta por solicitação ou edição colaborativa em tempo real. O [roadmap](ROADMAP.md) registra possíveis evoluções.

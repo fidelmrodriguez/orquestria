@@ -38,28 +38,27 @@ class BoardDeletionServiceTest {
     @Mock private JdbcTemplate jdbc;
     @Mock private AuthService auth;
     @Mock private AppUser user;
+    @Mock private com.orquestria.api.auth.OwnershipGuard guard;
     private BoardDeletionService service;
 
     @BeforeEach
     void setup() {
-        service = new BoardDeletionService(jdbc, auth);
+        service = new BoardDeletionService(jdbc, auth, guard);
         when(auth.currentUser()).thenReturn(user);
         when(user.getId()).thenReturn(OWNER);
     }
 
     private void ownedProject() {
-        when(jdbc.queryForObject(
-                eq("SELECT COUNT(*) FROM projects WHERE id = ? AND owner_id = ?"),
-                eq(Integer.class), eq(PROJECT), eq(OWNER))).thenReturn(1);
+        // Guard autoriza dono e membro-admin; a exclusão usa o mesmo controle.
+        when(guard.project(PROJECT)).thenReturn(mock(com.orquestria.api.project.Project.class));
     }
 
     @Test
     void usuarioNaoPodeExcluirProjetoDeOutraConta() {
-        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+        when(guard.project(PROJECT)).thenThrow(new com.orquestria.api.common.ResourceNotFoundException("Projeto"));
+        assertThrows(com.orquestria.api.common.ResourceNotFoundException.class,
                 () -> service.deleteProject(PROJECT));
-        assertEquals(HttpStatus.NOT_FOUND, error.getStatusCode());
-        verify(jdbc, never()).update(eq("DELETE FROM projects WHERE id = ? AND owner_id = ?"),
-                eq(PROJECT), eq(OWNER));
+        verify(jdbc, never()).update(eq("DELETE FROM projects WHERE id = ?"), eq(PROJECT));
     }
 
     @Test
@@ -68,15 +67,15 @@ class BoardDeletionServiceTest {
         // JdbcTemplate.update também é chamado para tarefas e colunas no mesmo fluxo.
         // Este stub é leniente apenas para evitar falso conflito de argumentos
         // do Mockito StrictStubs; o InOrder abaixo continua verificando o SQL real.
-        lenient().when(jdbc.update(eq("DELETE FROM projects WHERE id = ? AND owner_id = ?"),
-                eq(PROJECT), eq(OWNER))).thenReturn(1);
+        lenient().when(jdbc.update(eq("DELETE FROM projects WHERE id = ?"),
+                eq(PROJECT))).thenReturn(1);
 
         service.deleteProject(PROJECT);
 
         InOrder sequence = inOrder(jdbc);
         sequence.verify(jdbc).update("DELETE FROM tasks WHERE project_id = ?", PROJECT);
         sequence.verify(jdbc).update("DELETE FROM board_columns WHERE project_id = ?", PROJECT);
-        sequence.verify(jdbc).update("DELETE FROM projects WHERE id = ? AND owner_id = ?", PROJECT, OWNER);
+        sequence.verify(jdbc).update("DELETE FROM projects WHERE id = ?", PROJECT);
     }
 
     @Test

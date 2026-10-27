@@ -13,7 +13,7 @@ Interface web do Orquestria, desenvolvida com **Next.js 14 (App Router), React 1
 - **Formulários e feedback:** validação, indicadores de salvamento, mensagens de erro, estados vazios e controles com suporte a teclado.
 - **Conta e personalização:** login pessoal ou Guest, sessão restaurada entre atualizações, tema claro/escuro, gerenciamento de equipe e catálogo de tags com sugestões.
 
-O modo Guest utiliza dados compartilhados com outros visitantes; contas pessoais têm seus recursos isolados pela API. Adicionar alguém à equipe permite selecioná-lo como responsável por tarefas, **não concede acesso aos projetos privados**.
+O modo Guest utiliza dados compartilhados com outros visitantes; contas pessoais têm seus recursos isolados pela API. Adicionar um usuário à equipe de um projeto concede acesso somente àquele projeto, com o papel **membro-admin**. O proprietário mantém o papel **admin** e o controle sobre os participantes. Na sidebar, a pessoa encontra os projetos compartilhados em **Workspaces convidados**.
 
 ## Tecnologias e responsabilidades
 
@@ -85,3 +85,7 @@ O frontend é publicado no **Netlify** como site estático. A autenticação e a
 Quando o serviço Java está suspenso, `ApiReadinessGate` aguarda uma resposta válida de `/api/orquestria-readiness`, encaminhada pelo proxy do Netlify para `/actuator/health`. A tela de preparação evita apresentar login e Kanban antes de o backend responder, mas não mantém o servidor permanentemente ativo.
 
 Para configuração de ambiente e publicação, consulte [Deploy no Netlify](../docs/DEPLOY_NETLIFY.md). O repositório executa TypeScript, Jest e build estático no [GitHub Actions](../docs/TESTES.md); mudanças de UX também devem ser verificadas manualmente em tamanhos diferentes de tela e via teclado.
+
+## Projetos compartilhados
+
+O frontend carrega os projetos próprios e os compartilhados separadamente. **Workspaces convidados** é uma categoria de navegação que contém somente os projetos autorizados; não é uma cópia de todo o workspace do proprietário. Veja [regras de colaboração](../docs/COLABORACAO.md).

@@ -56,10 +56,10 @@ class TaskServiceTest {
         UUID columnId = UUID.randomUUID();
         Project project = new Project("Projeto A", null);
         setId(project, projectId);
+        project.setOwner(user);
         BoardColumn column = new BoardColumn(project, "Backlog", 0, "slate");
         when(projects.findById(projectId)).thenReturn(Optional.of(project));
         when(columns.findById(columnId)).thenReturn(Optional.of(column));
-        when(auth.currentUser()).thenReturn(user);
         when(user.getId()).thenReturn(owner);
         when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(owner), eq(unknown))).thenReturn(0);
         assertThrows(ResponseStatusException.class, () ->

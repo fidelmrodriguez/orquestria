@@ -15,12 +15,14 @@ async function teamRequest<T>(token: string, path: string, method: "GET" | "POST
   });
   if (!response.ok) {
     if (response.status === 403) throw new Error("Sua conta não tem permissão para gerenciar esta equipe.");
-    if (response.status === 409) throw new Error(method === "POST" && path.includes("/remove") ? "Reatribua as tarefas desse membro antes de removê-lo." : "Este usuário já pertence à sua equipe.");
+    if (response.status === 409) throw new Error(method === "POST" && path.includes("/remove") ? "Reatribua as tarefas desse membro antes de removê-lo." : "Este usuário já pertence a este projeto.");
     if (response.status === 404) throw new Error("Usuário ou membro não encontrado.");
     throw new Error(`A API recusou a operação (HTTP ${response.status}).`);
   }
   return response.status === 204 ? null as T : await response.json() as T;
 }
+
+type OwnedProject = { id: string; name: string; workspaceId: string | null };
 
 export default function EquipePage() {
   const [token, setToken] = useState<string | null>(null);
@@ -30,12 +32,15 @@ export default function EquipePage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [members, setMembers] = useState<DirectoryUser[]>([]);
+  const [projects, setProjects] = useState<OwnedProject[]>([]);
+  const [projectId, setProjectId] = useState("");
   const [pendingRemove, setPendingRemove] = useState<DirectoryUser | null>(null);
 
-  const refresh = useCallback(async (accessToken: string) => {
-    const list = await teamRequest<DirectoryUser[]>(accessToken, "/api/team/members");
+  const refresh = useCallback(async (accessToken: string, selectedProject: string) => {
+    if (!selectedProject) { setMembers([]); return; }
+    const list = await teamRequest<(DirectoryUser & {role:string})[]>(accessToken, `/api/projects/${selectedProject}/members`);
     if (!Array.isArray(list)) throw new Error("A API retornou um formato inesperado para a equipe.");
-    setMembers(list);
+    setMembers(list.filter(row => row.role === "membro-admin"));
   }, []);
 
   useEffect(() => {
@@ -46,7 +51,15 @@ export default function EquipePage() {
         if (!live) return;
         const accessToken = getAuthToken();
         setUser(account); setToken(account && accessToken ? accessToken : null);
-        if (account?.accountType === "USER" && accessToken) await refresh(accessToken);
+        if (account?.accountType === "USER" && accessToken) {
+          const owned = await teamRequest<OwnedProject[]>(accessToken, "/api/projects");
+          if (!live) return;
+          setProjects(owned);
+          const requested = new URLSearchParams(window.location.search).get("projectId");
+          const selected = owned.find(p => p.id === requested)?.id || owned[0]?.id || "";
+          setProjectId(selected);
+          await refresh(accessToken, selected);
+        }
       } catch (cause) {
         if (live) setError(cause instanceof Error ? cause.message : "Não foi possível carregar a equipe.");
       } finally { if (live) setReady(true); }
@@ -55,12 +68,12 @@ export default function EquipePage() {
   }, [refresh]);
 
   async function add(member: DirectoryUser) {
-    if (!token || busy) return;
+    if (!token || !projectId || busy) return;
     setBusy(true); setError(""); setNotice("");
     try {
-      await teamRequest(token, "/api/team/members", "POST", { userId: member.id });
-      await refresh(token);
-      setNotice(`${member.name} adicionado à equipe.`);
+      await teamRequest(token, `/api/projects/${projectId}/members`, "POST", { userId: member.id });
+      await refresh(token, projectId);
+      setNotice(`${member.name} agora pode acessar este projeto como membro-admin.`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Erro ao adicionar membro.");
       throw cause;
@@ -68,12 +81,12 @@ export default function EquipePage() {
   }
 
   async function remove() {
-    if (!token || !pendingRemove || busy) return;
+    if (!token || !projectId || !pendingRemove || busy) return;
     setBusy(true); setError(""); setNotice("");
     try {
-      await teamRequest(token, `/api/team/members/${encodeURIComponent(pendingRemove.id)}/remove`, "POST");
-      await refresh(token);
-      setNotice(`${pendingRemove.name} removido da equipe.`);
+      await teamRequest(token, `/api/projects/${projectId}/members/${encodeURIComponent(pendingRemove.id)}/remove`, "POST");
+      await refresh(token, projectId);
+      setNotice(`Acesso de ${pendingRemove.name} revogado neste projeto.`);
       setPendingRemove(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Erro ao remover membro.");
@@ -86,7 +99,7 @@ export default function EquipePage() {
       <header>
         <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-400">Orquestria</p>
         <h1 className="text-3xl font-bold">Equipe</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-300">Busque contas existentes e adicione responsáveis às tarefas dos seus projetos. Para remover um membro, reatribua suas tarefas primeiro.</p>
+        <p className="mt-2 text-slate-600 dark:text-slate-300">Selecione um projeto e adicione usuários cadastrados. A pessoa terá acesso imediato como membro-admin somente ao projeto escolhido. Para remover, reatribua suas tarefas primeiro.</p>
       </header>
       {!ready && <p role="status">Carregando sua equipe...</p>}
       {ready && !user && <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">Faça login para gerenciar a equipe. <a href="/" className="font-semibold underline">Ir ao login</a></p>}
@@ -95,6 +108,17 @@ export default function EquipePage() {
       {notice && <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">{notice}</p>}
       {ready && user?.accountType === "USER" && token && <>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <label htmlFor="team-project" className="mb-2 block text-sm font-semibold">Projeto que será compartilhado</label>
+          <select id="team-project" value={projectId} disabled={busy} onChange={event => {
+            setProjectId(event.target.value); setPendingRemove(null); setNotice(""); setError("");
+            if (token) void refresh(token, event.target.value).catch(cause => setError(cause instanceof Error ? cause.message : "Falha ao carregar membros."));
+          }} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950">
+            {!projects.length && <option value="">Crie um projeto antes de adicionar membros</option>}
+            {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
+          </select>
+          <p className="mt-2 text-xs text-slate-500">O membro verá somente este projeto em Workspaces convidados; outros projetos do mesmo workspace continuam privados.</p>
+        </section>
+        {Boolean(projectId) && <><section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <TeamMemberPicker token={token} apiBase={API_BASE} members={members} onAdded={add} onRemove={setPendingRemove} disabled={busy} />
         </section>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -108,13 +132,14 @@ export default function EquipePage() {
             </li>)}
           </ul>
         </section>
-        <p className="text-xs text-slate-500">Membros adicionados ficam disponíveis para atribuir tarefas nos seus workspaces. Isso não concede acesso aos projetos, que continuam privados. Reatribua as tarefas antes de remover alguém.</p>
+        <p className="text-xs text-slate-500">Admin: proprietário. Membro-admin: pode administrar tarefas, colunas e projeto compartilhado, mas não adicionar nem remover pessoas. O vínculo não inclui outros projetos do workspace.</p>
+        </>}
       </>}
     </div>
     {pendingRemove && <div className="fixed inset-0 z-[150] grid place-items-center bg-slate-950/75 p-4">
       <section role="alertdialog" aria-modal="true" aria-labelledby="team-confirm-heading" className="w-full max-w-md rounded-2xl bg-white p-6 text-slate-950 dark:bg-slate-900 dark:text-white">
         <h2 id="team-confirm-heading" className="text-xl font-bold">Remover membro?</h2>
-        <p className="mt-3 text-sm">Remover <strong>{pendingRemove.name}</strong> da sua equipe? A conta dessa pessoa não será excluída.</p>
+        <p className="mt-3 text-sm">Revogar o acesso de <strong>{pendingRemove.name}</strong> a este projeto? A conta da pessoa e os demais projetos não serão alterados.</p>
         {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
         <div className="mt-6 flex justify-end gap-3">
           <button type="button" disabled={busy} onClick={() => setPendingRemove(null)} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
