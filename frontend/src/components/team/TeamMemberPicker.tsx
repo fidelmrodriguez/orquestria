@@ -66,7 +66,7 @@ export default function TeamMemberPicker({ token, apiBase, members, onAdded, onR
   return <div className="space-y-2">
     <label htmlFor={inputId} className="block text-sm font-semibold text-slate-800 dark:text-slate-100">Membros da equipe</label>
     <div className="relative">
-      <div className="flex min-h-[52px] flex-wrap items-center gap-2 rounded-xl border border-slate-300 bg-white p-2 focus-within:ring-2 focus-within:ring-sky-400 dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex min-h-[52px] flex-wrap items-center gap-2 rounded-xl border border-slate-300 bg-white p-2 focus-within:ring-1 focus-within:ring-slate-300 dark:focus-within:ring-slate-600 dark:border-slate-700 dark:bg-slate-900">
         {members.map(member => <span key={member.id} className="inline-flex max-w-full items-center gap-1 rounded bg-sky-500 px-2 py-1 text-sm font-semibold text-white">
           <span className="truncate" title={`${member.name} (@${member.username})`}>{member.name} <span className="font-normal opacity-85">@{member.username}</span></span>
           <button type="button" title={`Remover ${member.name} da equipe`} aria-label={`Remover ${member.name} da equipe`}

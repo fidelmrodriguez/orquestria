@@ -102,10 +102,21 @@ aside::-webkit-scrollbar-thumb {
   }
 }
 
-/* Indicadores de foco visíveis ao navegar por teclado, inclusive em cartões e ícones. */
-:where(button, a, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+/* Foco de teclado destacado nos controles de ação (botões, links e cartões).
+   Campos editáveis recebem apenas um contorno neutro e discreto: o Chromium
+   considera inputs de texto como :focus-visible mesmo quando clicados. */
+:where(button, a, input[type="checkbox"], input[type="radio"], [role="button"], [tabindex]):focus-visible {
   outline: 3px solid #2563eb;
   outline-offset: 3px;
+}
+
+:where(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus-visible {
+  outline: 1px solid #94a3b8;
+  outline-offset: 0;
+}
+
+.dark :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus-visible {
+  outline-color: #64748b;
 }
 
 @media (prefers-reduced-motion: reduce) {

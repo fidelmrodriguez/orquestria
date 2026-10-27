@@ -155,7 +155,7 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
   return <div className="w-full space-y-2">
     <label htmlFor={fieldId} className="block text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</label>
     <div className="relative">
-      <div className="rounded-xl border border-slate-300 bg-white p-2 focus-within:ring-2 focus-within:ring-sky-400 dark:border-slate-700 dark:bg-slate-900">
+      <div className="rounded-xl border border-slate-300 bg-white p-2 focus-within:ring-1 focus-within:ring-slate-300 dark:focus-within:ring-slate-600 dark:border-slate-700 dark:bg-slate-900">
         <div className="flex min-h-[40px] flex-wrap items-center gap-2">
           {value.map((tag, index) => <span key={`${index}-${tag}`} className="inline-flex max-w-full items-center gap-1 rounded bg-sky-500 px-2 py-1 text-sm font-semibold text-white">
             {editing === index ? <input autoFocus aria-label={`Editar tag ${tag}`} value={draft} maxLength={32}
@@ -186,7 +186,7 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
               }
               if (event.key === "Backspace" && !text && value.length > 0) void persist(removeTag(value, value.length - 1));
             }}
-            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-400 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500" />
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-400 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500" />
           <button type="button" onMouseDown={event => event.preventDefault()}
             onClick={() => { if (open && visible[active]) void add(visible[active].name, true); else void add(text); }}
             disabled={disabled || busy || !query}

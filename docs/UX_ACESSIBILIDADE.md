@@ -11,6 +11,7 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 - Mensagens de erro temporárias são anunciadas como alertas; notificações informativas mantêm a semântica de status.
 - O menu em telas menores informa se está expandido e oferece um nome acessível.
 - Controles acionáveis exibem indicação de foco de teclado, e a interface respeita a preferência por movimento reduzido do sistema operacional.
+- Campos de pesquisa, descrição, comentários, tags e membros usam um contorno de foco cinza fino, evitando o destaque azul espesso ao clicar. Os controles acionáveis mantêm indicador de foco para navegação por teclado.
 
 ## Estados vazios e telas pequenas
 
