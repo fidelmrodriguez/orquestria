@@ -22,7 +22,7 @@ A variável pública de build `NEXT_PUBLIC_ORQUESTRIA_API_URL` determina o ender
 
 ## Frontend
 
-O frontend utiliza Next.js com `output: "export"`: após o build, o Netlify publica arquivos estáticos, sem processo Next.js persistente. A interface emprega Zustand para estado do quadro, TanStack Query para consultas e React Hook Form/Zod para formulários.
+O [frontend](../frontend/README.md) utiliza Next.js com `output: "export"`: após o build, o Netlify publica arquivos estáticos, sem processo Next.js persistente. A interface emprega Zustand para estado do quadro, TanStack Query para consultas e React Hook Form/Zod para formulários.
 
 O Kanban exibe workspaces, projetos, colunas e tarefas. Operações de escrita feitas no modo remoto enviam requisições HTTP para a API e atualizam os dados apresentados. Criar ou renomear colunas e projetos, criar, editar ou mover tarefas e incluir/excluir comentários reutiliza a resposta JSON da própria mutação para atualizar o item, sem recarregar os projetos inteiros. Exclusões confirmadas também atualizam a coleção local; o recarregamento manual continua disponível para reconciliação. A listagem de tarefas utiliza busca conjunta dos comentários para reduzir o número de consultas ao banco. O projeto também mantém um modo de demonstração local utilizado quando não há URL de API configurada; esse modo não representa os dados do PostgreSQL.
 
@@ -86,7 +86,7 @@ sequenceDiagram
 
 A verificação de prontidão usa um fluxo separado: navegador → proxy do Netlify → `/actuator/health` na API. Ela não substitui autenticação ou autorização.
 
-As justificativas das escolhas de infraestrutura e modelo de acesso estão em [Decisões técnicas](DECISOES_TECNICAS.md).
+As justificativas das escolhas de infraestrutura e modelo de acesso estão em [Decisões técnicas](DECISOES_TECNICAS.md). A organização da camada visual está detalhada no [README do frontend](../frontend/README.md), e os contratos da API no [README do backend](../backend/README.md).
 
 ## Limites atuais
 

@@ -44,4 +44,4 @@ A suspensão por inatividade é uma característica da hospedagem da API; o prox
 - Verificar que o login ou a sessão existente aparece após a disponibilidade da API.
 - Conferir chamadas autenticadas a `/api/auth/me` e acesso aos workspaces do usuário.
 
-Para a infraestrutura de backend e banco, consulte [Deploy da API](DEPLOY_CLOUD.md).
+Para arquitetura e execução da interface, consulte [Frontend](../frontend/README.md). Para a infraestrutura de backend e banco, consulte [Deploy da API](DEPLOY_CLOUD.md).

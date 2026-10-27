@@ -11,6 +11,7 @@ O roadmap reúne melhorias planejadas para a evolução do produto. O escopo e a
 - Cadastro de membros da equipe e atribuição de responsáveis.
 - Catálogo de tags, autocomplete e edição no quadro.
 - Estrutura de testes automatizados e workflow de CI.
+- Rotina de manutenção agendada para dados antigos do Guest e sessões expiradas, com política de retenção protegida para contas pessoais (veja [Retenção de dados](RETENCAO_DADOS.md)).
 
 ## Critérios de publicação da versão 1.0.0
 
@@ -28,9 +29,8 @@ A base funcional, os ajustes de usabilidade/acessibilidade, o tratamento de erro
 
 ## Fora do escopo atual
 
-- Compartilhamento de projetos entre contas com papéis e convites.
-- Recuperação de senha e exclusão de contas.
+- Compartilhamento de projetos entre contas com papéis, convites e permissões por membro.
+- Recuperação de senha e exclusão de contas por solicitação do próprio usuário.
 - Notificações em tempo real e colaboração simultânea.
-- Políticas automáticas de retenção ou limpeza de dados.
 
 Ser membro da equipe permite ser escolhido como responsável por tarefas, mas **não concede acesso aos projetos de outra conta**. Colaboração com permissões compartilhadas exige modelagem e autorização adicionais.

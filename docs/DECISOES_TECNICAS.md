@@ -28,7 +28,7 @@ O Orquestria mantém frontend, API e persistência em serviços separados. As de
 
 ## Esquema evolutivo com Flyway
 
-**Decisão:** versionar o esquema PostgreSQL em migrações imutáveis (`V1` a `V8` no estado atual).
+**Decisão:** versionar o esquema PostgreSQL em migrações imutáveis (`V1` a `V9` no estado atual).
 
 **Motivo:** reproduzir o ambiente de desenvolvimento e os bancos usados em testes de integração.
 

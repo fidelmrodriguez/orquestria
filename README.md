@@ -2,7 +2,7 @@
 
 **Orquestria** é uma aplicação web para organizar workspaces, projetos e tarefas em quadros Kanban. A interface é desenvolvida com Next.js e TypeScript, enquanto a API REST utiliza Java, Spring Boot e PostgreSQL.
 
-[**Acessar aplicação**](https://orquestria.netlify.app/) · [Arquitetura](docs/ARQUITETURA.md) · [API](docs/API.md) · [Documentação](docs/README.md)
+[**Acessar aplicação**](https://orquestria.netlify.app/) · [Frontend — React/Next.js](frontend/README.md) · [Backend — Java/Spring Boot](backend/README.md) · [Arquitetura](docs/ARQUITETURA.md) · [API](docs/API.md)
 
 [![Orquestria CI](https://img.shields.io/github/actions/workflow/status/fidelmrodriguez/orquestria/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI&labelColor=243047)](https://github.com/fidelmrodriguez/orquestria/actions/workflows/ci.yml)
 
@@ -17,6 +17,12 @@
 - **Interface:** busca, filtros, navegação responsiva e temas claro/escuro.
 
 A aplicação oferece uma conta de demonstração compartilhada (*guest*), acessível pela tela de login. **Dados inseridos nessa conta podem ser vistos e alterados por outros visitantes.** Para conteúdo privado, utilize uma conta pessoal.
+
+## Interface e implementação
+
+A camada de frontend combina componentes React reutilizáveis, estado de interface em Zustand e integração tipada com a API. O quadro oferece drag-and-drop com prévia de inserção, reordenação persistente, criação contextual de tarefas e painéis laterais para edição. Para telas menores, a navegação muda para uma coluna por vez; em desktop, a sidebar pode ser recolhida para ampliar a área do Kanban.
+
+As escolhas de interação, a organização dos componentes, os testes de interface e as instruções para executar o Next.js estão no [README do frontend](frontend/README.md).
 
 ## Tecnologias
 
@@ -44,7 +50,7 @@ Blitz — API Spring Boot
 Neon — PostgreSQL
 ```
 
-O frontend utiliza a API para persistir os dados de trabalho. O Spring Security exige autenticação nas rotas privadas e verifica a titularidade dos recursos antes das operações. O esquema do banco é versionado com Flyway; as migrações disponíveis vão de **V1 a V8**.
+O frontend utiliza a API para persistir os dados de trabalho. O Spring Security exige autenticação nas rotas privadas e verifica a titularidade dos recursos antes das operações. O esquema do banco é versionado com Flyway; as migrações disponíveis vão de **V1 a V9**.
 
 Como a hospedagem da API pode suspender processos inativos, a interface verifica a disponibilidade do Spring Boot antes de apresentar as telas de login e do quadro. Durante a inicialização, apresenta o estado **Preparando seu ambiente**, com tempo decorrido; a espera não representa uma falha de autenticação. O endpoint de prontidão é encaminhado pelo proxy do Netlify.
 
@@ -63,8 +69,10 @@ A inclusão de uma pessoa na equipe permite atribuir-lhe tarefas, mas **não com
 
 ```text
 orquestria/
-├── frontend/                   # Next.js, componentes, estado e testes
-├── backend/                    # Spring Boot, controllers, serviços e testes
+├── frontend/                   # Interface Next.js, componentes, estado e testes
+│   └── README.md               # Arquitetura, UX e execução do frontend
+├── backend/                    # API Spring Boot, serviços e testes
+│   ├── README.md               # Contratos e execução do backend
 │   └── src/main/resources/db/migration/
 ├── docs/                       # Arquitetura, API, operação e planejamento
 ├── .github/workflows/ci.yml   # Integração contínua
@@ -73,7 +81,7 @@ orquestria/
 
 ## Desenvolvimento
 
-Pré-requisitos para execução local: Node.js, Java 21, Maven e PostgreSQL. O banco pode ser iniciado pelo Docker Compose disponível no diretório `backend/`.
+Pré-requisitos para execução local: Node.js 22 (definido em `.nvmrc`), Java 21, Maven e PostgreSQL. O banco pode ser iniciado pelo Docker Compose disponível no diretório `backend/`.
 
 **Frontend**
 
@@ -91,12 +99,14 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-As credenciais da conexão devem ser configuradas por variáveis de ambiente. Não utilize as credenciais de produção em ambientes locais ou de teste. A documentação do [backend](backend/README.md) e os guias de [deploy](docs/DEPLOY_CLOUD.md) detalham a configuração.
+As credenciais da conexão devem ser configuradas por variáveis de ambiente. Não utilize as credenciais de produção em ambientes locais ou de teste. Os guias do [frontend](frontend/README.md) e do [backend](backend/README.md) detalham a configuração das duas aplicações. Veja também os guias de [publicação](docs/README.md).
 
 ## Testes e documentação
 
 O repositório possui testes automatizados do frontend e backend, testes de integração com PostgreSQL e um workflow de CI para executar verificações em commits e pull requests. Consulte [Testes e integração contínua](docs/TESTES.md) para os comandos e critérios de validação.
 
+- [Frontend: interface, arquitetura React e execução](frontend/README.md)
+- [Backend: API, persistência e execução](backend/README.md)
 - [Índice da documentação](docs/README.md)
 - [Arquitetura e decisões](docs/ARQUITETURA.md)
 - [Referência da API](docs/API.md)

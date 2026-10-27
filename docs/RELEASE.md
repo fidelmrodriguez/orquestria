@@ -7,7 +7,7 @@ Este documento reúne as verificações para publicar uma versão identificável
 - A branch `main` está sincronizada, sem alterações locais pendentes.
 - A execução do **Orquestria CI** para o commit escolhido terminou com os jobs **Backend** e **Frontend** aprovados. Não confundir o resultado de um commit anterior com o commit a ser publicado.
 - O deploy do backend no Blitz e o deploy do frontend no Netlify correspondem a versões compatíveis.
-- O Flyway validou e aplicou as migrações versionadas de `V1` a `V8` no ambiente correspondente. Mudanças posteriores exigem migrações novas.
+- O Flyway validou e aplicou as migrações versionadas de `V1` a `V9` no ambiente correspondente. Mudanças posteriores exigem migrações novas.
 - Os testes de fluxo abaixo foram repetidos na aplicação publicada, com contas e dados descartáveis.
 
 ## Checklist funcional de aceite
@@ -38,7 +38,7 @@ Marque os itens apenas após a execução no ambiente publicado.
 ### Interface e operação
 
 - [ ] Verificar a navegação por teclado: Tab, Enter/Espaço nos cartões, foco retido nos drawers e fechamento dos drawers apenas pelo X (não pelo fundo ou Escape).
-- [ ] Abrir o site em uma largura mobile e conferir menu, rolagem horizontal e formulários.
+- [ ] Abrir o site em largura mobile e conferir menu, navegação de uma coluna por vez (sem rolagem horizontal), formulários e busca compacta. No desktop, conferir a sidebar recolhível e a rolagem horizontal do quadro.
 - [ ] Conferir que os dois temas e os estados vazios/erros continuam legíveis.
 - [ ] Confirmar que indisponibilidade transitória do backend não apaga a sessão por erro de rede.
 - [ ] Verificar a rota de prontidão `/api/orquestria-readiness` quando a API estiver disponível.

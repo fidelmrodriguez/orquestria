@@ -1,6 +1,12 @@
 # Orquestria API
 
-API REST do Orquestria, construída com **Java 21, Spring Boot 3.5, Spring Security, Spring Data JPA, Flyway e PostgreSQL**. É responsável pelas regras de negócio, autenticação, autorização e persistência dos workspaces, projetos, tarefas, equipes e tags.
+API REST do Orquestria, construída com **Java 21, Spring Boot 3.5, Spring Security, Spring Data JPA, Flyway e PostgreSQL**. É responsável pelos contratos HTTP, regras de negócio, autenticação, autorização e persistência dos workspaces, projetos, tarefas, equipes e tags. A camada de apresentação está documentada no [frontend](../frontend/README.md).
+
+## Organização da API
+
+O código Java em `src/main/java/com/orquestria/api/` separa autenticação, endpoints e domínio de workspaces/projetos/tarefas. Os controladores expõem contratos REST; serviços aplicam validações e regras de acesso; a persistência usa JPA/Hibernate e consultas SQL transacionais quando necessário. O esquema é versionado em `src/main/resources/db/migration/`.
+
+A API atende o frontend Next.js, mas mantém as regras de autorização e integridade no servidor, independentemente do estado da interface. Consulte [Arquitetura](../docs/ARQUITETURA.md) e [Decisões técnicas](../docs/DECISOES_TECNICAS.md).
 
 ## Executar
 
@@ -64,4 +70,4 @@ mvn verify
 
 O workflow do GitHub Actions disponibiliza um PostgreSQL 16 temporário para os testes de integração. Os testes que dependem do banco são habilitados com `ORQUESTRIA_RUN_DB_TESTS=true` e as variáveis `DB_*` apontando para um banco descartável. Nenhum teste de CI utiliza o banco de produção.
 
-Consulte [Testes e CI](../docs/TESTES.md) e [Deploy](../docs/DEPLOY_CLOUD.md).
+Consulte [Testes e CI](../docs/TESTES.md), [Deploy](../docs/DEPLOY_CLOUD.md) e [Exemplos de consumo da API](../docs/API_EXEMPLOS.md).

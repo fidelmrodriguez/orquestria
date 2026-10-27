@@ -51,6 +51,8 @@ npm test -- --runInBand --ci
 npm run build
 ```
 
+Para estrutura e execução por camada, consulte [Frontend](../frontend/README.md) e [Backend](../backend/README.md).
+
 Os testes Java que dependem de PostgreSQL utilizam `ORQUESTRIA_RUN_DB_TESTS=true` e credenciais `DB_*` apontando para o banco de testes. No GitHub Actions, essas variáveis são fornecidas pelo serviço PostgreSQL descartável do job.
 
 **Não use a URL do Neon de produção nesses testes.**
