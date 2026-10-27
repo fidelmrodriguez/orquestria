@@ -47,3 +47,11 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - O botão **Nova tarefa em [nome da coluna]** abre o formulário já associado à coluna selecionada; os atalhos no cabeçalho da coluna continuam disponíveis.
 - Ao trocar de workspace/projeto, o navegador volta à primeira coluna daquele quadro. Se a coluna selecionada for removida, a visualização retorna automaticamente à primeira coluna válida.
 - Em telas desktop (a partir de 1024 px), o quadro mantém a visualização de múltiplas colunas, o drag-and-drop e a rolagem horizontal no rodapé. Em telas menores, as tarefas podem ser movidas entre colunas pelo campo **Coluna** no painel de detalhes.
+
+## Espaçamento e pesquisa nas barras responsivas
+
+- O quadro usa a área útil imediatamente abaixo da barra superior, sem uma reserva extra de altura em desktop ou tablet. O resumo do projeto permanece separado do cabeçalho por um espaçamento compacto.
+- No celular (abaixo de 768 px), a pesquisa permanece acessível na segunda linha do cabeçalho.
+- Em tablets e notebooks com largura intermediária (768 a 1535 px), a segunda linha fixa é eliminada: a lupa na barra principal abre a pesquisa sob demanda, com foco automático, fechamento ao pressionar Escape ou clicar fora e preservação do texto digitado.
+- Em telas amplas (a partir de 1536 px), o campo de pesquisa permanece visível diretamente na barra superior.
+- As alterações não modificam a busca, os filtros nem a movimentação de tarefas; apenas reorganizam a apresentação dos controles conforme a largura da tela.

@@ -5,6 +5,7 @@ import { AddColumnForm } from "@/components/board/BoardView/AddColumnForm";
 import { MobileWorkspaceMenu } from "./MobileWorkspaceMenu";
 import { NotificationsMenu } from "./NotificationsMenu";
 import { SearchField } from "./SearchField";
+import { CompactSearch } from "./CompactSearch";
 import { ThemeToggle } from "./ThemeToggle";
 import { TopbarFilters } from "./TopbarFilters";
 import { UserMenu } from "./UserMenu";
@@ -58,8 +59,10 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
           value={search}
           onChange={setSearch}
           placeholder="Pesquisar tarefas, tags ou responsáveis"
-          className="hidden min-w-[280px] max-w-md flex-1 xl:flex"
+          className="hidden min-w-[280px] max-w-md flex-1 2xl:flex"
         />
+
+        <CompactSearch value={search} onChange={setSearch} />
 
         <TopbarFilters
           workspace={workspace}
@@ -82,7 +85,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
         <UserMenu currentUser={currentUser} onLogout={logout} />
       </div>
 
-      <div className="mt-3 flex gap-2 xl:hidden">
+      <div className="mt-3 flex gap-2 md:hidden">
         <SearchField value={search} onChange={setSearch} placeholder="Pesquisar" className="flex-1" />
         <ThemeToggle theme={theme} onChangeTheme={setTheme} className="icon-button sm:hidden" />
       </div>

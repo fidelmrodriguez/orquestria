@@ -75,8 +75,8 @@ export function AppShell() {
         onNewTask={() => { setMobileMenuOpen(false); openNewTask(); }}
       />
 
-      <main className="min-h-screen pt-[144px] lg:ml-72 lg:h-dvh lg:min-h-0 lg:pt-[92px]">
-        <div className="flex min-h-0 flex-col p-4 sm:p-6 lg:h-full">
+      <main className="min-h-screen pt-[144px] md:pt-[76px] lg:ml-72 lg:h-dvh lg:min-h-0">
+        <div className="flex min-h-0 flex-col p-4 lg:h-full">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {isApiMode && remoteError && (
               <div role="alert" className="mb-4 rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200">
