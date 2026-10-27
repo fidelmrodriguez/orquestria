@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
@@ -19,6 +20,7 @@ type BoardColumnProps = {
 };
 
 export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, onNewTask, onRenameColumn, onPrepareDrag }: BoardColumnProps) {
+  const [renaming, setRenaming] = useState(false);
   return (
     <div
       data-kanban-column-id={column.id}
@@ -28,17 +30,18 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, 
         dropTarget && "kanban-drop-target border-blue-500 bg-blue-50/90 ring-4 ring-blue-100 dark:border-blue-400 dark:bg-blue-950/40 dark:ring-blue-900/40"
       )}
     >
-      <div className="mb-3 flex items-center justify-between gap-3 px-1">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className={cn("size-2.5 rounded-full", column.color)} />
+      <div className="mb-3 flex min-w-0 items-center justify-between gap-2 px-1">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {!renaming && <span className={cn("size-2.5 shrink-0 rounded-full", column.color)} />}
           <InlineEdit
             value={column.title}
             onSave={(value) => onRenameColumn(column.id, value)}
             ariaLabel="Editar nome da coluna"
-            className="max-w-[190px] text-sm font-semibold text-slate-800 dark:text-slate-100"
+            onEditingChange={setRenaming}
+            className="min-w-0 max-w-[190px] text-sm font-semibold text-slate-800 dark:text-slate-100"
           />
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        {!renaming && <div className="flex shrink-0 items-center gap-1">
           <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-950 dark:text-slate-400">{totalTaskCount}</span>
           <button type="button" onClick={onNewTask} title={`Criar tarefa na coluna ${column.title}`}
             aria-label={`Criar tarefa na coluna ${column.title}`}
@@ -47,7 +50,7 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, 
             impact="A coluna será removida permanentemente." iconOnly label={`Excluir coluna ${column.title}`}
             disabledReason={totalTaskCount > 0 ? "Exclua ou mova todas as tarefas antes de remover a coluna." : undefined}
             className="rounded-lg p-1.5 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-25 dark:text-red-300" />
-        </div>
+        </div>}
       </div>
 
       <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-auto pr-1">

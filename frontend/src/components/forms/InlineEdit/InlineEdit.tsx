@@ -10,9 +10,10 @@ type InlineEditProps = {
   className?: string;
   inputClassName?: string;
   ariaLabel: string;
+  onEditingChange?: (editing: boolean) => void;
 };
 
-export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel }: InlineEditProps) {
+export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel, onEditingChange }: InlineEditProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -31,13 +32,14 @@ export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel
       onSave(nextValue);
     }
     setEditing(false);
+    onEditingChange?.(false);
   };
 
   if (!editing) {
     return (
       <button
         type="button"
-        onClick={() => setEditing(true)}
+        onClick={() => { setEditing(true); onEditingChange?.(true); }}
         className={cn("group inline-flex max-w-full items-center gap-2 text-left", className)}
         aria-label={ariaLabel}
       >
@@ -48,7 +50,7 @@ export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 flex-1 items-center gap-1">
       <input
         ref={inputRef}
         value={draft}
@@ -58,12 +60,13 @@ export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel
           if (event.key === "Escape") {
             setDraft(value);
             setEditing(false);
+            onEditingChange?.(false);
           }
         }}
-        className={cn("min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-0 transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900", inputClassName)}
+        className={cn("w-full min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm outline-none ring-0 transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900", inputClassName)}
         aria-label={ariaLabel}
       />
-      <button type="button" onClick={save} className="rounded-lg bg-slate-950 p-2 text-white dark:bg-white dark:text-slate-950" aria-label="Salvar">
+      <button type="button" onClick={save} className="shrink-0 rounded-lg bg-slate-950 p-2 text-white dark:bg-white dark:text-slate-950" aria-label="Salvar">
         <Check className="size-4" />
       </button>
       <button
@@ -71,8 +74,9 @@ export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel
         onClick={() => {
           setDraft(value);
           setEditing(false);
+          onEditingChange?.(false);
         }}
-        className="rounded-lg border border-slate-200 p-2 text-slate-500 dark:border-slate-800 dark:text-slate-300"
+        className="shrink-0 rounded-lg border border-slate-200 p-2 text-slate-500 dark:border-slate-800 dark:text-slate-300"
         aria-label="Cancelar"
       >
         <X className="size-4" />

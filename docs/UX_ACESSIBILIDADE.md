@@ -16,13 +16,15 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 
 - Colunas sem tarefas mostram uma ação para criar tarefa. Quando existem tarefas, mas nenhuma corresponde à pesquisa ou filtros, mostram uma mensagem de ausência de resultados, sem sugerir que a coluna está vazia.
 - A largura das colunas do Kanban considera telas estreitas. Em desktop, o quadro ocupa a altura útil disponível: cada coluna tem sua própria rolagem vertical e a barra horizontal do quadro fica ao pé do espaço de trabalho.
-- A criação de coluna usa uma ação compacta acima do quadro, sem coluna fictícia. O botão **+** em cada cabeçalho de coluna abre uma nova tarefa com a coluna predefinida.
+- A criação de coluna fica na barra superior ao lado de **Nova tarefa** e abre um formulário compacto de sobreposição, sem coluna fictícia nem faixa adicional no quadro. O botão **+** em cada cabeçalho de coluna abre uma nova tarefa com a coluna predefinida.
 - O menu lateral mantém a equipe visível; em telas de menor altura, somente a lista interna de navegação rola quando não houver espaço suficiente.
 - Cada comentário possui sua própria ação de exclusão com confirmação, sem remover a tarefa ou os demais comentários.
 - O botão de criar tarefa fica temporariamente indisponível durante o envio do formulário, evitando múltiplos cliques.
-- Os painéis laterais exibem um fundo escurecido e bloqueante: clicar fora ou pressionar Escape não os fecha. O usuário sai pelo X do painel, ou o formulário se fecha após a conclusão da criação. Ao iniciar uma operação remota, o diálogo de espera é exibido acima dos campos e menus de seleção.
+- Os painéis laterais exibem um fundo escurecido e bloqueante: clicar fora ou pressionar Escape não os fecha. O usuário sai pelo X do painel, ou o formulário se fecha após a conclusão da criação. Durante uma operação remota, o diálogo de espera é exibido acima dos campos e bloqueia ações. Os controles de responsável, prioridade e coluna no drawer usam listas personalizadas acessíveis, evitando menus de `<select>` nativos desenhados acima do overlay pelo navegador.
 - Ao arrastar uma tarefa, o cartão acompanha o ponteiro e sai visualmente da coluna de origem. A coluna de destino recebe uma borda destacada; soltar na origem ou fora do quadro não envia requisições.
 - O botão de compartilhamento por link não integra a interface: a associação de membros à equipe não concede acesso a projetos privados.
+
+- Ao editar o nome de uma coluna, a contagem de tarefas e os atalhos de criação e exclusão ficam ocultos temporariamente; os botões de salvar e cancelar continuam visíveis. A tela principal não apresenta a faixa permanente de ambiente Java/PostgreSQL nem a faixa de contagem de colunas. Erros reais de conexão continuam sendo exibidos.
 
 ## Verificação
 

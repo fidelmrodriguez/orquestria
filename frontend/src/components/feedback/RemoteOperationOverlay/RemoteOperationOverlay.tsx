@@ -22,10 +22,14 @@ export function RemoteOperationOverlay({ open, label }: RemoteOperationOverlayPr
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // Encerrar o menu nativo aberto em <select> antes de colocar o bloqueio visual.
     previousFocus?.blur();
+    // Evita que listas de <select> ainda existentes em outras telas atravessem o modal.
+    // O drawer de propriedades usa agora menus próprios, sem popup nativo.
+    document.body.classList.add("orquestria-remote-pending");
     document.body.style.overflow = "hidden";
     modalRef.current?.focus();
 
     return () => {
+      document.body.classList.remove("orquestria-remote-pending");
       document.body.style.overflow = previousOverflow;
       previousFocus?.focus();
     };

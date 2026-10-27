@@ -1,6 +1,12 @@
+import { SafeSelect } from "@/components/forms/SafeSelect";
 import type { Priority, Task, Workspace } from "@/types/board";
 
-const priorityOptions: Priority[] = ["baixa", "media", "alta", "critica"];
+const priorityOptions: {value: Priority; label: string}[] = [
+  { value: "baixa", label: "Baixa" },
+  { value: "media", label: "Média" },
+  { value: "alta", label: "Alta" },
+  { value: "critica", label: "Crítica" }
+];
 
 type TaskPropertiesFormProps = {
   task: Task;
@@ -10,46 +16,23 @@ type TaskPropertiesFormProps = {
 };
 
 export function TaskPropertiesForm({ task, workspace, onUpdateTask, onMoveTask }: TaskPropertiesFormProps) {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <label className="space-y-2">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Responsável</span>
-        <select
-          value={task.assigneeId}
-          onChange={(event) => onUpdateTask(task.id, { assigneeId: event.target.value })}
-          className="field"
-        >
-          {workspace.members.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="space-y-2">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Prioridade</span>
-        <select
-          value={task.priority}
-          onChange={(event) => onUpdateTask(task.id, { priority: event.target.value as Priority })}
-          className="field capitalize"
-        >
-          {priorityOptions.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="space-y-2 sm:col-span-2">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Coluna</span>
-        <select value={task.columnId}
-          onChange={(event) => { if (event.target.value !== task.columnId) onMoveTask(task.id, event.target.value); }}
-          className="field">
-          {workspace.columns.filter((column) => column.projectId === task.projectId).map((column) => (
-            <option key={column.id} value={column.id}>{column.title}</option>
-          ))}
-        </select>
-      </label>
+  return <div className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-2">
+      <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Responsável</span>
+      <SafeSelect label="Responsável" value={task.assigneeId}
+        options={workspace.members.map(member => ({value: member.id, label: member.name}))}
+        onChange={assigneeId => onUpdateTask(task.id, {assigneeId})} />
     </div>
-  );
+    <div className="space-y-2">
+      <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Prioridade</span>
+      <SafeSelect label="Prioridade" value={task.priority} options={priorityOptions}
+        onChange={priority => onUpdateTask(task.id, {priority: priority as Priority})} />
+    </div>
+    <div className="space-y-2 sm:col-span-2">
+      <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Coluna</span>
+      <SafeSelect label="Coluna" value={task.columnId}
+        options={workspace.columns.filter(column => column.projectId === task.projectId).map(column => ({value: column.id, label: column.title}))}
+        onChange={columnId => { if (columnId !== task.columnId) onMoveTask(task.id, columnId); }} />
+    </div>
+  </div>;
 }

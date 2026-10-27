@@ -78,13 +78,6 @@ export function AppShell() {
       <main className="min-h-screen pt-[144px] lg:ml-72 lg:h-dvh lg:min-h-0 lg:pt-[92px]">
         <div className="flex min-h-0 flex-col p-4 sm:p-6 lg:h-full">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {isApiMode && (
-              <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
-                <strong>Modo Java + PostgreSQL.</strong> Conta guest: dados compartilhados entre visitantes.
-                Contas cadastradas: projetos e workspaces privados por usuário.
-                <button type="button" onClick={() => void reloadRemote()} className="ml-3 underline underline-offset-2">Atualizar do servidor</button>
-              </div>
-            )}
             {isApiMode && remoteError && (
               <div role="alert" className="mb-4 rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200">
                 <strong>Não foi possível salvar ou atualizar no PostgreSQL.</strong> {remoteError}

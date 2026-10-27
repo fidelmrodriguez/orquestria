@@ -19,15 +19,36 @@ const workspace: Workspace = {
   ]
 };
 
-describe("edição de propriedades por teclado", () => {
-  it("move a tarefa somente entre colunas do mesmo projeto", async () => {
+describe("edição de propriedades por teclado e sem selects nativos", () => {
+  it("move a tarefa apenas entre colunas do mesmo projeto", async () => {
+    const user = userEvent.setup();
+    const onMoveTask = jest.fn();
+    const { container } = render(<TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={jest.fn()} onMoveTask={onMoveTask} />);
+    expect(container.querySelector("select")).toBeNull();
+    await user.click(screen.getByRole("combobox", { name: "Coluna" }));
+    expect(screen.getByRole("option", { name: "A fazer" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Projeto alheio" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("option", { name: "Concluído" }));
+    expect(onMoveTask).toHaveBeenCalledWith("task-1", "column-2");
+    expect(screen.queryByRole("listbox", { name: "Coluna" })).not.toBeInTheDocument();
+  });
+
+  it("não envia alteração quando seleciona a coluna atual", async () => {
     const user = userEvent.setup();
     const onMoveTask = jest.fn();
     render(<TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={jest.fn()} onMoveTask={onMoveTask} />);
-    const select = screen.getByRole("combobox", { name: "Coluna" });
-    expect(screen.getByRole("option", { name: "A fazer" })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "Projeto alheio" })).not.toBeInTheDocument();
-    await user.selectOptions(select, "column-2");
-    expect(onMoveTask).toHaveBeenCalledWith("task-1", "column-2");
+    await user.click(screen.getByRole("combobox", { name: "Coluna" }));
+    await user.click(screen.getByRole("option", { name: "A fazer" }));
+    expect(onMoveTask).not.toHaveBeenCalled();
+  });
+
+  it("permite alterar a prioridade sem criar popup nativo sobre a confirmação", async () => {
+    const user = userEvent.setup();
+    const update = jest.fn();
+    render(<TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={update} onMoveTask={jest.fn()} />);
+    await user.click(screen.getByRole("combobox", { name: "Prioridade" }));
+    await user.click(screen.getByRole("option", { name: "Alta" }));
+    expect(update).toHaveBeenCalledWith("task-1", { priority: "alta" });
+    expect(screen.queryByRole("listbox", { name: "Prioridade" })).not.toBeInTheDocument();
   });
 });

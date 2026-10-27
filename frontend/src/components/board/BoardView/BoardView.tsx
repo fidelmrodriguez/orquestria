@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
-import { AddColumnForm } from "./AddColumnForm";
 import { BoardColumn } from "./BoardColumn";
 import { BoardSummary } from "./BoardSummary";
 import { EmptyBoardState } from "./EmptyBoardState";
@@ -37,7 +36,6 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   const assigneeFilter = useBoardStore((state) => state.assigneeFilter);
   const moveTask = useBoardStore((state) => state.moveTask);
   const updateProject = useBoardStore((state) => state.updateProject);
-  const addColumn = useBoardStore((state) => state.addColumn);
   const updateColumn = useBoardStore((state) => state.updateColumn);
   const remoteLoading = useBoardStore((state) => state.remoteLoading);
   const { columns, filteredTasks } = useBoardViewData(workspace, project, search, priorityFilter, assigneeFilter);
@@ -138,10 +136,6 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   return <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 lg:h-full">
     <BoardSummary project={project} taskCount={filteredTasks.length} memberCount={workspace.members.length}
       columnCount={columns.length} onRenameProject={updateProject} />
-    <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-      <p className="text-xs text-slate-500 dark:text-slate-400">{columns.length} colunas no fluxo</p>
-      <AddColumnForm projectId={project.id} onAddColumn={addColumn} />
-    </div>
     <div ref={boardRef} onClickCapture={(event) => { if (Date.now() < suppressClickUntilRef.current) { event.preventDefault(); event.stopPropagation(); } }} aria-label="Colunas do Kanban" className="kanban-board-scroll flex min-h-[390px] min-w-0 gap-4 overflow-x-auto overflow-y-hidden pb-2 lg:min-h-0 lg:flex-1">
       {columns.map((column) => <BoardColumn key={column.id} column={column}
         tasks={filteredTasks.filter((task) => task.columnId === column.id && task.id !== dragging?.task.id)}

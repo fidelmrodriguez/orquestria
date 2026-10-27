@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, Plus, X } from "lucide-react";
+import { AddColumnForm } from "@/components/board/BoardView/AddColumnForm";
 import { MobileWorkspaceMenu } from "./MobileWorkspaceMenu";
 import { NotificationsMenu } from "./NotificationsMenu";
 import { SearchField } from "./SearchField";
@@ -30,6 +31,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
   const theme = useBoardStore((state) => state.theme);
   const setTheme = useBoardStore((state) => state.setTheme);
   const activities = useBoardStore((state) => state.activities);
+  const addColumn = useBoardStore((state) => state.addColumn);
 
   return (
     <header className="fixed left-0 right-0 top-0 z-40 border-b border-slate-200 bg-white/90 px-3 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90 lg:left-72 lg:px-6">
@@ -68,6 +70,8 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
           priorityClassName="hidden rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 md:block"
           assigneeClassName="hidden rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 lg:block"
         />
+
+        {project && <AddColumnForm key={project.id} projectId={project.id} onAddColumn={addColumn} />}
 
         <button type="button" onClick={onNewTask} className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-card dark:bg-white dark:text-slate-950">
           <Plus className="size-4" /> <span className="hidden sm:inline">Nova tarefa</span>
