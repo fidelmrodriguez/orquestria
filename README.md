@@ -4,7 +4,7 @@
 
 [**Acessar aplicação**](https://orquestria.netlify.app/) · [Arquitetura](docs/ARQUITETURA.md) · [API](docs/API.md) · [Documentação](docs/README.md)
 
-[![Orquestria CI](https://github.com/fidelmrodriguez/orquestria/actions/workflows/ci.yml/badge.svg)](https://github.com/fidelmrodriguez/orquestria/actions/workflows/ci.yml)
+[![Orquestria CI](https://img.shields.io/github/actions/workflow/status/fidelmrodriguez/orquestria/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI&labelColor=243047)](https://github.com/fidelmrodriguez/orquestria/actions/workflows/ci.yml)
 
 ## Funcionalidades
 
