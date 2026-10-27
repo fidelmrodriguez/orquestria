@@ -209,7 +209,19 @@ export function LoginScreen() {
               </>
             )}
           </div>
-          {guest && <p className="mt-3 text-center text-xs text-slate-500">Guest é uma conta pública e compartilhada. Não use informações pessoais nela.</p>}
+          {registering && (
+            <p className="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400">
+              Política de retenção: contas pessoais só poderão ser removidas após 180 dias
+              de inatividade e mais 30 dias de carência, caso o banco esteja próximo do
+              limite de armazenamento. Use a conta regularmente para preservar seus dados.
+            </p>
+          )}
+          {guest && (
+            <p className="mt-3 text-center text-xs text-slate-500">
+              Guest é uma conta pública e compartilhada. Não use informações pessoais nela.
+              Tarefas antigas podem ser removidas automaticamente após 30 dias.
+            </p>
+          )}
         </form>
       </section>
     </main>

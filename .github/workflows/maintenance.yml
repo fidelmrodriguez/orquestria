@@ -1,0 +1,52 @@
+name: Orquestria - manutenção automática do banco
+
+on:
+  schedule:
+    # Diariamente às 04:23 UTC; independente do Blitz estar em Sleeping.
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/db_maintenance.py'
+      - 'scripts/tests/test_db_maintenance.py'
+      - '.github/workflows/maintenance.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orquestria-database-maintenance
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Testes de segurança da política
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s scripts/tests -p 'test_db_maintenance.py' -v
+
+  maintenance:
+    name: Limpeza automática e retenção de dados
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ORQUESTRIA_MAINTENANCE_DATABASE_URL: ${{ secrets.ORQUESTRIA_MAINTENANCE_DATABASE_URL }}
+      ORQUESTRIA_DATABASE_LIMIT_BYTES: ${{ vars.ORQUESTRIA_DATABASE_LIMIT_BYTES }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar cliente PostgreSQL
+        run: python -m pip install 'psycopg[binary]>=3.2,<3.4'
+      - name: Executar manutenção transacional
+        run: python scripts/db_maintenance.py

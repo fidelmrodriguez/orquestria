@@ -17,6 +17,8 @@ public class AppUser {
     @Column(name = "account_type", nullable = false, length = 12)
     private AccountType accountType;
     @Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt;
+    @Column(name = "last_active_at", nullable = false) private Instant lastActiveAt;
+    @Column(name = "cleanup_candidate_since") private Instant cleanupCandidateSince;
 
     protected AppUser() {}
 
@@ -28,6 +30,7 @@ public class AppUser {
         this.passwordHash = passwordHash;
         this.accountType = type;
         this.createdAt = Instant.now();
+        this.lastActiveAt = this.createdAt;
     }
 
     // Mantém compatibilidade com outros construtores já usados nos testes antigos.
@@ -35,6 +38,13 @@ public class AppUser {
         this(name, name.trim().toLowerCase(Locale.ROOT), email, passwordHash, type);
     }
 
+    /** Uso autenticado cancela qualquer marcação de retenção por inatividade. */
+    public void markActive() {
+        this.lastActiveAt = Instant.now();
+        this.cleanupCandidateSince = null;
+    }
+
+    public Instant getLastActiveAt() { return lastActiveAt; }
     public UUID getId() { return id; }
     public String getName() { return name; }
     public String getUsername() { return username; }

@@ -67,6 +67,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
         }
 
+        user.markActive();
         LOG.info("[Orquestria][auth] login autorizado tipo_conta={}", user.getAccountType());
         return createSession(user);
     }
