@@ -155,41 +155,45 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
   return <div className="w-full space-y-2">
     <label htmlFor={fieldId} className="block text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</label>
     <div className="relative">
-      <div className="flex min-h-[48px] flex-wrap items-center gap-2 rounded-xl border border-slate-300 bg-white p-2 focus-within:ring-2 focus-within:ring-sky-400 dark:border-slate-700 dark:bg-slate-900">
-        {value.map((tag, index) => <span key={`${index}-${tag}`} className="inline-flex max-w-full items-center gap-1 rounded bg-sky-500 px-2 py-1 text-sm font-semibold text-white">
-          {editing === index ? <input autoFocus aria-label={`Editar tag ${tag}`} value={draft} maxLength={32}
-            onChange={event => setDraft(event.target.value)} onBlur={() => void finishEdit()}
-            onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); void finishEdit(); } if (event.key === "Escape") setEditing(null); }}
-            className="w-28 rounded bg-white px-1 text-slate-950 outline-none" /> : <span className="break-all">{tag}</span>}
-          <button type="button" aria-label={`Editar tag ${tag}`} title="Editar tag" disabled={disabled || busy}
-            onClick={() => { setEditing(index); setDraft(tag); }} className="rounded px-1 hover:bg-sky-600 disabled:opacity-50">✎</button>
-          <button type="button" aria-label={`Remover tag ${tag}`} title="Remover tag" disabled={disabled || busy}
-            onClick={() => void persist(removeTag(value, index))} className="rounded px-1 hover:bg-sky-600 disabled:opacity-50">×</button>
-        </span>)}
-        {value.length < maxTags && <input id={fieldId} type="text" value={text} maxLength={32}
-          disabled={disabled || busy} autoComplete="off" role="combobox" aria-autocomplete="list" aria-expanded={open}
-          aria-controls={listId} aria-activedescendant={open && visible[active] ? `${listId}-${visible[active].id}` : undefined}
-          placeholder={value.length ? "Adicionar tag..." : "Digite uma tag..."}
-          onFocus={() => setFocused(true)} onBlur={() => window.setTimeout(() => setFocused(false), 140)}
-          onChange={event => setText(event.target.value)}
-          onKeyDown={event => {
-            if (event.key === "ArrowDown" && open && visible.length) { event.preventDefault(); setActive(i => Math.min(i + 1, visible.length - 1)); }
-            if (event.key === "ArrowUp" && open && visible.length) { event.preventDefault(); setActive(i => Math.max(0, i - 1)); }
-            if (event.key === "Escape") setFocused(false);
-            if (event.key === "Enter" || event.key === ",") {
-              event.preventDefault();
-              if (open && visible[active] && event.key === "Enter") void add(visible[active].name, true);
-              else void add(text);
-            }
-            if (event.key === "Backspace" && !text && value.length > 0) void persist(removeTag(value, value.length - 1));
-          }}
-          className="min-w-[110px] flex-1 bg-transparent p-1 text-sm text-slate-900 outline-none dark:text-white" />}
-        {value.length < maxTags && <button type="button" onMouseDown={event => event.preventDefault()}
-          onClick={() => { if (open && visible[active]) void add(visible[active].name, true); else void add(text); }}
-          disabled={disabled || busy || !query}
-          aria-label="Adicionar tag" className="shrink-0 rounded-lg bg-slate-950 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-blue-600 dark:hover:bg-blue-500">
-          Adicionar
-        </button>}
+      <div className="rounded-xl border border-slate-300 bg-white p-2 focus-within:ring-2 focus-within:ring-sky-400 dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex min-h-[40px] flex-wrap items-center gap-2">
+          {value.map((tag, index) => <span key={`${index}-${tag}`} className="inline-flex max-w-full items-center gap-1 rounded bg-sky-500 px-2 py-1 text-sm font-semibold text-white">
+            {editing === index ? <input autoFocus aria-label={`Editar tag ${tag}`} value={draft} maxLength={32}
+              onChange={event => setDraft(event.target.value)} onBlur={() => void finishEdit()}
+              onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); void finishEdit(); } if (event.key === "Escape") setEditing(null); }}
+              className="w-28 rounded bg-white px-1 text-slate-950 outline-none" /> : <span className="break-all">{tag}</span>}
+            <button type="button" aria-label={`Editar tag ${tag}`} title="Editar tag" disabled={disabled || busy}
+              onClick={() => { setEditing(index); setDraft(tag); }} className="rounded px-1 hover:bg-sky-600 disabled:opacity-50">✎</button>
+            <button type="button" aria-label={`Remover tag ${tag}`} title="Remover tag" disabled={disabled || busy}
+              onClick={() => void persist(removeTag(value, index))} className="rounded px-1 hover:bg-sky-600 disabled:opacity-50">×</button>
+          </span>)}
+        </div>
+        {value.length < maxTags && <div className="mt-2 flex items-center gap-2">
+          <input id={fieldId} type="text" value={text} maxLength={32}
+            disabled={disabled || busy} autoComplete="off" role="combobox" aria-autocomplete="list" aria-expanded={open}
+            aria-controls={listId} aria-activedescendant={open && visible[active] ? `${listId}-${visible[active].id}` : undefined}
+            placeholder={value.length ? "Adicionar tag..." : "Digite uma tag..."}
+            onFocus={() => setFocused(true)} onBlur={() => window.setTimeout(() => setFocused(false), 140)}
+            onChange={event => setText(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === "ArrowDown" && open && visible.length) { event.preventDefault(); setActive(i => Math.min(i + 1, visible.length - 1)); }
+              if (event.key === "ArrowUp" && open && visible.length) { event.preventDefault(); setActive(i => Math.max(0, i - 1)); }
+              if (event.key === "Escape") setFocused(false);
+              if (event.key === "Enter" || event.key === ",") {
+                event.preventDefault();
+                if (open && visible[active] && event.key === "Enter") void add(visible[active].name, true);
+                else void add(text);
+              }
+              if (event.key === "Backspace" && !text && value.length > 0) void persist(removeTag(value, value.length - 1));
+            }}
+            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-400 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500" />
+          <button type="button" onMouseDown={event => event.preventDefault()}
+            onClick={() => { if (open && visible[active]) void add(visible[active].name, true); else void add(text); }}
+            disabled={disabled || busy || !query}
+            aria-label="Adicionar tag" className="shrink-0 rounded-lg bg-slate-950 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-blue-600 dark:hover:bg-blue-500">
+            Adicionar
+          </button>
+        </div>}
       </div>
       {open && <ul id={listId} role="listbox" className="absolute z-40 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-600 dark:bg-slate-900">
         {loading && <li className="px-3 py-2 text-sm text-slate-500">Procurando tags cadastradas...</li>}
