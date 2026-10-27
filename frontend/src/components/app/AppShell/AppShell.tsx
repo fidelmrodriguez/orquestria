@@ -25,6 +25,8 @@ export function AppShell() {
   const reloadRemote = useBoardStore((state) => state.reloadRemote);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [newTaskColumnId, setNewTaskColumnId] = useState<string | undefined>(undefined);
+  const openNewTask = (columnId?: string) => { setNewTaskColumnId(columnId); setNewTaskOpen(true); };
   const [shareOpen, setShareOpen] = useState(false);
   const bootstrap = useBootstrapBoard(Boolean(currentUser));
   useLiveSync(Boolean(currentUser));
@@ -64,7 +66,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-white">
+    <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-white lg:h-dvh lg:overflow-hidden">
       <div className="fixed inset-y-0 left-0 z-50 hidden w-72 lg:block">
         <Sidebar />
       </div>
@@ -72,13 +74,13 @@ export function AppShell() {
       <Topbar
         mobileMenuOpen={mobileMenuOpen}
         onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}
-        onNewTask={() => { setMobileMenuOpen(false); setNewTaskOpen(true); }}
+        onNewTask={() => { setMobileMenuOpen(false); openNewTask(); }}
         onShare={() => { setMobileMenuOpen(false); setShareOpen(true); }}
       />
 
-      <main className="min-h-screen pt-[144px] lg:ml-72 lg:pt-[92px]">
-        <div className="p-4 sm:p-6">
-          <div className="min-w-0">
+      <main className="min-h-screen pt-[144px] lg:ml-72 lg:h-dvh lg:min-h-0 lg:pt-[92px]">
+        <div className="flex min-h-0 flex-col p-4 sm:p-6 lg:h-full">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             {isApiMode && (
               <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
                 <strong>Modo Java + PostgreSQL.</strong> Conta guest: dados compartilhados entre visitantes.
@@ -102,13 +104,13 @@ export function AppShell() {
                 A fonte de dados não respondeu agora. O painel continua funcionando com os dados locais salvos.
               </div>
             )}
-            <BoardView onNewTask={() => setNewTaskOpen(true)} />
+            <BoardView onNewTask={openNewTask} />
           </div>
         </div>
       </main>
 
       <TaskDetailPanel />
-      <NewTaskPanel open={newTaskOpen} onClose={() => setNewTaskOpen(false)} />
+      <NewTaskPanel key={newTaskColumnId || "default"} initialColumnId={newTaskColumnId} open={newTaskOpen} onClose={() => setNewTaskOpen(false)} />
       <SharePanel open={shareOpen} onClose={() => setShareOpen(false)} />
       {isApiMode && <RemoteOperationOverlay open={remoteLoading} label={remoteActionLabel} />}
     </div>

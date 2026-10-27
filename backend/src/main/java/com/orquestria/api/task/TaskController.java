@@ -36,6 +36,19 @@ public class TaskController {
         return service.comment(projectId, taskId,
             new CreateTaskCommentRequest(guard.current().getId().toString(), request.message()));
     }
+    // The POST alias remains compatible with deployments that block DELETE preflight.
+    @RequestMapping(value = "/{taskId}/comments/{commentId}", method = RequestMethod.DELETE)
+    public TaskResponse deleteComment(@PathVariable UUID projectId, @PathVariable UUID taskId,
+                                      @PathVariable UUID commentId) {
+        guard.project(projectId);
+        return service.deleteComment(projectId, taskId, commentId);
+    }
+    @PostMapping("/{taskId}/comments/{commentId}/delete")
+    public TaskResponse deleteCommentPost(@PathVariable UUID projectId, @PathVariable UUID taskId,
+                                          @PathVariable UUID commentId) {
+        guard.project(projectId);
+        return service.deleteComment(projectId, taskId, commentId);
+    }
     // POST representa a ação de mover uma tarefa e também funciona em hospedagens
     // que não disponibilizam PATCH no preflight CORS. PATCH permanece compatível.
     @RequestMapping(value = "/{taskId}/move", method = {RequestMethod.PATCH, RequestMethod.POST})

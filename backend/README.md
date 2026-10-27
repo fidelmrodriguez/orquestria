@@ -34,6 +34,7 @@ Não armazene senhas reais ou tokens no repositório. O Flyway aplica as migraç
 | Colunas | `GET/POST /api/projects/{id}/columns`, `POST /api/projects/{id}/columns/{columnId}/rename` |
 | Tarefas | `GET/POST /api/projects/{id}/tasks`, `POST .../{taskId}/edit`, `POST .../{taskId}/comments`, `POST/PATCH .../{taskId}/move` |
 | Exclusões | `POST` em rotas `/delete` para tarefas, colunas, projetos e workspaces; também há rotas `DELETE` correspondentes |
+| Comentários | `POST /api/projects/{projectId}/tasks/{taskId}/comments`, `POST /api/projects/{projectId}/tasks/{taskId}/comments/{commentId}/delete` e alternativa `DELETE` |
 | Diretório e equipe | `GET /api/users/search`, `GET/POST /api/team/members`, `POST /api/team/members/{memberId}/remove` |
 | Tags | `GET/POST /api/tags`, `POST /api/tags/{id}/rename`, `POST /api/tags/{id}/remove` |
 | Saúde | `GET /actuator/health` |
@@ -51,7 +52,7 @@ Os endpoints privados exigem `Authorization: Bearer <token>`. O servidor verific
 
 ## Banco e migrações
 
-As migrações Flyway disponíveis são `V1` a `V8`: projetos; domínio Kanban; detalhes e comentários; contas e propriedade; nomes de usuário únicos; membros de equipe; catálogo de tags; importação de tags existentes. **Não modifique versões de migrações já executadas**; crie uma nova versão para alterações posteriores.
+As migrações Flyway disponíveis são `V1` a `V9`: projetos; domínio Kanban; detalhes e comentários; contas e propriedade; nomes de usuário únicos; membros de equipe; catálogo de tags; importação de tags existentes; retenção e atividade das contas. **Não modifique versões de migrações já executadas**; crie uma nova versão para alterações posteriores.
 
 ## Testes
 

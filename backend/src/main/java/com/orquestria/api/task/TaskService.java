@@ -96,6 +96,15 @@ public class TaskService {
         tasks.saveAndFlush(task);
         return TaskResponse.from(task);
     }
+    /** Remove only a comment belonging to this task, never a comment from another project. */
+    @Transactional
+    public TaskResponse deleteComment(UUID projectId, UUID taskId, UUID commentId) {
+        Task task = requireTask(projectId, taskId);
+        boolean removed = task.getComments().removeIf(comment -> comment.getId().equals(commentId));
+        if (!removed) throw new ResourceNotFoundException("Comentário");
+        return TaskResponse.from(tasks.saveAndFlush(task));
+    }
+
     @Transactional
     public TaskResponse move(UUID projectId, UUID taskId, MoveTaskRequest request) {
         Task task = tasks.findById(taskId).orElseThrow(() -> new ResourceNotFoundException("Tarefa"));

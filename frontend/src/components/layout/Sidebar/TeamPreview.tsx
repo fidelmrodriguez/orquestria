@@ -8,7 +8,7 @@ type TeamPreviewProps = {
 
 export function TeamPreview({ workspace }: TeamPreviewProps) {
   return (
-    <section className="mt-auto rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+    <section className="sidebar-team-preview shrink-0 rounded-3xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/70">
       <div className="mb-3 flex items-center justify-between gap-2 text-sm font-semibold text-slate-900 dark:text-white">
         <span className="inline-flex items-center gap-2"><UsersRound className="size-4" /> Equipe</span>
         <a href="/equipe" aria-label="Adicionar membro da equipe" title="Adicionar membro da equipe"
@@ -25,7 +25,7 @@ export function TeamPreview({ workspace }: TeamPreviewProps) {
           </div>
         ))}
       </div>
-      <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
+      <p className="sidebar-team-description mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
         {workspace?.members.length || 0} pessoas disponíveis para atribuição de tarefas. Adicionar à equipe não compartilha o projeto.
       </p>
     </section>

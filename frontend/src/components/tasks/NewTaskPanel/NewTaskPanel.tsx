@@ -25,11 +25,12 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 type NewTaskPanelProps = {
+  initialColumnId?: string;
   open: boolean;
   onClose: () => void;
 };
 
-export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
+export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelProps) {
   const workspace = useBoardStore(selectActiveWorkspace);
   const project = useBoardStore(selectActiveProject);
   const addTask = useBoardStore((state) => state.addTask);
@@ -53,7 +54,7 @@ export function NewTaskPanel({ open, onClose }: NewTaskPanelProps) {
     values: {
       title: "",
       description: "",
-      columnId: columns[0]?.id || "",
+      columnId: (columns.some((column) => column.id === initialColumnId) ? initialColumnId : columns[0]?.id) || "",
       assigneeId: workspace?.members[0]?.id || "",
       priority: "media",
       dueDate: defaultDate

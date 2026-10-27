@@ -8,16 +8,17 @@ type TaskCommentsSectionProps = {
   members: Member[];
   fallbackMember?: Member;
   onSubmitComment: (message: string) => void;
+  onDeleteComment: (id: string) => Promise<boolean>;
 };
 
-export function TaskCommentsSection({ task, members, fallbackMember, onSubmitComment }: TaskCommentsSectionProps) {
+export function TaskCommentsSection({ task, members, fallbackMember, onSubmitComment, onDeleteComment }: TaskCommentsSectionProps) {
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
         <MessageCircle className="size-4" /> Comentários
       </div>
       <TaskCommentForm onSubmitComment={onSubmitComment} />
-      <TaskCommentsList comments={task.comments} members={members} fallbackMember={fallbackMember} />
+      <TaskCommentsList comments={task.comments} members={members} fallbackMember={fallbackMember} onDeleteComment={onDeleteComment} />
     </section>
   );
 }

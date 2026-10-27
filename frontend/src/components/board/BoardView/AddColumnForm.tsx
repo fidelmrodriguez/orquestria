@@ -1,35 +1,33 @@
+"use client";
+
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 type AddColumnFormProps = {
   projectId: string;
   onAddColumn: (projectId: string, title: string) => void;
 };
 
+/** Compact action above the board; no placeholder column consumes horizontal space. */
 export function AddColumnForm({ projectId, onAddColumn }: AddColumnFormProps) {
+  const [expanded, setExpanded] = useState(false);
   const [columnName, setColumnName] = useState("");
 
-  return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        const title = columnName.trim();
-        if (!title) return;
-        onAddColumn(projectId, title);
-        setColumnName("");
-      }}
-      className="flex min-h-[220px] w-[280px] shrink-0 flex-col justify-between rounded-[1.75rem] border border-dashed border-slate-300 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/60"
-    >
-      <div>
-        <p className="text-sm font-semibold text-slate-900 dark:text-white">Nova coluna</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">Adicione uma etapa para adaptar o fluxo do projeto.</p>
-      </div>
-      <div className="mt-4 flex gap-2">
-        <input value={columnName} onChange={(event) => setColumnName(event.target.value)} className="mini-field" placeholder="Nome da coluna" />
-        <button type="submit" className="icon-button" aria-label="Criar coluna">
-          <Plus className="size-4" />
-        </button>
-      </div>
-    </form>
-  );
+  if (!expanded) return <button type="button" onClick={() => setExpanded(true)}
+    className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+    aria-label="Adicionar coluna ao projeto"><Plus className="size-4" /> Nova coluna</button>;
+
+  return <form className="flex min-w-0 items-center gap-2" onSubmit={(event) => {
+    event.preventDefault();
+    const title = columnName.trim();
+    if (!title) return;
+    onAddColumn(projectId, title);
+    setColumnName("");
+    setExpanded(false);
+  }}>
+    <input autoFocus value={columnName} onChange={(event) => setColumnName(event.target.value)}
+      maxLength={120} className="mini-field w-36 sm:w-52" aria-label="Nome da nova coluna" placeholder="Nome da coluna" />
+    <button className="rounded-xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-950" type="submit" disabled={!columnName.trim()}>Criar</button>
+    <button className="icon-button" type="button" aria-label="Cancelar nova coluna" onClick={() => {setExpanded(false);setColumnName("");}}><X className="size-4" /></button>
+  </form>;
 }

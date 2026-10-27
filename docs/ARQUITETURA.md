@@ -24,7 +24,7 @@ A variável pública de build `NEXT_PUBLIC_ORQUESTRIA_API_URL` determina o ender
 
 O frontend utiliza Next.js com `output: "export"`: após o build, o Netlify publica arquivos estáticos, sem processo Next.js persistente. A interface emprega Zustand para estado do quadro, TanStack Query para consultas e React Hook Form/Zod para formulários.
 
-O Kanban exibe workspaces, projetos, colunas e tarefas. Operações de escrita feitas no modo remoto enviam requisições HTTP para a API e atualizam os dados apresentados. O projeto também mantém um modo de demonstração local utilizado quando não há URL de API configurada; esse modo não representa os dados do PostgreSQL.
+O Kanban exibe workspaces, projetos, colunas e tarefas. Operações de escrita feitas no modo remoto enviam requisições HTTP para a API e atualizam os dados apresentados. Criar ou renomear colunas e projetos, criar, editar ou mover tarefas e incluir/excluir comentários reutiliza a resposta JSON da própria mutação para atualizar o item, sem recarregar os projetos inteiros. Exclusões confirmadas também atualizam a coleção local; o recarregamento manual continua disponível para reconciliação. A listagem de tarefas utiliza busca conjunta dos comentários para reduzir o número de consultas ao banco. O projeto também mantém um modo de demonstração local utilizado quando não há URL de API configurada; esse modo não representa os dados do PostgreSQL.
 
 ## API e persistência
 
@@ -42,6 +42,7 @@ O Flyway controla a evolução do esquema. As migrações versionadas são:
 | V6 | Membros de equipe |
 | V7 | Catálogo de tags por conta |
 | V8 | Migração de tags anteriores para o catálogo |
+| V9 | Metadados de atividade e retenção das contas |
 
 Migrações aplicadas não são reescritas. Alterações de estrutura devem ser introduzidas por novas versões.
 

@@ -47,10 +47,14 @@ Projetos podem estar associados a workspaces. A exclusão de um workspace com pr
 | `GET` / `POST` | `/api/projects/{projectId}/tasks` | Listar e criar tarefas |
 | `POST` | `/api/projects/{projectId}/tasks/{taskId}/edit` | Atualizar detalhes da tarefa |
 | `POST` | `/api/projects/{projectId}/tasks/{taskId}/comments` | Registrar comentário |
+| `POST` | `/api/projects/{projectId}/tasks/{taskId}/comments/{commentId}/delete` | Excluir um comentário da tarefa |
+| `DELETE` | `/api/projects/{projectId}/tasks/{taskId}/comments/{commentId}` | Alternativa REST para excluir um comentário |
 | `POST` ou `PATCH` | `/api/projects/{projectId}/tasks/{taskId}/move` | Mover uma tarefa |
 | `POST` | `/api/projects/{projectId}/tasks/{taskId}/delete` | Excluir tarefa |
 
 As exclusões também possuem métodos `DELETE` correspondentes. As rotas de ação `POST /delete` e `POST /rename` estão presentes por compatibilidade com as restrições de CORS do ambiente de publicação.
+
+A exclusão de comentários exige autenticação, valida a propriedade do projeto e confirma que o comentário pertence à tarefa. Retorna `404` para IDs inválidos ou de outros recursos. As operações de escrita de tarefas e comentários retornam a tarefa atualizada em JSON, permitindo atualizar apenas o item alterado no frontend.
 
 A API valida a pertença dos recursos ao projeto e ao proprietário. Colunas ocupadas retornam conflito em vez de excluir tarefas implicitamente. A exclusão explícita de projeto remove seus dados associados em transação.
 

@@ -29,7 +29,7 @@ export default function QuickDeleteAction({ target, name, impact, label = "Exclu
   const [error, setError] = useState("");
   const [guest, setGuest] = useState(false);
   const [validating, setValidating] = useState(false);
-  const reloadRemote = useBoardStore(state => state.reloadRemote);
+  const applyRemoteDeletion = useBoardStore(state => state.applyRemoteDeletion);
   const setSelectedTask = useBoardStore(state => state.setSelectedTask);
   const { notify } = useToast();
   const mustType = guest || target.kind === "project" || target.kind === "workspace";
@@ -57,7 +57,7 @@ export default function QuickDeleteAction({ target, name, impact, label = "Exclu
       await apiRequest(API_BASE, deleteActionPath(target), token, "POST", deleteOperation(target));
       setOpen(false);
       if (target.kind === "task") setSelectedTask(null);
-      await reloadRemote();
+      applyRemoteDeletion(target);
       notify(`${name} excluído(a) com sucesso.`, "success");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "A API recusou a exclusão.");

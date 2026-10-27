@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 import { TaskCard } from "@/components/board/TaskCard/TaskCard";
@@ -27,7 +28,7 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, draggedTas
         onDragTask(null);
       }}
       className={cn(
-        "flex max-h-[calc(100vh-260px)] min-h-[360px] w-[calc(100vw-2rem)] shrink-0 sm:w-[310px] flex-col rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-3 transition dark:border-slate-800 dark:bg-slate-900/50",
+        "flex h-full min-h-0 w-[calc(100vw-2rem)] shrink-0 flex-col rounded-[1.75rem] sm:w-[310px] border border-slate-200 bg-slate-50/80 p-3 transition dark:border-slate-800 dark:bg-slate-900/50",
         draggedTaskId && "border-dashed border-slate-400 dark:border-slate-600"
       )}
     >
@@ -43,6 +44,9 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, draggedTas
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-950 dark:text-slate-400">{totalTaskCount}</span>
+          <button type="button" onClick={onNewTask} title={`Criar tarefa na coluna ${column.title}`}
+            aria-label={`Criar tarefa na coluna ${column.title}`}
+            className="rounded-lg p-1.5 text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-slate-800"><Plus className="size-4" /></button>
           <QuickDeleteAction target={{kind:"column",projectId:column.projectId,id:column.id}} name={`coluna ${column.title}`}
             impact="A coluna será removida permanentemente." iconOnly label={`Excluir coluna ${column.title}`}
             disabledReason={totalTaskCount > 0 ? "Exclua ou mova todas as tarefas antes de remover a coluna." : undefined}

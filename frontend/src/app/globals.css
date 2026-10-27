@@ -117,3 +117,13 @@ aside::-webkit-scrollbar-thumb {
     scroll-behavior: auto !important;
   }
 }
+
+/* The board owns the vertical space: horizontal navigation stays at the viewport bottom. */
+.kanban-board-scroll { scrollbar-width: thin; scrollbar-color: #94a3b8 transparent; }
+.kanban-board-scroll::-webkit-scrollbar { height: 10px; }
+.kanban-board-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 999px; }
+.sidebar-menu-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+@media (min-width: 1024px) and (max-height: 820px) {
+  .sidebar-team-description { display: none; }
+  .sidebar-team-preview { padding: 0.75rem; }
+}

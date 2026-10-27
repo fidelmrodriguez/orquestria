@@ -15,7 +15,10 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 ## Estados vazios e telas pequenas
 
 - Colunas sem tarefas mostram uma ação para criar tarefa. Quando existem tarefas, mas nenhuma corresponde à pesquisa ou filtros, mostram uma mensagem de ausência de resultados, sem sugerir que a coluna está vazia.
-- A largura das colunas do Kanban considera telas estreitas; a navegação horizontal permanece disponível.
+- A largura das colunas do Kanban considera telas estreitas. Em desktop, o quadro ocupa a altura útil disponível: cada coluna tem sua própria rolagem vertical e a barra horizontal do quadro fica ao pé do espaço de trabalho.
+- A criação de coluna usa uma ação compacta acima do quadro, sem coluna fictícia. O botão **+** em cada cabeçalho de coluna abre uma nova tarefa com a coluna predefinida.
+- O menu lateral mantém a equipe visível; em telas de menor altura, somente a lista interna de navegação rola quando não houver espaço suficiente.
+- Cada comentário possui sua própria ação de exclusão com confirmação, sem remover a tarefa ou os demais comentários.
 - O botão de criar tarefa fica temporariamente indisponível durante o envio do formulário, evitando múltiplos cliques.
 
 ## Verificação

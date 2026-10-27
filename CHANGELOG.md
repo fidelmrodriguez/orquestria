@@ -4,6 +4,15 @@ Este arquivo registra mudanças relevantes do produto por versão. O histórico 
 
 ## [Unreleased]
 
+### Melhorias de usabilidade e desempenho
+
+- Criação de tarefa contextual em cada coluna e ação de nova coluna acima do Kanban.
+- Ajustes de altura, navegação horizontal no rodapé do quadro e rolagem interna da sidebar quando necessária.
+- Exclusão individual de comentários com confirmação e isolamento por projeto.
+- Redução de recargas completas após exclusões e mutações de tarefas, comentários, colunas e nomes de projetos.
+- Listagem de tarefas com carregamento conjunto de comentários para reduzir consultas ao PostgreSQL.
+
+
 ### Preparação da versão 1.0.0
 
 - Organização de workspaces e projetos em quadros Kanban com colunas e tarefas personalizáveis.

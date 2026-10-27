@@ -24,9 +24,9 @@ Marque os itens apenas após a execução no ambiente publicado.
 
 ### Quadro e regras de negócio
 
-- [ ] Criar workspace, projeto, coluna e tarefa; editar título, descrição, prioridade e prazo.
+- [ ] Criar workspace, projeto, coluna pelo botão superior e tarefa pelo botão de uma coluna; editar título, descrição, prioridade e prazo.
 - [ ] Mover uma tarefa entre colunas pelo Kanban e pelo seletor nos detalhes; atualizar a página e verificar persistência.
-- [ ] Criar comentário e conferir seu carregamento após atualizar.
+- [ ] Criar comentário, excluir um comentário individual e confirmar que os demais foram preservados após atualizar.
 - [ ] Criar tags, usar sugestões de tags existentes, editar e remover chips de uma tarefa.
 - [ ] Pesquisar usuários cadastrados, adicionar um membro e atribuir uma tarefa a ele.
 - [ ] Verificar que membro com tarefa atribuída não pode ser removido antes da reatribuição.

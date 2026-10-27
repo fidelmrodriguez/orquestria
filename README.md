@@ -8,8 +8,8 @@
 
 ## Funcionalidades
 
-- **Organização:** workspaces, projetos e colunas personalizáveis em um quadro Kanban.
-- **Tarefas:** criação, edição, movimentação entre colunas, prioridades, prazos opcionais e comentários.
+- **Organização:** workspaces, projetos e colunas personalizáveis em um quadro Kanban, com criação de colunas na barra superior e rolagem por coluna.
+- **Tarefas:** criação direto da coluna, edição, movimentação, prioridades, prazos opcionais e comentários com exclusão individual.
 - **Responsáveis e equipes:** associação de usuários cadastrados à equipe e atribuição de membros às tarefas.
 - **Tags:** catálogo por conta, autocomplete, inclusão, edição e remoção de tags nas tarefas.
 - **Gerenciamento:** exclusão contextual de tarefas, colunas, projetos e workspaces, além da página específica de gerenciamento. Operações destrutivas exigem confirmação e respeitam dependências.

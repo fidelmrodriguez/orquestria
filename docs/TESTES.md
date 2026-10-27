@@ -57,7 +57,7 @@ Os testes Java que dependem de PostgreSQL utilizam `ORQUESTRIA_RUN_DB_TESTS=true
 
 ## Critérios de qualidade
 
-- Testes de autenticação e isolamento entre contas, inclusive operações de exclusão.
+- Testes de autenticação e isolamento entre contas, inclusive operações de exclusão e remoção de comentário vinculado a outra conta.
 - Migrações do banco reproduzíveis em um PostgreSQL limpo.
 - Formulários e componentes críticos verificados por testes de frontend.
 - TypeScript sem erros e build estático concluído.

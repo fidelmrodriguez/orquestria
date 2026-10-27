@@ -70,7 +70,7 @@ function mapColumn(column: ApiColumn): Column {
     color: column.color.startsWith("bg-") ? column.color : "bg-slate-400"
   };
 }
-function mapTask(task: ApiTask, member: Member): Task {
+export function mapTask(task: ApiTask, member: Member): Task {
   return {
     id: task.id,
     projectId: task.projectId,

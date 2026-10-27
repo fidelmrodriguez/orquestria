@@ -43,9 +43,10 @@ export function Sidebar({ onNavigate, dropdown = false }: SidebarProps) {
   };
 
   return (
-    <aside className={cn("flex flex-col gap-5 overflow-y-auto backdrop-blur", dropdown ? "border-0 bg-transparent p-0 dark:bg-transparent" : "h-full border-r border-slate-200 bg-white/75 p-4 dark:border-slate-800 dark:bg-slate-950/75 lg:p-5")}>
+    <aside className={cn("flex min-h-0 flex-col gap-3 backdrop-blur", dropdown ? "border-0 bg-transparent p-0 dark:bg-transparent" : "h-full overflow-hidden border-r border-slate-200 bg-white/75 p-4 dark:border-slate-800 dark:bg-slate-950/75 lg:p-4")}>
       <SidebarBrand />
 
+      <div className="sidebar-menu-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
       <WorkspaceNavigation
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
@@ -76,6 +77,7 @@ export function Sidebar({ onNavigate, dropdown = false }: SidebarProps) {
         <a href="/equipe" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><UsersRound className="size-4" /> Membros da equipe</a>
         <a href="/tags" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"><Tags className="size-4" /> Minhas tags</a>
       </nav>
+      </div>
       <TeamPreview workspace={workspace} />
     </aside>
   );

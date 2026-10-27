@@ -37,6 +37,7 @@ export function TaskDetailPanel() {
   const updateTask = useBoardStore((state) => state.updateTask);
   const moveTask = useBoardStore((state) => state.moveTask);
   const addComment = useBoardStore((state) => state.addComment);
+  const removeComment = useBoardStore((state) => state.removeComment);
   const { notify } = useToast();
   const { panelRef, onKeyDown } = useAccessiblePanel<HTMLDivElement>(
     Boolean(task && workspace),
@@ -52,6 +53,13 @@ export function TaskDetailPanel() {
     const result = await addComment(task.id, message);
     if (result === false) notify("Não foi possível salvar o comentário.", "error");
     else notify("Comentário enviado.", "success");
+  };
+
+  const deleteComment = async (commentId: string) => {
+    const result = await removeComment(task.id, commentId);
+    if (result === false) { notify("Não foi possível excluir o comentário.", "error"); return false; }
+    notify("Comentário excluído.", "success");
+    return true;
   };
 
   return (
@@ -81,7 +89,7 @@ export function TaskDetailPanel() {
 
           <TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={updateTask} onMoveTask={moveTask} />
           <TaskPlanningCards task={task} onUpdateTask={updateTask} />
-          <TaskCommentsSection task={task} members={workspace.members} fallbackMember={member} onSubmitComment={submitComment} />
+          <TaskCommentsSection task={task} members={workspace.members} fallbackMember={member} onSubmitComment={submitComment} onDeleteComment={deleteComment} />
         </div>
         <footer className="border-t border-slate-200 bg-white px-5 py-3 dark:border-slate-800 dark:bg-slate-950">
           <QuickDeleteAction target={{kind:"task",projectId:task.projectId,id:task.id}}

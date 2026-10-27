@@ -214,4 +214,23 @@ class ApiSecurityPostgresTest {
         call(authenticated(post("/api/tags/" + tagId + "/remove"), owner), 204);
         assertFalse(getJson("/api/tags", owner, 200).toString().contains("Importante"));
     }
+    @Test
+    void commentsCanBeDeletedOnlyThroughTheirOwnTaskAndProject() throws Exception {
+        User owner = register("commentowner");
+        User other = register("commentother");
+        String projectId = idOf(createProject(owner, idOf(createWorkspace(owner))));
+        String columnId = idOf(createColumn(owner, projectId));
+        String taskId = idOf(createTask(owner, projectId, columnId, owner.id().toString(), 201));
+        String base = "/api/projects/" + projectId + "/tasks/" + taskId;
+        JsonNode withComment = postJson(base + "/comments", owner,
+                Map.of("authorId", owner.id().toString(), "message", "Comentário para remover"), 200);
+        assertEquals(1, withComment.path("comments").size());
+        String commentId = withComment.path("comments").get(0).path("id").asText();
+        call(authenticated(post(base + "/comments/" + commentId + "/delete"), other), 404);
+        assertEquals(1, getJson("/api/projects/" + projectId + "/tasks", owner, 200).get(0).path("comments").size());
+        call(authenticated(post(base + "/comments/" + UUID.randomUUID() + "/delete"), owner), 404);
+        JsonNode deleted = call(authenticated(post(base + "/comments/" + commentId + "/delete"), owner), 200);
+        assertEquals(0, deleted.path("comments").size());
+        assertEquals(0, getJson("/api/projects/" + projectId + "/tasks", owner, 200).get(0).path("comments").size());
+    }
 }
