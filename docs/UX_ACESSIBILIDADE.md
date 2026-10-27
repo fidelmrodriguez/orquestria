@@ -51,7 +51,13 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 ## Espaçamento e pesquisa nas barras responsivas
 
 - O quadro usa a área útil imediatamente abaixo da barra superior, sem uma reserva extra de altura em desktop ou tablet. O resumo do projeto permanece separado do cabeçalho por um espaçamento compacto.
-- No celular (abaixo de 768 px), a pesquisa permanece acessível na segunda linha do cabeçalho.
-- Em tablets e notebooks com largura intermediária (768 a 1535 px), a segunda linha fixa é eliminada: a lupa na barra principal abre a pesquisa sob demanda, com foco automático, fechamento ao pressionar Escape ou clicar fora e preservação do texto digitado.
+- Em celulares, tablets e notebooks com menos de 1536 px, a lupa revela uma linha de busca **dentro do fluxo do cabeçalho**, ocupando 100% da largura disponível. A linha empurra o quadro para baixo em vez de flutuar por cima da interface; fecha com Escape ou clique fora sem apagar o texto digitado.
 - Em telas amplas (a partir de 1536 px), o campo de pesquisa permanece visível diretamente na barra superior.
 - As alterações não modificam a busca, os filtros nem a movimentação de tarefas; apenas reorganizam a apresentação dos controles conforme a largura da tela.
+
+## Sidebar recolhível em desktop
+
+- A sidebar participa do layout flexível e ocupa 288 px no estado expandido ou 76 px no estado compacto. Ao recolhê-la, a largura liberada passa imediatamente para a área do Kanban, sem sobreposição nem painel fixo cobrindo cartões.
+- Na barra compacta, workspaces e projetos permanecem selecionáveis por ícones com `title` e nomes acessíveis. Os links de gerenciamento, equipe e tags continuam disponíveis. A criação e exclusão de recursos permanecem acessíveis ao expandir a sidebar.
+- O botão para expandir/recolher é visível, funciona pelo teclado e permite retornar à navegação completa. A barra compacta também mostra abreviações de duas letras para diferenciar workspaces/projetos com ícones iguais. No celular, continua sendo utilizado o menu responsivo original, sem uma segunda sidebar; a alteração de tema permanece no menu mobile.
+- A busca compacta fica em uma linha própria no cabeçalho e não usa `position: absolute` nem `z-index` de popover; ao abrir, desloca o conteúdo em vez de cobri-lo.

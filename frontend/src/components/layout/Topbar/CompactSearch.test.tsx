@@ -17,6 +17,14 @@ describe("pesquisa compacta para tablets", () => {
     expect(screen.getByRole("textbox", { name: "Pesquisar tarefas, tags ou responsáveis" })).toHaveFocus();
   });
 
+  it("abre uma faixa no fluxo do cabeçalho em vez de um painel flutuante", () => {
+    render(<Example />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir busca" }));
+    const field = screen.getByRole("search");
+    expect(field).toHaveClass("order-last", "w-full", "basis-full");
+    expect(field).not.toHaveClass("absolute");
+  });
+
   it("permite pesquisar e fechar com Escape, retornando o foco ao botão", () => {
     render(<Example />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir busca" }));

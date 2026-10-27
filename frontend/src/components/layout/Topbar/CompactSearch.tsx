@@ -9,19 +9,19 @@ type CompactSearchProps = {
   onChange: (value: string) => void;
 };
 
-/** Em tablets, mantém a pesquisa disponível sem ocupar uma segunda linha fixa. */
+/** Campo sob demanda que se expande no fluxo do cabeçalho, sem sobrepor o Kanban. */
 export function CompactSearch({ value, onChange }: CompactSearchProps) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
 
   useEffect(() => {
     if (!open) return;
-    containerRef.current?.querySelector("input")?.focus();
+    searchRef.current?.querySelector("input")?.focus();
 
     const closeOnOutside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !containerRef.current?.contains(event.target)) {
+      if (event.target instanceof Node && !searchRef.current?.contains(event.target) && !triggerRef.current?.contains(event.target)) {
         setOpen(false);
       }
     };
@@ -40,14 +40,14 @@ export function CompactSearch({ value, onChange }: CompactSearchProps) {
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative hidden shrink-0 md:block 2xl:hidden">
+    <>
       <button
         ref={triggerRef}
         type="button"
         aria-label={open ? "Fechar busca" : "Abrir busca"}
         aria-expanded={open}
         aria-controls={panelId}
-        className="icon-button"
+        className="icon-button 2xl:hidden"
         onClick={() => setOpen((current) => !current)}
       >
         {open ? <X className="size-4" /> : <Search className="size-4" />}
@@ -57,11 +57,12 @@ export function CompactSearch({ value, onChange }: CompactSearchProps) {
           id={panelId}
           role="search"
           aria-label="Pesquisar tarefas"
-          className="absolute right-0 top-full z-[60] mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-2 shadow-card dark:border-slate-700 dark:bg-slate-950"
+          ref={searchRef}
+          className="order-last w-full basis-full rounded-2xl 2xl:hidden border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900"
         >
           <SearchField value={value} onChange={onChange} placeholder="Pesquisar tarefas, tags ou responsáveis" />
         </div>
       )}
-    </div>
+    </>
   );
 }

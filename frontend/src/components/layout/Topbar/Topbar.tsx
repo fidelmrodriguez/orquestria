@@ -35,8 +35,8 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
   const addColumn = useBoardStore((state) => state.addColumn);
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-40 border-b border-slate-200 bg-white/90 px-3 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90 lg:left-72 lg:px-6">
-      <div className="flex items-center gap-3">
+    <header className="relative z-30 shrink-0 border-b border-slate-200 bg-white/95 px-3 py-3 dark:border-slate-800 dark:bg-slate-950/95 lg:px-6">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <button
           type="button"
           onClick={onToggleMobileMenu}
@@ -59,7 +59,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
           value={search}
           onChange={setSearch}
           placeholder="Pesquisar tarefas, tags ou responsáveis"
-          className="hidden min-w-[280px] max-w-md flex-1 2xl:flex"
+          className="hidden min-w-[200px] max-w-md flex-1 2xl:flex"
         />
 
         <CompactSearch value={search} onChange={setSearch} />
@@ -85,11 +85,6 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
         <UserMenu currentUser={currentUser} onLogout={logout} />
       </div>
 
-      <div className="mt-3 flex gap-2 md:hidden">
-        <SearchField value={search} onChange={setSearch} placeholder="Pesquisar" className="flex-1" />
-        <ThemeToggle theme={theme} onChangeTheme={setTheme} className="icon-button sm:hidden" />
-      </div>
-
       <MobileWorkspaceMenu
         open={mobileMenuOpen}
         workspace={workspace}
@@ -97,6 +92,8 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
         assigneeFilter={assigneeFilter}
         onNavigate={onToggleMobileMenu}
         onLogout={logout}
+        theme={theme}
+        onChangeTheme={setTheme}
         onPriorityChange={(value) => setPriorityFilter(value as Priority | "todas")}
         onAssigneeChange={setAssigneeFilter}
       />

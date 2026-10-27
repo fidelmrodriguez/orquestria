@@ -23,6 +23,7 @@ export function AppShell() {
   const remoteError = useBoardStore((state) => state.remoteError);
   const reloadRemote = useBoardStore((state) => state.reloadRemote);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [newTaskColumnId, setNewTaskColumnId] = useState<string | undefined>(undefined);
   const openNewTask = (columnId?: string) => { setNewTaskColumnId(columnId); setNewTaskOpen(true); };
@@ -64,40 +65,43 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-white lg:h-dvh lg:overflow-hidden">
-      <div className="fixed inset-y-0 left-0 z-50 hidden w-72 lg:block">
-        <Sidebar />
+    <div className="min-h-screen bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-white lg:flex lg:h-dvh lg:overflow-hidden">
+      {/* A sidebar participa do layout: ao recolher, a área do quadro cresce. */}
+      <div className={`${sidebarCollapsed ? "lg:w-[76px]" : "lg:w-72"} hidden shrink-0 transition-[width] duration-200 ease-out lg:block lg:h-dvh`}>
+        <Sidebar collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(value => !value)} />
       </div>
 
-      <Topbar
-        mobileMenuOpen={mobileMenuOpen}
-        onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}
-        onNewTask={() => { setMobileMenuOpen(false); openNewTask(); }}
-      />
+      <div className="flex min-w-0 flex-1 flex-col lg:h-dvh lg:min-h-0">
+        <Topbar
+          mobileMenuOpen={mobileMenuOpen}
+          onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}
+          onNewTask={() => { setMobileMenuOpen(false); openNewTask(); }}
+        />
 
-      <main className="min-h-screen pt-[144px] md:pt-[76px] lg:ml-72 lg:h-dvh lg:min-h-0">
-        <div className="flex min-h-0 flex-col p-4 lg:h-full">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            {isApiMode && remoteError && (
-              <div role="alert" className="mb-4 rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200">
-                <strong>Não foi possível salvar ou atualizar no PostgreSQL.</strong> {remoteError}
-                <button type="button" className="ml-2 underline" onClick={() => void reloadRemote()}>Recarregar dados</button>
-              </div>
-            )}
-            {!isApiMode && bootstrap.isLoading && (
-              <div className="mb-4 rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-500 shadow-card dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-                Carregando tarefas iniciais do workspace...
-              </div>
-            )}
-            {!isApiMode && bootstrap.isError && (
-              <div className="mb-4 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 shadow-card dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
-                A fonte de dados não respondeu agora. O painel continua funcionando com os dados locais salvos.
-              </div>
-            )}
-            <BoardView onNewTask={openNewTask} />
+        <main className="min-h-0 flex-1 lg:overflow-hidden">
+          <div className="flex min-h-0 flex-col p-4 lg:h-full">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+              {isApiMode && remoteError && (
+                <div role="alert" className="mb-4 rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200">
+                  <strong>Não foi possível salvar ou atualizar no PostgreSQL.</strong> {remoteError}
+                  <button type="button" className="ml-2 underline" onClick={() => void reloadRemote()}>Recarregar dados</button>
+                </div>
+              )}
+              {!isApiMode && bootstrap.isLoading && (
+                <div className="mb-4 rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-500 shadow-card dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+                  Carregando tarefas iniciais do workspace...
+                </div>
+              )}
+              {!isApiMode && bootstrap.isError && (
+                <div className="mb-4 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 shadow-card dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+                  A fonte de dados não respondeu agora. O painel continua funcionando com os dados locais salvos.
+                </div>
+              )}
+              <BoardView onNewTask={openNewTask} />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <TaskDetailPanel />
       <NewTaskPanel key={newTaskColumnId || "default"} initialColumnId={newTaskColumnId} open={newTaskOpen} onClose={() => setNewTaskOpen(false)} />

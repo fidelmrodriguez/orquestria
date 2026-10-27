@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings2, Tags, UsersRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, FolderKanban, FolderOpen, Plus, Settings2, Tags, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { selectActiveWorkspace, useBoardStore } from "@/store/board-store";
 import { ProjectNavigation } from "./ProjectNavigation";
@@ -12,9 +12,11 @@ import { WorkspaceNavigation } from "./WorkspaceNavigation";
 type SidebarProps = {
   onNavigate?: () => void;
   dropdown?: boolean;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 };
 
-export function Sidebar({ onNavigate, dropdown = false }: SidebarProps) {
+export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onToggleCollapsed }: SidebarProps) {
   const workspaces = useBoardStore((state) => state.workspaces);
   const activeWorkspaceId = useBoardStore((state) => state.activeWorkspaceId);
   const activeProjectId = useBoardStore((state) => state.activeProjectId);
@@ -42,9 +44,69 @@ export function Sidebar({ onNavigate, dropdown = false }: SidebarProps) {
     onNavigate?.();
   };
 
+  // No modo compacto os ícones continuam acionáveis; a navegação fica na
+  // mesma coluna de layout, sem popover/overlay sobre o Kanban.
+  if (collapsed && !dropdown) {
+    return (
+      <aside aria-label="Navegação compacta" className="flex h-full min-h-0 flex-col items-center gap-3 overflow-hidden border-r border-slate-200 bg-white/75 px-2 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/75">
+        <button type="button" onClick={onToggleCollapsed} aria-label="Expandir sidebar" title="Expandir sidebar"
+          className="grid size-11 shrink-0 place-items-center rounded-xl bg-slate-950 text-white transition hover:bg-sky-700 dark:bg-white dark:text-slate-950">
+          <ChevronRight className="size-5" />
+        </button>
+        <nav aria-label="Workspaces e projetos" className="sidebar-menu-scroll flex min-h-0 w-full flex-1 flex-col items-center gap-2 overflow-y-auto overflow-x-hidden py-2">
+          <span className="sr-only">Workspaces</span>
+          {workspaces.map(item => (
+            <button key={item.id} type="button" title={`Workspace: ${item.name}`} aria-label={`Selecionar workspace ${item.name}`}
+              aria-current={item.id === activeWorkspaceId ? "true" : undefined}
+              onClick={() => { setActiveWorkspace(item.id); onNavigate?.(); }}
+              className={cn("grid size-11 shrink-0 place-items-center rounded-xl transition", item.id === activeWorkspaceId
+                ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
+                : "text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900")}>
+              <span className="flex flex-col items-center justify-center leading-none"><FolderKanban className="size-4" /><span className="mt-0.5 text-[9px] font-semibold">{item.name.trim().slice(0, 2).toLocaleUpperCase("pt-BR")}</span></span>
+            </button>
+          ))}
+          <button type="button" title="Criar workspace" aria-label="Criar workspace" onClick={onToggleCollapsed}
+            className="grid size-10 shrink-0 place-items-center rounded-xl border border-dashed border-slate-300 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-900">
+            <Plus className="size-4" />
+          </button>
+          <span aria-hidden="true" className="my-1 h-px w-9 shrink-0 bg-slate-200 dark:bg-slate-700" />
+          <span className="sr-only">Projetos</span>
+          {workspace?.projects.map(project => (
+            <button key={project.id} type="button" title={`Projeto: ${project.name}`} aria-label={`Selecionar projeto ${project.name}`}
+              aria-current={project.id === activeProjectId ? "true" : undefined}
+              onClick={() => { setActiveProject(project.id); onNavigate?.(); }}
+              className={cn("grid size-11 shrink-0 place-items-center rounded-xl transition", project.id === activeProjectId
+                ? "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-200"
+                : "text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900")}>
+              <span className="flex flex-col items-center justify-center leading-none"><FolderOpen className="size-4" /><span className="mt-0.5 text-[9px] font-semibold">{project.name.trim().slice(0, 2).toLocaleUpperCase("pt-BR")}</span></span>
+            </button>
+          ))}
+          <button type="button" title="Criar projeto" aria-label="Criar projeto" onClick={onToggleCollapsed}
+            className="grid size-10 shrink-0 place-items-center rounded-xl border border-dashed border-slate-300 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-900">
+            <Plus className="size-4" />
+          </button>
+          <span aria-hidden="true" className="my-1 h-px w-9 shrink-0 bg-slate-200 dark:bg-slate-700" />
+          <a href="/gerenciar" aria-label="Gerenciar itens" title="Gerenciar itens" className="grid size-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"><Settings2 className="size-5" /></a>
+          <a href="/equipe" aria-label="Membros da equipe" title="Membros da equipe" className="grid size-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"><UsersRound className="size-5" /></a>
+          <a href="/tags" aria-label="Minhas tags" title="Minhas tags" className="grid size-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"><Tags className="size-5" /></a>
+        </nav>
+        <button type="button" onClick={onToggleCollapsed} aria-label="Expandir navegação e opções" title="Expandir navegação e opções"
+          className="grid size-10 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900">
+          <ChevronRight className="size-4" />
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <aside className={cn("flex min-h-0 flex-col gap-3 backdrop-blur", dropdown ? "border-0 bg-transparent p-0 dark:bg-transparent" : "h-full overflow-hidden border-r border-slate-200 bg-white/75 p-4 dark:border-slate-800 dark:bg-slate-950/75 lg:p-4")}>
-      <SidebarBrand />
+      {dropdown ? <SidebarBrand /> : <div className="flex items-center justify-between gap-2">
+        <SidebarBrand />
+        <button type="button" onClick={onToggleCollapsed} aria-label="Recolher sidebar" title="Recolher sidebar"
+          className="grid size-8 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900">
+          <ChevronLeft className="size-4" />
+        </button>
+      </div>}
 
       <div className="sidebar-menu-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
       <WorkspaceNavigation
