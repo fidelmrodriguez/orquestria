@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { BoardColumn } from "./BoardColumn";
 import { BoardSummary } from "./BoardSummary";
 import { EmptyBoardState } from "./EmptyBoardState";
 import { useBoardViewData } from "./useBoardViewData";
 import { TaskDragPreview } from "./TaskDragPreview";
+import { MobileColumnSwitcher } from "./MobileColumnSwitcher";
 import { positionFromVisibleTasks, isNoopReorder } from "@/lib/task-order";
 import { selectActiveProject, selectActiveWorkspace, useBoardStore } from "@/store/board-store";
 import type { Task } from "@/types/board";
@@ -55,8 +56,21 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   dataRef.current = { filteredTasks, tasks: workspace?.tasks ?? [] };
   const [dragging, setDragging] = useState<DragSession | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [mobileColumnId, setMobileColumnId] = useState<string | null>(null);
+  const activeMobileColumn = columns.find(column => column.id === mobileColumnId) ?? columns[0];
+  const taskCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const column of columns) counts[column.id] = 0;
+    if (project && workspace) {
+      for (const task of workspace.tasks) {
+        if (task.projectId === project.id && task.columnId in counts) counts[task.columnId] += 1;
+      }
+    }
+    return counts;
+  }, [columns, project, workspace]);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => { setMobileColumnId(null); }, [workspace?.id, project?.id]);
 
   useEffect(() => {
     function onPointerMove(event: PointerEvent) {
@@ -145,18 +159,21 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   return <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 lg:h-full">
     <BoardSummary project={project} taskCount={filteredTasks.length} memberCount={workspace.members.length}
       columnCount={columns.length} onRenameProject={updateProject} />
+    <MobileColumnSwitcher columns={columns} activeColumnId={activeMobileColumn?.id ?? null} taskCounts={taskCounts}
+      onChange={setMobileColumnId} onNewTask={columnId => onNewTask(columnId)} />
     <div ref={boardRef} onClickCapture={event => {
       if (Date.now() < suppressClickUntilRef.current) { event.preventDefault(); event.stopPropagation(); }
-    }} aria-label="Colunas do Kanban" className="kanban-board-scroll flex min-h-[390px] min-w-0 gap-4 overflow-x-auto overflow-y-hidden pb-2 lg:min-h-0 lg:flex-1">
+    }} aria-label="Colunas do Kanban" className="kanban-board-scroll flex min-w-0 flex-col gap-4 overflow-visible lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-x-auto lg:overflow-y-hidden lg:pb-2">
       {columns.map(column => <BoardColumn key={column.id} column={column}
         tasks={filteredTasks.filter(task => task.columnId === column.id && task.id !== dragging?.task.id)}
         totalTaskCount={workspace.tasks.filter(task => task.columnId === column.id && task.projectId === project.id).length}
         members={workspace.members} onNewTask={() => onNewTask(column.id)}
+        mobileActive={column.id === activeMobileColumn?.id}
         dragging={Boolean(dragging)} dropTarget={dragging?.destinationId === column.id}
         insertionIndex={dragging?.destinationId === column.id ? dragging.insertionIndex : -1}
         placeholderHeight={dragging?.height ?? 0}
         onPrepareDrag={prepareDrag} onRenameColumn={updateColumn} />)}
-      {!columns.length && <div className="grid min-w-64 place-items-center rounded-2xl border border-dashed border-slate-300 px-6 text-sm text-slate-500">Adicione uma coluna para começar.</div>}
+      {!columns.length && <div className="grid min-h-[200px] w-full place-items-center rounded-2xl border border-dashed border-slate-300 px-6 text-sm text-slate-500">Adicione uma coluna para começar.</div>}
     </div>
     {dragging && mounted && createPortal(<TaskDragPreview drag={dragging} previewRef={previewRef} />, document.body)}
   </section>;

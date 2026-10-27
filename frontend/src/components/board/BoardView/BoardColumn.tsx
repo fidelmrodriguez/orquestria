@@ -31,15 +31,17 @@ type BoardColumnProps = {
   onNewTask: () => void;
   onRenameColumn: (columnId: string, title: string) => void;
   onPrepareDrag: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
+  mobileActive?: boolean;
 };
 
-export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, insertionIndex = -1, placeholderHeight = 0, onNewTask, onRenameColumn, onPrepareDrag }: BoardColumnProps) {
+export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, insertionIndex = -1, placeholderHeight = 0, onNewTask, onRenameColumn, onPrepareDrag, mobileActive = true }: BoardColumnProps) {
   const [renaming, setRenaming] = useState(false);
   return (
     <div
       data-kanban-column-id={column.id}
       className={cn(
-        "flex h-full min-h-0 w-[calc(100vw-2rem)] shrink-0 flex-col rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-3 transition-[border-color,background-color,box-shadow] duration-200 sm:w-[310px] dark:border-slate-800 dark:bg-slate-900/50",
+        "min-h-[350px] w-full min-w-0 flex-col rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-3 transition-[border-color,background-color,box-shadow] duration-200 lg:h-full lg:min-h-0 lg:w-[310px] lg:shrink-0 dark:border-slate-800 dark:bg-slate-900/50",
+        mobileActive ? "kanban-mobile-column flex" : "hidden lg:flex",
         dragging && !dropTarget && "border-dashed border-slate-300 dark:border-slate-700",
         dropTarget && "kanban-drop-target border-blue-500 bg-blue-50/90 ring-4 ring-blue-100 dark:border-blue-400 dark:bg-blue-950/40 dark:ring-blue-900/40"
       )}
@@ -67,7 +69,7 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, 
         </div>}
       </div>
 
-      <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-auto pr-1" data-kanban-task-list="true">
+      <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-visible pr-1 lg:min-h-0 lg:overflow-y-auto" data-kanban-task-list="true">
         {tasks.flatMap((task, index) => [
           ...(dropTarget && insertionIndex === index ? [<DropSlot key={`insertion-slot-${index}`} height={placeholderHeight} />] : []),
           <TaskCard key={task.id} task={task} member={members.find(member => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} />

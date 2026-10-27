@@ -26,3 +26,13 @@ describe("edição do cabeçalho da coluna", () => {
     expect(screen.getByRole("button", {name: "Criar tarefa na coluna Planejado"})).toBeInTheDocument();
   });
 });
+
+describe("exibição responsiva de colunas", () => {
+  it("oculta colunas inativas somente no mobile, preservando todas no desktop", () => {
+    const { container } = render(<BoardColumn column={column} tasks={[]} totalTaskCount={0} members={[]}
+      dragging={false} dropTarget={false} onNewTask={jest.fn()} onRenameColumn={jest.fn()}
+      onPrepareDrag={jest.fn()} mobileActive={false} />);
+    const element = container.querySelector('[data-kanban-column-id="col-1"]');
+    expect(element).toHaveClass("hidden", "lg:flex");
+  });
+});

@@ -39,3 +39,11 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - O drag-and-drop permite reordenar tarefas dentro da mesma coluna, inserindo-as antes ou depois de outro cartão. Um espaço azul animado antecipa a posição de destino, e o cartão arrastado acompanha o cursor.
 - Arrastos cancelados, solturas fora das colunas e movimentos para a posição original não enviam requisições de gravação.
 - A ordem é armazenada pelo backend, mantendo-se após atualização da página. A mudança entre colunas reorganiza tanto a origem quanto o destino.
+
+## Navegação do Kanban em celulares e tablets
+
+- Em telas menores que 1024 px, o quadro exibe **uma coluna por vez** em largura integral, sem barra de rolagem horizontal. Os cartões acompanham o fluxo vertical natural da página, sem duas barras de rolagem concorrentes.
+- O seletor acima da coluna informa a posição atual (por exemplo, **Coluna 2 de 5**), o nome e a quantidade de tarefas. Os botões anterior/próxima e a lista de todas as colunas permitem navegar diretamente, mesmo em quadros grandes.
+- O botão **Nova tarefa em [nome da coluna]** abre o formulário já associado à coluna selecionada; os atalhos no cabeçalho da coluna continuam disponíveis.
+- Ao trocar de workspace/projeto, o navegador volta à primeira coluna daquele quadro. Se a coluna selecionada for removida, a visualização retorna automaticamente à primeira coluna válida.
+- Em telas desktop (a partir de 1024 px), o quadro mantém a visualização de múltiplas colunas, o drag-and-drop e a rolagem horizontal no rodapé. Em telas menores, as tarefas podem ser movidas entre colunas pelo campo **Coluna** no painel de detalhes.

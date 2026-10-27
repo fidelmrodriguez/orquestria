@@ -142,3 +142,16 @@ aside::-webkit-scrollbar-thumb {
 /* Enquanto o diálogo de gravação estiver aberto, seletores nativos restantes
    são removidos do layout: a popup do navegador não respeita z-index. */
 body.orquestria-remote-pending select { display: none !important; }
+
+/* Mobile: uma coluna por vez, sem trilho de rolagem horizontal. */
+@media (max-width: 1023px) {
+  .kanban-board-scroll { scrollbar-width: none; }
+  .kanban-board-scroll::-webkit-scrollbar { display: none; }
+}
+@media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+  .kanban-mobile-column { animation: kanban-column-enter 180ms ease-out both; }
+  @keyframes kanban-column-enter {
+    from { opacity: .7; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
