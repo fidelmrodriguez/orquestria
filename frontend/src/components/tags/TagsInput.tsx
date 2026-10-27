@@ -183,18 +183,24 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
             }
             if (event.key === "Backspace" && !text && value.length > 0) void persist(removeTag(value, value.length - 1));
           }}
-          className="min-w-[150px] flex-1 bg-transparent p-1 text-sm text-slate-900 outline-none dark:text-white" />}
+          className="min-w-[110px] flex-1 bg-transparent p-1 text-sm text-slate-900 outline-none dark:text-white" />}
+        {value.length < maxTags && <button type="button" onMouseDown={event => event.preventDefault()}
+          onClick={() => { if (open && visible[active]) void add(visible[active].name, true); else void add(text); }}
+          disabled={disabled || busy || !query}
+          aria-label="Adicionar tag" className="shrink-0 rounded-lg bg-slate-950 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-blue-600 dark:hover:bg-blue-500">
+          Adicionar
+        </button>}
       </div>
       {open && <ul id={listId} role="listbox" className="absolute z-40 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-600 dark:bg-slate-900">
         {loading && <li className="px-3 py-2 text-sm text-slate-500">Procurando tags cadastradas...</li>}
-        {!loading && visible.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">Nenhuma tag encontrada. Pressione Enter para cadastrar.</li>}
+        {!loading && visible.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">Nenhuma tag encontrada. Use Adicionar para cadastrar.</li>}
         {visible.map((tag, index) => <li key={tag.id} id={`${listId}-${tag.id}`} role="option" aria-selected={index === active}>
           <button type="button" className={`w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-sky-50 dark:hover:bg-slate-800 ${index === active ? "bg-sky-50 dark:bg-slate-800" : ""}`}
             onMouseDown={event => event.preventDefault()} onClick={() => void add(tag.name, true)}>{tag.name}</button>
         </li>)}
       </ul>}
     </div>
-    <p className="text-xs text-slate-500">Enter para incluir · sugestões de tags existentes · ✎ editar · × remover · {value.length}/{maxTags}</p>
+    <p className="text-xs text-slate-500">Sugestões automáticas · ✎ editar · × remover · {value.length}/{maxTags}</p>
     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
   </div>;
 }

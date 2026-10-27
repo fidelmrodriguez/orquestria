@@ -20,6 +20,8 @@ export type Task = {
   title: string;
   description: string;
   columnId: string;
+  /** Ordem persistida na coluna (começa em zero). */
+  position?: number;
   projectId: string;
   assigneeId: string;
   priority: Priority;

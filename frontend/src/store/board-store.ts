@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { buildWorkspaceFromSource, defaultColumns } from "@/lib/board";
 import { uid } from "@/lib/utils";
 import { shouldMoveTask } from "@/lib/kanban-drag";
+import { applyTaskReorder, isNoopReorder } from "@/lib/task-order";
 import { isApiMode, UNASSIGNED_WORKSPACE_ID, loadRemoteBoard, mapTask, postApi, toApiDate, toApiPriority, type ApiTask } from "@/lib/remote-board";
 import type { DeleteTarget } from "@/lib/kanban-deletion";
 import { revokeSession } from "@/lib/auth-client";
@@ -53,7 +54,7 @@ type BoardState = {
   updateColumn: (columnId: string, title: string) => void;
   addTask: (payload: AddTaskPayload) => Promise<boolean> | void;
   updateTask: (taskId: string, patch: Partial<Omit<Task, "id" | "comments">>) => Promise<boolean> | void;
-  moveTask: (taskId: string, columnId: string) => void;
+  moveTask: (taskId: string, columnId: string, position?: number) => void;
   addComment: (taskId: string, message: string) => Promise<boolean> | void;
   removeComment: (taskId: string, commentId: string) => Promise<boolean> | void;
   applyRemoteDeletion: (target: DeleteTarget) => void;
@@ -494,24 +495,30 @@ export const useBoardStore = create<BoardState>()(
           }))
         }));
       },
-      moveTask: (taskId, columnId) => {
-        const existing = get().workspaces.flatMap((space) => space.tasks).find((task) => task.id === taskId);
-        if (!existing || !shouldMoveTask(existing.columnId, columnId)) return;
-        if (isApiMode) return runRemoteTaskMutation(set, get, "Movendo tarefa...", async () => {
-          const task = get().workspaces.flatMap((space) => space.tasks).find((item) => item.id === taskId);
-          if (!task) throw new Error("Tarefa não encontrada.");
-          return postApi<ApiTask>(`/api/projects/${task.projectId}/tasks/${task.id}/move`, {
-            columnId, position: 0
+      moveTask: (taskId, columnId, position) => {
+        const all = get().workspaces.flatMap((space) => space.tasks);
+        const existing = all.find((task) => task.id === taskId);
+        if (!existing) return;
+        const targetPosition = position ?? 0;
+        if (!shouldMoveTask(existing.columnId, columnId) &&
+            (position === undefined || isNoopReorder(all, taskId, columnId, targetPosition))) return;
+        if (isApiMode) return runRemoteEntityMutation(set, get, "Organizando tarefas...", async () => {
+          return postApi<ApiTask>(`/api/projects/${existing.projectId}/tasks/${taskId}/move`, {
+            columnId, position: targetPosition
           });
-        });
+        }, (state, result) => ({
+          ...updateWorkspace(state, (workspace) => ({
+            ...workspace,
+            tasks: applyTaskReorder(workspace.tasks, taskId, result.columnId, result.position)
+              .map(task => task.id === taskId && state.currentUser ? mapTask(result, state.currentUser) : task)
+          }))
+        }));
         set((state) => ({
           ...updateWorkspace(state, (workspace) => ({
             ...workspace,
-            tasks: workspace.tasks.map((task) =>
-              task.id === taskId ? { ...task, columnId, updatedAt: new Date().toISOString() } : task
-            )
+            tasks: applyTaskReorder(workspace.tasks, taskId, columnId, targetPosition)
           })),
-              activities: appendActivity("Tarefa movida entre colunas.", "task", state.activities)
+          activities: appendActivity("Ordem de tarefas atualizada.", "task", state.activities)
         }));
       },
       addComment: (taskId, message) => {

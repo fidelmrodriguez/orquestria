@@ -75,6 +75,7 @@ export function mapTask(task: ApiTask, member: Member): Task {
     id: task.id,
     projectId: task.projectId,
     columnId: task.columnId,
+    position: task.position,
     title: task.title,
     description: task.description || "",
     priority: toPriority(task.priority),

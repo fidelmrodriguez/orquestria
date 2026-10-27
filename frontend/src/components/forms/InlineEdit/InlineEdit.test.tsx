@@ -3,6 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 
 describe("InlineEdit", () => {
+  it("mostra um botão de edição visível para o título da tarefa", async () => {
+    const user = userEvent.setup();
+    const onSave = jest.fn();
+    render(<InlineEdit value="Tarefa original" onSave={onSave} ariaLabel="Editar título da tarefa" showEditLabel />);
+    const edit = screen.getByRole("button", { name: "Editar título da tarefa" });
+    expect(edit).toHaveTextContent("Editar");
+    await user.click(edit);
+    const input = screen.getByRole("textbox", { name: "Editar título da tarefa" });
+    await user.clear(input);
+    await user.type(input, "Tarefa atualizada{enter}");
+    expect(onSave).toHaveBeenCalledWith("Tarefa atualizada");
+  });
+
   it("salva o valor editado ao pressionar Enter", async () => {
     const user = userEvent.setup();
     const onSave = jest.fn();

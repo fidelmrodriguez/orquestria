@@ -24,6 +24,9 @@ export function TaskCard({ task, member, onPrepareDrag }: TaskCardProps) {
 
   return (
     <article
+      data-kanban-task-id={task.id}
+      draggable={false}
+      onDragStart={event => event.preventDefault()}
       onPointerDown={(event) => onPrepareDrag?.(event, task)}
       onClick={() => setSelectedTask(task.id)}
       onKeyDown={(event) => {
@@ -35,7 +38,7 @@ export function TaskCard({ task, member, onPrepareDrag }: TaskCardProps) {
       tabIndex={0}
       role="button"
       aria-label={`Abrir tarefa: ${task.title}`}
-      className="kanban-task-draggable group cursor-grab rounded-3xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-1 hover:border-slate-300 active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700"
+      className="kanban-task-draggable group select-none cursor-grab rounded-3xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-1 hover:border-slate-300 active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700"
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-950 dark:text-white">{task.title}</h3>

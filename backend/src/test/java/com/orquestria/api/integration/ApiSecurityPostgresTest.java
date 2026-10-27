@@ -100,6 +100,40 @@ class ApiSecurityPostgresTest {
     }
 
     @Test
+    void taskOrderIsPersistedWhenReorderingWithinAndAcrossColumns() throws Exception {
+        User user = register("reorder");
+        String workspaceId = idOf(createWorkspace(user));
+        String projectId = idOf(createProject(user, workspaceId));
+        String first = idOf(createColumn(user, projectId));
+        String second = idOf(createColumn(user, projectId));
+        String endpoint = "/api/projects/" + projectId + "/tasks";
+        String a = idOf(postJson(endpoint, user, Map.of("title", "A", "columnId", first, "position", 0), 201));
+        String b = idOf(postJson(endpoint, user, Map.of("title", "B", "columnId", first, "position", 1), 201));
+        String c = idOf(postJson(endpoint, user, Map.of("title", "C", "columnId", first, "position", 2), 201));
+        postJson(endpoint + "/" + c + "/move", user, Map.of("columnId", first, "position", 0), 200);
+        JsonNode ordered = getJson(endpoint, user, 200);
+        assertEquals(java.util.List.of(c, a, b), java.util.List.of(
+            ordered.get(0).path("id").asText(), ordered.get(1).path("id").asText(), ordered.get(2).path("id").asText()));
+        for (int index = 0; index < 3; index++) assertEquals(index, ordered.get(index).path("position").asInt());
+
+        postJson(endpoint + "/" + a + "/move", user, Map.of("columnId", second, "position", 0), 200);
+        JsonNode moved = getJson(endpoint, user, 200);
+        java.util.List<String> original = new java.util.ArrayList<>();
+        java.util.List<Integer> positions = new java.util.ArrayList<>();
+        for (JsonNode task : moved) {
+            if (task.path("columnId").asText().equals(first)) {
+                original.add(task.path("id").asText());
+                positions.add(task.path("position").asInt());
+            } else if (task.path("id").asText().equals(a)) {
+                assertEquals(second, task.path("columnId").asText());
+                assertEquals(0, task.path("position").asInt());
+            }
+        }
+        assertEquals(java.util.List.of(c, b), original);
+        assertEquals(java.util.List.of(0, 1), positions);
+    }
+
+    @Test
     void healthIsPublicButApiRequiresValidBearer() throws Exception {
         getJson("/actuator/health", null, 200);
         getJson("/api/workspaces", null, 401);

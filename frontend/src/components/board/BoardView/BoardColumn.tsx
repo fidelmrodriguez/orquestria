@@ -1,11 +1,23 @@
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 import { TaskCard } from "@/components/board/TaskCard/TaskCard";
 import { cn } from "@/lib/utils";
 import type { Column, Member, Task } from "@/types/board";
+
+function DropSlot({ height }: { height: number }) {
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setExpanded(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return <div aria-hidden="true" data-kanban-drop-slot="true"
+    className="kanban-reorder-slot shrink-0 overflow-hidden rounded-3xl border-2 border-dashed border-blue-400/80 bg-blue-100/50 transition-[height,opacity] duration-200 ease-out dark:bg-blue-950/30"
+    style={{ height: expanded ? Math.max(90, height) : 0, opacity: expanded ? 1 : 0 }} />;
+}
+
 
 type BoardColumnProps = {
   column: Column;
@@ -14,12 +26,14 @@ type BoardColumnProps = {
   members: Member[];
   dragging: boolean;
   dropTarget: boolean;
+  insertionIndex?: number;
+  placeholderHeight?: number;
   onNewTask: () => void;
   onRenameColumn: (columnId: string, title: string) => void;
   onPrepareDrag: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
 };
 
-export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, onNewTask, onRenameColumn, onPrepareDrag }: BoardColumnProps) {
+export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, insertionIndex = -1, placeholderHeight = 0, onNewTask, onRenameColumn, onPrepareDrag }: BoardColumnProps) {
   const [renaming, setRenaming] = useState(false);
   return (
     <div
@@ -53,11 +67,12 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, 
         </div>}
       </div>
 
-      <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-auto pr-1">
-        {dropTarget && <div aria-live="polite" className="rounded-2xl border-2 border-dashed border-blue-400 bg-white/80 p-4 text-center text-xs font-semibold text-blue-700 dark:bg-slate-900 dark:text-blue-200">Solte aqui para mover a tarefa</div>}
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} member={members.find((member) => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} />
-        ))}
+      <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-auto pr-1" data-kanban-task-list="true">
+        {tasks.flatMap((task, index) => [
+          ...(dropTarget && insertionIndex === index ? [<DropSlot key={`insertion-slot-${index}`} height={placeholderHeight} />] : []),
+          <TaskCard key={task.id} task={task} member={members.find(member => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} />
+        ])}
+        {dropTarget && insertionIndex >= tasks.length && <DropSlot key={`insertion-slot-${tasks.length}`} height={placeholderHeight} />}
         {!tasks.length && totalTaskCount > 0 && !dragging && (
           <div className="grid min-h-32 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white/70 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400">
             Nenhuma tarefa corresponde aos filtros atuais.

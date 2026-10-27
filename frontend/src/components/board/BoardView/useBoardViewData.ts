@@ -22,7 +22,7 @@ export function useBoardViewData(workspace: Workspace | null | undefined, projec
         .join(" ")
         .toLowerCase()
         .includes(term);
-    });
+    }).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   }, [assigneeFilter, priorityFilter, project, search, workspace]);
 
   return { columns, filteredTasks };

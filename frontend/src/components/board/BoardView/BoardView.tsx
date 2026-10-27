@@ -7,12 +7,11 @@ import { BoardSummary } from "./BoardSummary";
 import { EmptyBoardState } from "./EmptyBoardState";
 import { useBoardViewData } from "./useBoardViewData";
 import { TaskDragPreview } from "./TaskDragPreview";
+import { positionFromVisibleTasks, isNoopReorder } from "@/lib/task-order";
 import { selectActiveProject, selectActiveWorkspace, useBoardStore } from "@/store/board-store";
-import { shouldMoveTask } from "@/lib/kanban-drag";
 import type { Task } from "@/types/board";
 
-// O arrasto é controlado por Pointer Events. A prévia acompanha o cursor em
-// uma camada própria, em vez de depender da imagem semitransparente nativa do HTML5.
+// Pointer Events: a tarefa acompanha o cursor; as outras abrem espaço para sua posição final.
 type DragSession = {
   pointerId: number;
   task: Task;
@@ -23,27 +22,37 @@ type DragSession = {
   offsetX: number;
   offsetY: number;
   width: number;
+  height: number;
   destinationId: string | null;
+  insertionIndex: number;
 };
 
 type BoardViewProps = { onNewTask: (columnId?: string) => void };
 
+function insertionFromPointer(column: HTMLElement, clientY: number): number {
+  // Elementos da prévia e do espaço reservado não entram no cálculo.
+  const cards = Array.from(column.querySelectorAll<HTMLElement>("[data-kanban-task-id]"));
+  return cards.filter(card => clientY > card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2).length;
+}
+
 export function BoardView({ onNewTask }: BoardViewProps) {
   const workspace = useBoardStore(selectActiveWorkspace);
   const project = useBoardStore(selectActiveProject);
-  const search = useBoardStore((state) => state.search);
-  const priorityFilter = useBoardStore((state) => state.priorityFilter);
-  const assigneeFilter = useBoardStore((state) => state.assigneeFilter);
-  const moveTask = useBoardStore((state) => state.moveTask);
-  const updateProject = useBoardStore((state) => state.updateProject);
-  const updateColumn = useBoardStore((state) => state.updateColumn);
-  const remoteLoading = useBoardStore((state) => state.remoteLoading);
+  const search = useBoardStore(state => state.search);
+  const priorityFilter = useBoardStore(state => state.priorityFilter);
+  const assigneeFilter = useBoardStore(state => state.assigneeFilter);
+  const moveTask = useBoardStore(state => state.moveTask);
+  const updateProject = useBoardStore(state => state.updateProject);
+  const updateColumn = useBoardStore(state => state.updateColumn);
+  const remoteLoading = useBoardStore(state => state.remoteLoading);
   const { columns, filteredTasks } = useBoardViewData(workspace, project, search, priorityFilter, assigneeFilter);
   const boardRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const suppressClickUntilRef = useRef(0);
   const pendingRef = useRef<DragSession | null>(null);
   const activeRef = useRef<DragSession | null>(null);
+  const dataRef = useRef({ filteredTasks, tasks: workspace?.tasks ?? [] });
+  dataRef.current = { filteredTasks, tasks: workspace?.tasks ?? [] };
   const [dragging, setDragging] = useState<DragSession | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -53,23 +62,23 @@ export function BoardView({ onNewTask }: BoardViewProps) {
     function onPointerMove(event: PointerEvent) {
       const pending = pendingRef.current;
       if (!pending || event.pointerId !== pending.pointerId) return;
-      const moved = Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY);
-      if (!activeRef.current && moved < 7) return;
+      if (!activeRef.current && Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY) < 7) return;
       if (event.cancelable) event.preventDefault();
       const hit = document.elementFromPoint(event.clientX, event.clientY);
       const column = hit?.closest<HTMLElement>("[data-kanban-column-id]");
       const destinationId = column?.dataset.kanbanColumnId ?? null;
-      const next = { ...pending, x: event.clientX, y: event.clientY, destinationId };
+      const insertionIndex = column ? insertionFromPointer(column, event.clientY) : -1;
+      const next = { ...pending, x: event.clientX, y: event.clientY, destinationId, insertionIndex };
       const previous = activeRef.current;
       activeRef.current = next;
-      // A prévia move diretamente pelo DOM: não renderizar todo o Kanban a cada pixel.
+      // Atualiza a prévia sem renderizar o quadro inteiro em cada movimento do mouse.
       if (previewRef.current) {
         previewRef.current.style.left = `${next.x - next.offsetX}px`;
         previewRef.current.style.top = `${next.y - next.offsetY}px`;
       }
-      if (!previous || previous.destinationId !== destinationId) setDragging(next);
+      if (!previous || previous.destinationId !== destinationId || previous.insertionIndex !== insertionIndex)
+        setDragging(next);
 
-      // Permite alcançar colunas além da região visível sem criar outra barra.
       const viewport = boardRef.current;
       if (viewport) {
         const rect = viewport.getBoundingClientRect();
@@ -86,10 +95,12 @@ export function BoardView({ onNewTask }: BoardViewProps) {
       activeRef.current = null;
       setDragging(null);
       if (moved) suppressClickUntilRef.current = Date.now() + 350;
-      // Nunca chama a API ao soltar na mesma coluna ou fora de uma coluna.
-      if (event.type === "pointerup" && moved && shouldMoveTask(moved.task.columnId, moved.destinationId)) {
-        moveTask(moved.task.id, moved.destinationId!);
-      }
+      if (event.type !== "pointerup" || !moved?.destinationId) return;
+      const { tasks, filteredTasks } = dataRef.current;
+      const position = positionFromVisibleTasks(tasks, filteredTasks, moved.task.id, moved.destinationId, moved.insertionIndex);
+      // Arrastar para a posição atual não chama a API, mesmo dentro da mesma coluna.
+      if (!isNoopReorder(tasks, moved.task.id, moved.destinationId, position))
+        moveTask(moved.task.id, moved.destinationId, position);
     }
     function cancel() {
       pendingRef.current = null;
@@ -119,15 +130,13 @@ export function BoardView({ onNewTask }: BoardViewProps) {
 
   const prepareDrag = (event: ReactPointerEvent<HTMLElement>, task: Task) => {
     if (event.button !== 0 || pendingRef.current || remoteLoading) return;
-    const target = event.target as HTMLElement;
-    if (target.closest("button, input, select, textarea, a")) return;
+    if ((event.target as HTMLElement).closest("button, input, select, textarea, a")) return;
     const rect = event.currentTarget.getBoundingClientRect();
     pendingRef.current = {
       task, pointerId: event.pointerId,
-      startX: event.clientX, startY: event.clientY,
-      x: event.clientX, y: event.clientY,
+      startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY,
       offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top,
-      width: rect.width, destinationId: null
+      width: rect.width, height: rect.height, destinationId: task.columnId, insertionIndex: 0
     };
   };
 
@@ -136,12 +145,16 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   return <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 lg:h-full">
     <BoardSummary project={project} taskCount={filteredTasks.length} memberCount={workspace.members.length}
       columnCount={columns.length} onRenameProject={updateProject} />
-    <div ref={boardRef} onClickCapture={(event) => { if (Date.now() < suppressClickUntilRef.current) { event.preventDefault(); event.stopPropagation(); } }} aria-label="Colunas do Kanban" className="kanban-board-scroll flex min-h-[390px] min-w-0 gap-4 overflow-x-auto overflow-y-hidden pb-2 lg:min-h-0 lg:flex-1">
-      {columns.map((column) => <BoardColumn key={column.id} column={column}
-        tasks={filteredTasks.filter((task) => task.columnId === column.id && task.id !== dragging?.task.id)}
-        totalTaskCount={workspace.tasks.filter((task) => task.columnId === column.id && task.projectId === project.id).length}
+    <div ref={boardRef} onClickCapture={event => {
+      if (Date.now() < suppressClickUntilRef.current) { event.preventDefault(); event.stopPropagation(); }
+    }} aria-label="Colunas do Kanban" className="kanban-board-scroll flex min-h-[390px] min-w-0 gap-4 overflow-x-auto overflow-y-hidden pb-2 lg:min-h-0 lg:flex-1">
+      {columns.map(column => <BoardColumn key={column.id} column={column}
+        tasks={filteredTasks.filter(task => task.columnId === column.id && task.id !== dragging?.task.id)}
+        totalTaskCount={workspace.tasks.filter(task => task.columnId === column.id && task.projectId === project.id).length}
         members={workspace.members} onNewTask={() => onNewTask(column.id)}
-        dragging={Boolean(dragging)} dropTarget={dragging?.destinationId === column.id && dragging.task.columnId !== column.id}
+        dragging={Boolean(dragging)} dropTarget={dragging?.destinationId === column.id}
+        insertionIndex={dragging?.destinationId === column.id ? dragging.insertionIndex : -1}
+        placeholderHeight={dragging?.height ?? 0}
         onPrepareDrag={prepareDrag} onRenameColumn={updateColumn} />)}
       {!columns.length && <div className="grid min-w-64 place-items-center rounded-2xl border border-dashed border-slate-300 px-6 text-sm text-slate-500">Adicione uma coluna para começar.</div>}
     </div>

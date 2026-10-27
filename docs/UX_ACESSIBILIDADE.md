@@ -31,3 +31,11 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 O frontend inclui testes automatizados de comportamento de teclado e restauração de foco. A compilação e os demais testes continuam definidos no workflow de integração contínua.
 
 Após cada alteração de interface, testar manualmente pelo menos: navegação por teclado, abertura e fechamento de diálogos, foco após exclusões, criação de tarefa com erros de validação, pesquisa sem resultados e uso em largura mobile.
+
+## Edição de tarefas e organização do quadro
+
+- O título da tarefa pode ser alterado no painel lateral usando **Editar**, com confirmação por Enter ou pelo botão Salvar e cancelamento por Escape ou Cancelar.
+- O campo de tags mantém as sugestões do catálogo e aceita inclusão tanto por Enter quanto pelo botão **Adicionar** na mesma linha.
+- O drag-and-drop permite reordenar tarefas dentro da mesma coluna, inserindo-as antes ou depois de outro cartão. Um espaço azul animado antecipa a posição de destino, e o cartão arrastado acompanha o cursor.
+- Arrastos cancelados, solturas fora das colunas e movimentos para a posição original não enviam requisições de gravação.
+- A ordem é armazenada pelo backend, mantendo-se após atualização da página. A mudança entre colunas reorganiza tanto a origem quanto o destino.

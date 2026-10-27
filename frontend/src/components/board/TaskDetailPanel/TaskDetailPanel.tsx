@@ -85,6 +85,7 @@ export function TaskDetailPanel() {
             value={task.title}
             onSave={(value) => updateTask(task.id, { title: value })}
             ariaLabel="Editar título da tarefa"
+            showEditLabel
             className="max-w-full text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white"
             inputClassName="text-xl font-semibold"
           />

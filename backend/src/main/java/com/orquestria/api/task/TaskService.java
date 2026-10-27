@@ -110,7 +110,23 @@ public class TaskService {
         Task task = tasks.findById(taskId).orElseThrow(() -> new ResourceNotFoundException("Tarefa"));
         if (!task.getProject().getId().equals(projectId)) throw new ResourceNotFoundException("Tarefa");
         BoardColumn column = requireColumn(projectId, request.columnId());
-        task.moveTo(column, request.position());
-        return TaskResponse.from(tasks.saveAndFlush(task));
+        // Inserir na posição solicitada, sem deixar posições duplicadas em nenhuma coluna.
+        // Quando a origem é o destino, a posição é calculada após remover a própria tarefa.
+        List<Task> projectTasks = tasks.findByProject_IdOrderByPositionAscIdAsc(projectId);
+        UUID sourceId = task.getColumn().getId();
+        List<Task> source = projectTasks.stream()
+            .filter(item -> item.getColumn().getId().equals(sourceId) && !item.getId().equals(taskId))
+            .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+        List<Task> destination = sourceId.equals(column.getId()) ? source : projectTasks.stream()
+            .filter(item -> item.getColumn().getId().equals(column.getId()))
+            .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+        int insertion = Math.max(0, Math.min(request.position(), destination.size()));
+        destination.add(insertion, task);
+        if (!sourceId.equals(column.getId())) {
+            for (int i = 0; i < source.size(); i++) source.get(i).moveTo(source.get(i).getColumn(), i);
+        }
+        for (int i = 0; i < destination.size(); i++) destination.get(i).moveTo(column, i);
+        tasks.flush();
+        return TaskResponse.from(task);
     }
 }

@@ -94,3 +94,7 @@ O catálogo é separado por conta. Tags com nomes equivalentes ignorando maiúsc
 A verificação de propriedade acontece no servidor, não depende de filtros visuais do frontend. Para detalhes de execução e persistência, consulte [Arquitetura](ARQUITETURA.md) e [Backend](../backend/README.md).
 
 Para chamadas Bash com `curl` e exemplos de payloads coerentes com os DTOs do backend, consulte [Exemplos de uso da API](API_EXEMPLOS.md).
+
+### Ordenação das tarefas
+
+`POST /api/projects/{projectId}/tasks/{taskId}/move` recebe `{"columnId":"uuid-da-coluna","position":0}`. `position` é o índice da tarefa **após sua remoção da posição anterior**, começando em zero. Também permite reordenação dentro da mesma coluna. A API recalcula as posições sequenciais das tarefas afetadas na origem e no destino em uma transação e retorna a tarefa movimentada. O cliente não envia a operação quando a posição não muda.

@@ -11,9 +11,10 @@ type InlineEditProps = {
   inputClassName?: string;
   ariaLabel: string;
   onEditingChange?: (editing: boolean) => void;
+  showEditLabel?: boolean;
 };
 
-export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel, onEditingChange }: InlineEditProps) {
+export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel, onEditingChange, showEditLabel = false }: InlineEditProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -42,9 +43,14 @@ export function InlineEdit({ value, onSave, className, inputClassName, ariaLabel
         onClick={() => { setEditing(true); onEditingChange?.(true); }}
         className={cn("group inline-flex max-w-full items-center gap-2 text-left", className)}
         aria-label={ariaLabel}
+        title={ariaLabel}
       >
-        <span className="truncate">{value}</span>
-        <Pencil className="size-3.5 shrink-0 text-slate-400 opacity-0 transition group-hover:opacity-100" />
+        <span className="min-w-0 truncate">{value}</span>
+        {showEditLabel ? (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            <Pencil className="size-3.5" /> Editar
+          </span>
+        ) : <Pencil className="size-3.5 shrink-0 text-slate-400 opacity-0 transition group-hover:opacity-100" />}
       </button>
     );
   }
