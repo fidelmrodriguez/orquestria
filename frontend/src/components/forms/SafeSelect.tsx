@@ -63,7 +63,7 @@ export function SafeSelect({ label, value, options, onChange, className = "" }: 
         }
       }}>
       <span className="min-w-0 truncate">{current?.label || "Selecione..."}</span>
-      <ChevronDown className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+      <ChevronDown className="mr-1 size-4 shrink-0 text-slate-400" aria-hidden="true" />
     </button>
     {open && <div id={`${id}-list`} role="listbox" aria-label={label}
       className="absolute inset-x-0 top-full z-[95] mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">

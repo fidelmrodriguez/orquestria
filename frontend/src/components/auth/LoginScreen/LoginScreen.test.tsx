@@ -201,3 +201,16 @@ describe("LoginScreen", () => {
   });
 
 });
+
+
+describe("prioridade do formulário no mobile", () => {
+  it("mostra o login antes do conteúdo institucional, preservando a ordem desktop", async () => {
+    const { container } = render(<LoginScreen />);
+    await screen.findByRole("button", { name: "Acessar demonstração" });
+    const form = container.querySelector("form");
+    const marketing = screen.getByRole("heading", { name: /Gestão de projetos com quadro/i }).parentElement?.parentElement;
+    expect(form).toHaveClass("order-1", "lg:order-2");
+    expect(marketing).toHaveClass("order-2", "lg:order-1");
+    expect(container.querySelector("section")).toHaveClass("lg:grid-cols-[1.05fr_.95fr]");
+  });
+});

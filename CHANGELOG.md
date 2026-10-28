@@ -6,6 +6,10 @@ Este arquivo registra mudanças relevantes do produto por versão. O histórico 
 
 ### Melhorias de usabilidade e desempenho
 
+- Login e cadastro apresentados primeiro no mobile, mantendo a composição institucional do desktop.
+- Correção de quebra de nomes muito longos em Gerenciar itens, sem expandir horizontalmente os cartões.
+- Área rolável de segurança após o botão Sair no menu mobile e espaçamento para as setas dos filtros.
+
 - Menu mobile com rolagem até o último item, respeitando áreas seguras e escondendo apenas o trilho de rolagem.
 - Formulário Nova coluna integrado ao seletor no mobile, sem cortes laterais ao abrir o teclado.
 - Menu de movimentação de tarefas acima de outros cards por portal e linha de inserção do drag-and-drop mais discreta.

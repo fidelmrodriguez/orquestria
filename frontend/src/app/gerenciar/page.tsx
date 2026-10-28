@@ -189,7 +189,7 @@ export default function GerenciarPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 dark:bg-slate-950 dark:text-slate-100 sm:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto min-w-0 max-w-6xl space-y-6">
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[.22em] text-blue-600">Orquestria / Gerenciamento</p>
@@ -217,7 +217,7 @@ export default function GerenciarPage() {
               {message && <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">{message}</p>}
             </div>
 
-            <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
+            <div className="grid min-w-0 gap-5 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
               <aside className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <div>
                   <h2 className="text-lg font-bold">Workspaces</h2>
@@ -232,7 +232,7 @@ export default function GerenciarPage() {
                     return (
                       <div key={workspace.id} className={`rounded-xl border px-3 py-3 ${workspaceFilter === workspace.id ? "border-blue-500 bg-blue-50" : "border-slate-200"}`}>
                         <button type="button" disabled={busy} className="w-full text-left text-sm font-semibold" onClick={() => {setWorkspaceFilter(workspace.id);setSelectedProjectId("");}}>
-                          <span className="block break-words">{humanName(workspace)}</span>
+                          <span className="block [overflow-wrap:anywhere]">{humanName(workspace)}</span>
                           <span className="mt-1 block text-xs font-normal text-slate-500">{count} projeto{count === 1 ? "" : "s"}</span>
                         </button>
                         {!workspace.invited && <button type="button" disabled={busy || count > 0} title={count ? "Exclua primeiro os projetos vinculados" : "Excluir workspace vazio"} onClick={() => askDelete({kind:"workspace",id:workspace.id},humanName(workspace),"O workspace vazio será removido permanentemente.")} className="mt-3 rounded-lg border border-rose-300 px-3 py-2 text-xs font-semibold text-rose-700 disabled:opacity-30">Excluir workspace</button>}
@@ -248,8 +248,8 @@ export default function GerenciarPage() {
                 </div>
               </aside>
 
-              <div className="space-y-5">
-                <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="min-w-0 space-y-5">
+                <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-xl font-bold">Projetos</h2>
@@ -263,16 +263,16 @@ export default function GerenciarPage() {
                       const groupProjects = visibleProjects.filter(project => (project.workspaceId || "__none__") === groupId);
                       const groupName = groupId === "__none__" ? "Sem workspace" : humanName(workspaceMap.get(groupId) ?? {id:groupId});
                       return (
-                        <div key={groupId} className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
-                          <div className="bg-slate-50 px-4 py-3 dark:bg-slate-800"><h3 className="text-sm font-bold">Workspace: {groupName}</h3></div>
+                        <div key={groupId} className="min-w-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                          <div className="bg-slate-50 px-4 py-3 dark:bg-slate-800"><h3 className="min-w-0 text-sm font-bold [overflow-wrap:anywhere]">Workspace: {groupName}</h3></div>
                           <ul className="divide-y divide-slate-200 dark:divide-slate-700">
-                            {groupProjects.map(project => <li key={project.id} className="flex flex-wrap items-center justify-between gap-4 px-4 py-4">
-                              <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <strong className="break-words">{humanName(project)}</strong>
+                            {groupProjects.map(project => <li key={project.id} className="flex min-w-0 flex-wrap items-center justify-between gap-4 px-4 py-4">
+                              <div className="min-w-0 max-w-full flex-1 basis-full sm:basis-56">
+                                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                                  <strong className="min-w-0 max-w-full [overflow-wrap:anywhere]">{humanName(project)}</strong>
                                   {selectedProjectId === project.id && <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-900">Selecionado</span>}
                                 </div>
-                                <p className="mt-1 text-xs text-slate-500">{workspaceName(project)}{(duplicateCounts.get(humanName(project)) ?? 0) > 1 && ` · ID: ${project.id.slice(0,8)}`}</p>
+                                <p className="mt-1 max-w-full text-xs text-slate-500 [overflow-wrap:anywhere]">{workspaceName(project)}{(duplicateCounts.get(humanName(project)) ?? 0) > 1 && ` · ID: ${project.id.slice(0,8)}`}</p>
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 <button type="button" disabled={busy} onClick={() => setSelectedProjectId(project.id)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-50">Ver tarefas</button>
@@ -286,9 +286,9 @@ export default function GerenciarPage() {
                   </div>
                 </section>
 
-                {selectedProject && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                {selectedProject && <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">Projeto selecionado</p>
-                  <h2 className="mt-2 text-xl font-bold">{humanName(selectedProject)}</h2>
+                  <h2 className="mt-2 text-xl font-bold [overflow-wrap:anywhere]">{humanName(selectedProject)}</h2>
                   <p className="mt-1 text-sm text-slate-500">Workspace: <strong>{selectedWorkspaceName}</strong></p>
                   <p className="mt-1 text-sm text-slate-500">Primeiro remova ou mova as tarefas; depois exclua a coluna vazia.</p>
                   {!dependenciesLoaded ? <p role="status" className="mt-4 text-sm">Carregando colunas e tarefas...</p> : projectError ? (
@@ -306,13 +306,13 @@ export default function GerenciarPage() {
                         return <div key={column.id} className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                              <h3 className="font-bold">{humanName(column)} <span className="text-sm font-normal text-slate-500">({count} tarefa{count === 1 ? "" : "s"})</span></h3>
+                              <h3 className="font-bold [overflow-wrap:anywhere]">{humanName(column)} <span className="text-sm font-normal text-slate-500">({count} tarefa{count === 1 ? "" : "s"})</span></h3>
                               <p className="mt-1 text-xs text-slate-500">{count ? "Remova as tarefas desta coluna primeiro." : "Coluna vazia, pode ser excluída."}</p>
                             </div>
                             <button type="button" disabled={busy || count > 0 || hasOrphanTasks} title={count ? "A coluna contém tarefas" : "Excluir coluna vazia"} onClick={() => askDelete({kind:"column",projectId:selectedProjectId,id:column.id}, humanName(column),"A coluna vazia será excluída.")} className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-700 disabled:cursor-not-allowed disabled:opacity-30">Excluir coluna</button>
                           </div>
                           {columnTasks.length > 0 && <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-700">
-                            {columnTasks.map(task => <li key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><strong>{humanName(task)}</strong><button type="button" disabled={busy} onClick={() => askDelete({kind:"task",projectId:selectedProjectId,id:task.id},humanName(task),"A tarefa e seus comentários serão excluídos permanentemente.")} className="rounded-lg border border-rose-200 px-3 py-2 font-semibold text-rose-700">Excluir tarefa</button></li>)}
+                            {columnTasks.map(task => <li key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><strong className="min-w-0 [overflow-wrap:anywhere]">{humanName(task)}</strong><button type="button" disabled={busy} onClick={() => askDelete({kind:"task",projectId:selectedProjectId,id:task.id},humanName(task),"A tarefa e seus comentários serão excluídos permanentemente.")} className="rounded-lg border border-rose-200 px-3 py-2 font-semibold text-rose-700">Excluir tarefa</button></li>)}
                           </ul>}
                         </div>;
                       })}
@@ -328,7 +328,7 @@ export default function GerenciarPage() {
       {pending && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4">
         <section role="alertdialog" aria-modal="true" aria-labelledby="delete-heading" className="w-full max-w-lg rounded-2xl bg-white p-6 text-slate-950 shadow-2xl">
           <h2 id="delete-heading" className="text-xl font-bold">Confirmar exclusão</h2>
-          <p className="mt-3 text-sm">Item: <strong>{pending.label}</strong></p>
+          <p className="mt-3 text-sm [overflow-wrap:anywhere]">Item: <strong>{pending.label}</strong></p>
           <p className="mt-2 text-sm text-rose-700">{pending.impact}</p>
           {destructive && <label className="mt-5 block text-sm font-medium">Digite <strong>EXCLUIR</strong> para confirmar:
             <input autoFocus autoComplete="off" disabled={busy} value={confirmation} onChange={event => setConfirmation(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 p-2" />

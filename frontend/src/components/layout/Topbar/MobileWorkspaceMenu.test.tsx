@@ -46,6 +46,12 @@ describe("menu de navegação mobile/tablet", () => {
     expect(dialog).toHaveClass("fixed", "inset-0", "h-[100dvh]", "bg-white");
     // Há um só contêiner com rolagem vertical; a barra é ocultada por CSS.
     expect(dialog.querySelector(".mobile-navigation-scroll")).toHaveClass("overflow-y-auto", "overflow-x-hidden");
+    // O espaçador integra o conteúdo rolável e fica depois do botão Sair.
+    const spacer = dialog.querySelector(".mobile-navigation-end-spacer");
+    const logout = screen.getByRole("button", { name: "Sair" });
+    expect(spacer).toBeInTheDocument();
+    expect(logout).toHaveClass("min-h-12");
+    expect(logout.parentElement?.nextElementSibling).toBe(spacer);
     expect(screen.getByRole("navigation", { name: "Projetos do menu" })).toBeInTheDocument();
     expect(screen.getByTestId("filtros-do-menu")).toBeInTheDocument();
     expect(document.body.style.overflow).toBe("hidden");

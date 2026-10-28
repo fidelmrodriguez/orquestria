@@ -115,10 +115,12 @@ export function MobileWorkspaceMenu({ open, workspace, projectId, priorityFilter
             <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">Tema</span>
             <ThemeToggle theme={theme} onChangeTheme={onChangeTheme} className="icon-button" />
           </div>
-          <button type="button" onClick={onLogout} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-red-600 dark:border-slate-800">
+          <button type="button" onClick={onLogout} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-red-600 dark:border-slate-800">
             <LogOut className="size-4" /> Sair
           </button>
         </div>
+        {/* Espaço rolável real: permite trazer Sair acima das barras do Android. */}
+        <div aria-hidden="true" className="mobile-navigation-end-spacer shrink-0" />
       </div>
     </div>,
     document.body

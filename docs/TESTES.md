@@ -99,3 +99,10 @@ Os testes HTTP sobre PostgreSQL validam o isolamento entre projetos privados e c
 - Testar notificação de uma operação confirmada, atualizar a página, abrir a central e conferir a ausência da bolinha verde; uma falha HTTP não deve gerar aviso de sucesso.
 
 A central de notificações não é um serviço push nem utiliza uma nova tabela na API. O teste de sincronização entre contas/dispositivos permanece fora do escopo deste recurso local.
+
+## Regressão dos layouts móveis de acesso e gerenciamento
+
+- Em **Gerenciar itens**, usar um nome de projeto longo sem espaços, com 30+ caracteres: verificar que quebra em mais de uma linha dentro do cartão, sem ampliar a largura da página nem cortar as ações. Conferir também nomes de workspace, coluna e tarefa.
+- Em largura abaixo de **1024 px**, o formulário de login deve ser o primeiro conteúdo visto e recebido na ordem de leitura. Conferir entrada como guest, login pessoal e cadastro; acima desse breakpoint, a apresentação permanece à esquerda do formulário.
+- No menu hambúrguer do Chrome Android, rolar até **Sair**, confirmando que o botão inteiro fica acima da barra de navegação do sistema. A barra visual pode ficar escondida, mas o gesto de rolagem deve continuar funcionando.
+- Nos filtros de prioridade e responsável, verificar um pequeno recuo à direita da seta no celular sem comprometer clique, teclado ou escolha das opções.

@@ -101,3 +101,12 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - Notificações de operações são produzidas **após confirmação** no modo API: criação de workspaces, projetos, colunas e tarefas, edição, movimentação, duplicação e comentários. Erros de API não geram avisos falsos de sucesso; login e sincronização de dados não acendem a campainha.
 - São exibidos lembretes para tarefas atribuídas ao usuário atual que estão vencidas, vencem hoje ou em até três dias. Avisos de tarefas oferecem Abrir tarefa quando o card ainda existe.
 - Esta central é um recurso local da aplicação web, não um serviço de push: não entrega mensagens enquanto o aplicativo está fechado, não sincroniza a leitura entre navegadores e não observa alterações de outros usuários sem um fluxo de atualização explícito.
+
+## Refinamentos para navegadores móveis
+
+- **Acesso prioritário:** abaixo de 1024 px, o formulário de login ou cadastro aparece antes do conteúdo institucional. No desktop, a apresentação permanece à esquerda e o formulário à direita; a autenticação em si não muda.
+- **Gerenciar itens:** nomes de workspaces, projetos, colunas e tarefas sem espaços passam a quebrar em mais de uma linha quando atingem a borda do cartão. A largura da grade permanece limitada à viewport, sem exigir rolagem horizontal.
+- **Menu de navegação:** a região com rolagem mantém um espaçador após **Sair**, permitindo deslocar o último botão para cima das barras de navegação de celulares. A barra de rolagem continua invisível, mas o gesto vertical permanece ativo.
+- **Filtros:** as setas dos menus de prioridade e responsável mantêm uma margem interna em telas pequenas, sem alterar o comportamento de teclado nem a seleção.
+
+Verificação manual recomendada: Chrome Android com barras de endereço e navegação visíveis, nomes de projeto longos sem espaços, menu aberto até alcançar **Sair**, filtros estreitos e entrada inicial no login sem rolar.

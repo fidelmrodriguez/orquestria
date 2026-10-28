@@ -117,29 +117,8 @@ export function LoginScreen() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,.16),_transparent_34%),linear-gradient(135deg,#f8fafc,#eef2ff)] p-4 text-slate-950 dark:bg-slate-950 dark:text-white sm:p-8">
-      <section className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[1.05fr_.95fr]">
-        <div className="space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 shadow-card dark:bg-slate-950/70 dark:text-slate-300">
-            <ShieldCheck className="size-4" /> Ambiente de demonstração e contas individuais
-          </div>
-          <div className="space-y-5">
-            <h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">
-              Gestão de projetos com quadro, prioridades e organização de tarefas.
-            </h1>
-            <p className="max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
-              Entre como guest para explorar um quadro compartilhado ou crie sua conta para ter projetos privados.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[["Projetos", "Frentes organizadas por workspace"], ["Kanban", "Movimente tarefas entre etapas"], ["Contas", "Dados privados para quem se cadastrar"]].map(([itemTitle, description]) => (
-              <div key={itemTitle} className="rounded-3xl border border-white/70 bg-white/70 p-5 shadow-card dark:border-slate-800 dark:bg-slate-950/70">
-                <p className="text-sm font-semibold">{itemTitle}</p>
-                <p className="mt-2 text-sm leading-5 text-slate-500 dark:text-slate-400">{description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <form onSubmit={(event) => void submit(event)} className="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-soft dark:border-slate-800 dark:bg-slate-950/90 sm:p-8">
+      <section className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-6xl items-start gap-6 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-8">
+        <form onSubmit={(event) => void submit(event)} className="order-1 rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-soft dark:border-slate-800 dark:bg-slate-950/90 sm:p-8 lg:order-2">
           <div className="mb-8 flex items-center gap-3">
             <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
               <LockKeyhole className="size-5" />
@@ -232,6 +211,27 @@ export function LoginScreen() {
             </p>
           )}
         </form>
+        <div className="order-2 space-y-8 lg:order-1">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 shadow-card dark:bg-slate-950/70 dark:text-slate-300">
+            <ShieldCheck className="size-4" /> Ambiente de demonstração e contas individuais
+          </div>
+          <div className="space-y-5">
+            <h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">
+              Gestão de projetos com quadro, prioridades e organização de tarefas.
+            </h1>
+            <p className="max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
+              Entre como guest para explorar um quadro compartilhado ou crie sua conta para ter projetos privados.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[["Projetos", "Frentes organizadas por workspace"], ["Kanban", "Movimente tarefas entre etapas"], ["Contas", "Dados privados para quem se cadastrar"]].map(([itemTitle, description]) => (
+              <div key={itemTitle} className="rounded-3xl border border-white/70 bg-white/70 p-5 shadow-card dark:border-slate-800 dark:bg-slate-950/70">
+                <p className="text-sm font-semibold">{itemTitle}</p>
+                <p className="mt-2 text-sm leading-5 text-slate-500 dark:text-slate-400">{description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
     </main>
   );
