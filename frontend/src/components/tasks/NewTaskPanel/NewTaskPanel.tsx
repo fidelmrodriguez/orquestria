@@ -64,9 +64,6 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
   });
 
   const current = watch();
-  const updateValue = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
-    setValue(key, value, { shouldValidate: true, shouldDirty: true });
-  };
 
   if (!open || !workspace || !project) return null;
 
@@ -127,10 +124,10 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
             <TaskEditorFields columns={columns} members={projectMembers}
               values={{ columnId: current.columnId || "", assigneeId: current.assigneeId || "",
                 priority: current.priority || "media", dueDate: current.dueDate || "", tags: selectedTags }}
-              onColumnChange={value => updateValue("columnId", value)}
-              onAssigneeChange={value => updateValue("assigneeId", value)}
-              onPriorityChange={value => updateValue("priority", value)}
-              onDueDateChange={value => updateValue("dueDate", value)}
+              onColumnChange={value => setValue("columnId", value, { shouldValidate: true, shouldDirty: true })}
+              onAssigneeChange={value => setValue("assigneeId", value, { shouldValidate: true, shouldDirty: true })}
+              onPriorityChange={value => setValue("priority", value, { shouldValidate: true, shouldDirty: true })}
+              onDueDateChange={value => setValue("dueDate", value, { shouldValidate: true, shouldDirty: true })}
               onTagsChange={setSelectedTags} />
             {errors.columnId && <span className="error-text">{errors.columnId.message}</span>}
             {errors.assigneeId && <span className="error-text">{errors.assigneeId.message}</span>}
