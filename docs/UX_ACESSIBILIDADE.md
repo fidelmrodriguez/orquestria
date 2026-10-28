@@ -4,7 +4,7 @@ O Orquestria oferece interação com o Kanban por mouse, toque e teclado. As mel
 
 ## Navegação e foco
 
-- **Tema global:** a opção clara/escura escolhida no Kanban é preservada no armazenamento e aplicada também às rotas independentes de autenticação, gerenciamento, equipe e catálogo de tags. O login não contém controle próprio de tema. O botão **Voltar ao Kanban** mantém o mesmo estilo e foco acessível nas três páginas internas.
+- **Tema global:** a opção clara/escura escolhida no Kanban é preservada no armazenamento e aplicada também às rotas independentes de autenticação, gerenciamento, equipe e catálogo de tags. O login não contém controle próprio de tema. O botão **Voltar ao Kanban** mantém o mesmo estilo e foco acessível nas três páginas internas. A tela de espera **Preparando seu ambiente** também utiliza a preferência já aplicada no documento, incluindo fundo, cartão, spinner, contador e textos; não apresenta seletor de tema e não altera a rotina de verificação de prontidão.
 
 - Cartões de tarefa são acionáveis com **Enter** ou **Espaço**. A edição do responsável e da coluna também está disponível nos detalhes da tarefa, sem depender de arrastar e soltar.
 - Os painéis de detalhes e criação de tarefas, além das confirmações de exclusão, identificam-se como diálogos, recebem foco na abertura, mantêm **Tab** dentro do painel e exigem o **X** para fechar os drawers de tarefa (o fundo escuro e Escape não os dispensam). Em confirmações destrutivas, a ação **Cancelar** continua explícita.
