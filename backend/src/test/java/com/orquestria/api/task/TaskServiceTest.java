@@ -61,9 +61,12 @@ class TaskServiceTest {
         when(projects.findById(projectId)).thenReturn(Optional.of(project));
         when(columns.findById(columnId)).thenReturn(Optional.of(column));
         when(user.getId()).thenReturn(owner);
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(owner), eq(unknown))).thenReturn(0);
+        // A associação de responsáveis agora é específica do projeto, não da equipe global do dono.
+        // Usar os argumentos efetivos evita o PotentialStubbingProblem do Mockito em strict mode.
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq(projectId), eq(unknown))).thenReturn(0);
         assertThrows(ResponseStatusException.class, () ->
             service.create(projectId, new CreateTaskRequest("Tarefa", null, columnId, TaskPriority.MEDIA, 0, null, unknown.toString(), null)));
+        verify(jdbc).queryForObject(contains("project_members"), eq(Integer.class), eq(projectId), eq(unknown));
     }
 
     @Test
