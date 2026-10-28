@@ -59,5 +59,7 @@ describe("filtros da barra superior", () => {
     expect(screen.getByRole("combobox", { name: "Filtrar por prioridade" }).parentElement?.parentElement).toHaveClass("hidden", "md:block");
     expect(screen.getByRole("combobox", { name: "Filtrar por responsável" }).parentElement?.parentElement).toHaveClass("hidden", "lg:block");
     expect(container.querySelectorAll('button[role="combobox"]')).toHaveLength(2);
+    expect(screen.getByRole("combobox", { name: "Filtrar por prioridade" })).toHaveClass("!pl-3", "!pr-5");
+    expect(screen.getByRole("combobox", { name: "Filtrar por responsável" })).toHaveClass("!pl-3", "!pr-5");
   });
 });

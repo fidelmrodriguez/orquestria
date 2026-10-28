@@ -12,11 +12,12 @@ import { WorkspaceNavigation } from "./WorkspaceNavigation";
 type SidebarProps = {
   onNavigate?: () => void;
   dropdown?: boolean;
+  showBrand?: boolean;
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
 };
 
-export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onToggleCollapsed }: SidebarProps) {
+export function Sidebar({ onNavigate, dropdown = false, showBrand = true, collapsed = false, onToggleCollapsed }: SidebarProps) {
   const workspaces = useBoardStore((state) => state.workspaces);
   const activeWorkspaceId = useBoardStore((state) => state.activeWorkspaceId);
   const activeProjectId = useBoardStore((state) => state.activeProjectId);
@@ -113,7 +114,7 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
 
   return (
     <aside className={cn("flex min-h-0 flex-col gap-3 backdrop-blur", dropdown ? "border-0 bg-transparent p-0 dark:bg-transparent" : "h-full overflow-hidden border-r border-slate-200 bg-white/75 p-4 dark:border-slate-800 dark:bg-slate-950/75 lg:p-4")}>
-      {dropdown ? <SidebarBrand /> : <div className="flex items-center justify-between gap-2">
+      {dropdown ? (showBrand ? <SidebarBrand /> : null) : <div className="flex items-center justify-between gap-2">
         <SidebarBrand />
         <button type="button" onClick={onToggleCollapsed} aria-label="Recolher sidebar" title="Recolher sidebar"
           className="grid size-8 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900">

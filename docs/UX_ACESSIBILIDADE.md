@@ -112,3 +112,10 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - **Filtros:** as setas dos menus de prioridade e responsável mantêm uma margem interna em telas pequenas, sem alterar o comportamento de teclado nem a seleção.
 
 Verificação manual recomendada: Chrome Android com barras de endereço e navegação visíveis, nomes de projeto longos sem espaços, menu aberto até alcançar **Sair** sem cortes ou espaços excessivos, troca de contas com o menu inicialmente fechado, filtros estreitos, inicialização compacta da API e entrada inicial no login sem rolar.
+
+
+### Refinamentos de login, navegação e seletores (outubro de 2026)
+
+- Os textos auxiliares sob **Entrar como guest** e **Entrar na minha conta** foram encurtados para caber em até duas linhas nos tamanhos usuais de celular, sem truncar o conteúdo. O texto é o mesmo em todas as resoluções.
+- O menu mobile exibe a marca Orquestria primeiro e, logo abaixo, a identificação **Conectado como**. O restante do menu tem rolagem independente, mas **Sair** fica em um rodapé permanente, fora do conteúdo rolável e com espaçamento para a área segura inferior do dispositivo.
+- Nos filtros da navegação, os selects personalizados oferecem recuo adicional à direita para o ícone de seta. Na página Equipe, o select de projetos usa uma seta própria com `appearance-none` e padding reservado para o ícone.

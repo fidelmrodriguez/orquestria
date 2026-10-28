@@ -48,14 +48,21 @@ describe("menu de navegação mobile/tablet", () => {
     expect(dialog).toHaveClass("fixed", "inset-0", "h-[100dvh]", "bg-white");
     // Há um só contêiner com rolagem vertical; a barra é ocultada por CSS.
     expect(dialog.querySelector(".mobile-navigation-scroll")).toHaveClass("overflow-y-auto", "overflow-x-hidden");
-    // O scroll ocupa a altura disponível sem um bloco vazio de 112 px.
+    // O rodapé fica fora do scroll: o botão Sair não depende da rolagem do Android.
     const scroll = dialog.querySelector(".mobile-navigation-scroll");
+    const footer = screen.getByTestId("mobile-navigation-footer");
     const logout = screen.getByRole("button", { name: "Sair" });
     expect(scroll).toBeInTheDocument();
     expect(dialog.querySelector(".mobile-navigation-end-spacer")).not.toBeInTheDocument();
-    expect(logout).toHaveClass("min-h-12");
-    expect(logout.parentElement?.nextElementSibling).toBeNull();
-    expect(screen.getByLabelText("Conectado como Maria Teste")).toBeInTheDocument();
+    expect(footer).toHaveClass("shrink-0");
+    expect(footer).toHaveClass("pb-[max(12px,env(safe-area-inset-bottom))]");
+    expect(footer).toContainElement(logout);
+    expect(scroll).not.toContainElement(logout);
+    expect(scroll?.nextElementSibling).toBe(footer);
+    expect(logout).toHaveClass("min-h-12", "w-full");
+    const brand = screen.getByText("Orquestria");
+    const identity = screen.getByLabelText("Conectado como Maria Teste");
+    expect(brand.compareDocumentPosition(identity) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText("Maria Teste")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Projetos do menu" })).toBeInTheDocument();
     expect(screen.getByTestId("filtros-do-menu")).toBeInTheDocument();

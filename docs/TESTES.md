@@ -114,3 +114,11 @@ A central de notificações não é um serviço push nem utiliza uma nova tabela
 - No celular, abrir o hambúrguer e rolar até o final: **Sair** deve ficar totalmente visível e a área após o botão deve ser discreta, respeitando a barra de navegação do dispositivo.
 - Com o menu aberto, clicar em **Sair**, autenticar-se com outra conta e conferir que o menu começa **fechado** e mostra o nome do novo usuário quando aberto novamente. Repetir com a mesma conta. Verificar também o logout iniciado pelo menu do usuário em telas maiores e por expiração de sessão.
 - A tela **Preparando seu ambiente** deve permanecer menor no mobile sem alterar o intervalo de consulta ao readiness, a verificação automática ou o redirecionamento quando a API responder `UP`.
+
+
+## Regressão mobile — menu, login e selects (outubro de 2026)
+
+- Abrir o menu a 360px e 390px no Chrome Android: confirmar **Orquestria** seguido do usuário conectado, rolar as seções até os filtros e verificar que **Sair** permanece completamente visível no rodapé, mesmo sem rolar ao final. Verificar também com zoom do navegador e navegação por teclado.
+- Abrir guest e login pessoal na mesma largura: validar que as descrições logo abaixo dos títulos são concisas e não excedem duas linhas em condições usuais de exibição; conferir que a cópia permanece idêntica no desktop.
+- Comparar o recuo das setas em **Filtrar por prioridade**, **Filtrar por responsável** e no seletor **Projeto que será compartilhado** da página Equipe; validar abertura e seleção em todos.
+- Conferir que o rodapé **Sair** não se sobrepõe às opções do menu: a seção superior deve rolar independentemente e os itens finais continuar acessíveis.

@@ -15,7 +15,7 @@ type TopbarFiltersProps = {
 
 /** Os filtros reutilizam os mesmos menus do drawer: sem popup nativo do navegador. */
 export function TopbarFilters({ workspace, projectId, priorityFilter, assigneeFilter, priorityClassName, assigneeClassName, onPriorityChange, onAssigneeChange }: TopbarFiltersProps) {
-  const controlClassName = "!rounded-2xl !px-3 !py-2 !text-sm focus:!ring-1 focus:!ring-slate-200 dark:focus:!ring-slate-700";
+  const controlClassName = "!rounded-2xl !pl-3 !pr-5 !py-2 !text-sm focus:!ring-1 focus:!ring-slate-200 dark:focus:!ring-slate-700";
 
   return (
     <>

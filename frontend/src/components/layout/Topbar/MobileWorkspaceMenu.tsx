@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { LogOut, X } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar/Sidebar";
+import { SidebarBrand } from "@/components/layout/Sidebar/SidebarBrand";
 import { ThemeToggle } from "./ThemeToggle";
 import type { Priority, Workspace } from "@/types/board";
 import { TopbarFilters } from "./TopbarFilters";
@@ -100,6 +101,7 @@ export function MobileWorkspaceMenu({ open, currentUser, workspace, projectId, p
       </div>
 
       <div className="mobile-navigation-scroll min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+        <div className="mb-4"><SidebarBrand /></div>
         {currentUser && (
           <div className="mb-4 flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900" aria-label={`Conectado como ${currentUser.name}`}>
             <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-semibold text-white dark:bg-white dark:text-slate-950">
@@ -111,7 +113,7 @@ export function MobileWorkspaceMenu({ open, currentUser, workspace, projectId, p
             </div>
           </div>
         )}
-        <Sidebar onNavigate={onNavigate} dropdown />
+        <Sidebar onNavigate={onNavigate} dropdown showBrand={false} />
         <div className="mt-4 grid gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
           <div className="grid grid-cols-2 gap-2">
             <TopbarFilters
@@ -129,11 +131,13 @@ export function MobileWorkspaceMenu({ open, currentUser, workspace, projectId, p
             <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">Tema</span>
             <ThemeToggle theme={theme} onChangeTheme={onChangeTheme} className="icon-button" />
           </div>
-          <button type="button" onClick={onLogout} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-red-600 dark:border-slate-800">
-            <LogOut className="size-4" /> Sair
-          </button>
         </div>
       </div>
+      <footer className="shrink-0 border-t border-slate-200 bg-white pt-3 pb-[max(12px,env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-950" data-testid="mobile-navigation-footer">
+        <button type="button" onClick={onLogout} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-red-600 dark:border-slate-800">
+          <LogOut className="size-4" /> Sair
+        </button>
+      </footer>
     </div>,
     document.body
   );

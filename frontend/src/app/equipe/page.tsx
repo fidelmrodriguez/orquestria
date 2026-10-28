@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthToken, restoreAuthSession, type AuthUser } from "@/lib/auth-client";
+import { ChevronDown } from "lucide-react";
 import TeamMemberPicker, { type DirectoryUser } from "@/components/team/TeamMemberPicker";
 
 const API_BASE = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "").trim().replace(/\/+$/, "");
@@ -126,15 +127,18 @@ export default function EquipePage() {
       {ready && user?.accountType === "USER" && token && <>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <label htmlFor="team-project" className="mb-2 block text-sm font-semibold">Projeto que será compartilhado</label>
+          <div className="relative">
           <select id="team-project" value={projectId} disabled={busy} onChange={event => {
             setProjectId(event.target.value); setPendingRemove(null); setNotice(""); setError("");
             if (token) void refresh(token, event.target.value).catch(cause => setError(cause instanceof Error ? cause.message : "Falha ao carregar membros."));
-          }} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950">
+          }} className="w-full appearance-none rounded-xl border border-slate-300 bg-white py-3 pl-4 pr-12 text-sm dark:border-slate-700 dark:bg-slate-950">
             {!projects.length && <option value="">Crie um projeto antes de adicionar membros</option>}
             {projects.map(project => <option key={project.id} value={project.id}>{project.workspaceId
               ? workspaces.find(workspace => workspace.id === project.workspaceId)?.name || "Workspace não encontrado"
               : "Projetos sem workspace"} / {project.name}</option>)}
           </select>
+          <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
+          </div>
           {selectedProject && <div className="mt-3 rounded-xl bg-slate-50 px-3 py-3 text-sm dark:bg-slate-950">
             <p><span className="font-semibold">Workspace:</span> {selectedWorkspaceName}</p>
             <p className="mt-1"><span className="font-semibold">Projeto:</span> {selectedProject.name}</p>

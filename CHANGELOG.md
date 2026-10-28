@@ -6,6 +6,10 @@ Este arquivo registra mudanças relevantes do produto por versão. O histórico 
 
 ### Melhorias de usabilidade e desempenho
 
+- Login guest e pessoal com descrições mais curtas, válidas no desktop e mobile.
+- Menu mobile com identificação da conta abaixo da marca Orquestria e botão Sair sempre visível em rodapé fixo do painel, sem cortar opções roláveis.
+- Recuo adicional das setas de filtros personalizados e do seletor de projetos da página Equipe.
+
 - Tela **Preparando seu ambiente** compactada no celular, mantendo tempo e acompanhamento automático da API.
 - Menu mobile mostra o nome da conta atual, fecha no logout/troca de conta e usa espaçamento inferior pequeno, sem cortar o botão **Sair**.
 - Login e cadastro apresentados primeiro no mobile, mantendo a composição institucional do desktop.

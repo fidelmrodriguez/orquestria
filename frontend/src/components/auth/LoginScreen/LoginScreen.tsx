@@ -104,8 +104,8 @@ export function LoginScreen() {
   const subtitle = registering
     ? "Escolha um nome de usuário exclusivo para entrar sem precisar digitar o e-mail."
     : guest
-      ? "As credenciais públicas vêm preenchidas, mas os dois campos podem ser editados."
-      : "Entre com o usuário ou o e-mail cadastrado e sua senha.";
+      ? "Use os dados de demonstração ou edite os campos."
+      : "Entre com seu usuário ou e-mail e senha.";
 
   if (checkingSession) {
     return (
@@ -125,7 +125,7 @@ export function LoginScreen() {
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">{title}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+              <p className="text-sm leading-5 text-slate-500 dark:text-slate-400">{subtitle}</p>
             </div>
           </div>
           <div className="space-y-4">

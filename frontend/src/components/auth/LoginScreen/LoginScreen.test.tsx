@@ -214,3 +214,14 @@ describe("prioridade do formulário no mobile", () => {
     expect(container.querySelector("section")).toHaveClass("lg:grid-cols-[1.05fr_.95fr]");
   });
 });
+
+
+describe("textos de apoio do login", () => {
+  it("mantém descrições curtas para guest e conta pessoal em qualquer resolução", async () => {
+    const user = userEvent.setup();
+    render(<LoginScreen />);
+    expect(screen.getByText("Use os dados de demonstração ou edite os campos.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Já tenho uma conta" }));
+    expect(screen.getByText("Entre com seu usuário ou e-mail e senha.")).toBeInTheDocument();
+  });
+});
