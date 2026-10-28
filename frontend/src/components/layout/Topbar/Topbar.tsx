@@ -58,7 +58,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
         <SearchField
           value={search}
           onChange={setSearch}
-          placeholder="Pesquisar tarefas, tags ou responsáveis"
+          placeholder="Buscar"
           className="hidden min-w-[200px] max-w-md flex-1 2xl:flex"
         />
 

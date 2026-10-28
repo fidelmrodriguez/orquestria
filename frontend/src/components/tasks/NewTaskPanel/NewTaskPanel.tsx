@@ -3,9 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import TagsInput from "@/components/tags/TagsInput";
-import { getAuthToken } from "@/lib/auth-client";
-import { apiUrl } from "@/lib/remote-board";
+import { TaskEditorFields } from "@/components/tasks/TaskEditorFields";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
@@ -49,6 +47,8 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     reset,
     formState: { errors, isSubmitting }
   } = useForm<FormValues>({
@@ -62,6 +62,11 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
       dueDate: defaultDate
     }
   });
+
+  const current = watch();
+  const updateValue = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
+    setValue(key, value, { shouldValidate: true, shouldDirty: true });
+  };
 
   if (!open || !workspace || !project) return null;
 
@@ -92,7 +97,7 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
     <Fragment>
       <div className="fixed inset-0 z-[60] bg-slate-950/45 backdrop-blur-[1px] dark:bg-slate-950/70" aria-hidden="true" />
     <div ref={panelRef} onKeyDown={onKeyDown} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="new-task-heading"
-      className="fixed inset-y-0 right-0 z-[70] w-full max-w-lg border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950">
+      className="fixed inset-y-0 right-0 z-[70] w-full max-w-xl border-l border-slate-200 bg-white shadow-soft outline-none dark:border-slate-800 dark:bg-slate-950">
       <div className="flex h-full flex-col">
         <header className="flex items-center justify-between border-b border-slate-200 p-5 dark:border-slate-800">
           <div>
@@ -104,72 +109,40 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
           </button>
         </header>
 
-        <form onSubmit={handleSubmit(submit)} className="panel-scroll flex-1 space-y-4 overflow-y-auto p-5">
-          <label className="block space-y-2">
-            <span className="label">Título</span>
-            <input {...register("title")} className="field" aria-invalid={Boolean(errors.title)} aria-describedby={errors.title ? "new-task-title-error" : undefined} placeholder="Ex.: Validar fluxo de aprovação" />
-            {errors.title && <span id="new-task-title-error" className="error-text">{errors.title.message}</span>}
-          </label>
-
-          <label className="block space-y-2">
-            <span className="label">Descrição</span>
-            <textarea {...register("description")} className="field min-h-28 resize-none" aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? "new-task-description-error" : undefined} placeholder="Contexto, objetivo e critérios de aceite" />
-            {errors.description && <span id="new-task-description-error" className="error-text">{errors.description.message}</span>}
-          </label>
-
-          <div className="grid gap-4 sm:grid-cols-2">
+        <div className="panel-scroll flex-1 overflow-y-auto p-5">
+          <form id="new-task-form" onSubmit={handleSubmit(submit)} className="space-y-6">
             <label className="block space-y-2">
-              <span className="label">Coluna</span>
-              <select {...register("columnId")} className="field" aria-invalid={Boolean(errors.columnId)} aria-describedby={errors.columnId ? "new-task-column-error" : undefined}>
-                {columns.map((column) => (
-                  <option key={column.id} value={column.id}>
-                    {column.title}
-                  </option>
-                ))}
-              </select>
-              {errors.columnId && <span id="new-task-column-error" className="error-text">{errors.columnId.message}</span>}
+              <span className="label">Título</span>
+              <input {...register("title")} className="field" aria-invalid={Boolean(errors.title)}
+                placeholder="Ex.: Validar fluxo de aprovação" />
+              {errors.title && <span className="error-text">{errors.title.message}</span>}
             </label>
-
             <label className="block space-y-2">
-              <span className="label">Responsável</span>
-              <select {...register("assigneeId")} className="field" aria-invalid={Boolean(errors.assigneeId)} aria-describedby={errors.assigneeId ? "new-task-assignee-error" : undefined}>
-                {projectMembers.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name}
-                  </option>
-                ))}
-              </select>
-              {errors.assigneeId && <span id="new-task-assignee-error" className="error-text">{errors.assigneeId.message}</span>}
+              <span className="label">Descrição</span>
+              <textarea {...register("description")}
+                className="orquestria-inset-field min-h-32 w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-slate-600"
+                aria-invalid={Boolean(errors.description)} placeholder="Contexto, objetivo e critérios de aceite" />
+              {errors.description && <span className="error-text">{errors.description.message}</span>}
             </label>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block space-y-2">
-              <span className="label">Prioridade</span>
-              <select {...register("priority")} className="field capitalize">
-                <option value="baixa">Baixa</option>
-                <option value="media">Média</option>
-                <option value="alta">Alta</option>
-                <option value="critica">Crítica</option>
-              </select>
-            </label>
-
-            <label className="block space-y-2">
-              <span className="label">Prazo</span>
-              <input type="date" {...register("dueDate")} className="field" aria-invalid={Boolean(errors.dueDate)} aria-describedby={errors.dueDate ? "new-task-due-error" : undefined} />
-              {errors.dueDate && <span id="new-task-due-error" className="error-text">{errors.dueDate.message}</span>}
-            </label>
-          </div>
-
-          <TagsInput label="Tags" value={selectedTags} onChange={setSelectedTags}
-            apiBase={apiUrl} token={getAuthToken() || undefined} maxTags={12} />
-
-          <div className="sticky bottom-0 -mx-5 mt-8 border-t border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950">
-            <button type="submit" disabled={isSubmitting} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-slate-950">
-              <Plus className="size-4" /> {isSubmitting ? "Salvando tarefa..." : "Criar tarefa"}
-            </button>
-          </div>
-        </form>
+            <TaskEditorFields columns={columns} members={projectMembers}
+              values={{ columnId: current.columnId || "", assigneeId: current.assigneeId || "",
+                priority: current.priority || "media", dueDate: current.dueDate || "", tags: selectedTags }}
+              onColumnChange={value => updateValue("columnId", value)}
+              onAssigneeChange={value => updateValue("assigneeId", value)}
+              onPriorityChange={value => updateValue("priority", value)}
+              onDueDateChange={value => updateValue("dueDate", value)}
+              onTagsChange={setSelectedTags} />
+            {errors.columnId && <span className="error-text">{errors.columnId.message}</span>}
+            {errors.assigneeId && <span className="error-text">{errors.assigneeId.message}</span>}
+            {errors.dueDate && <span className="error-text">{errors.dueDate.message}</span>}
+          </form>
+        </div>
+        <footer className="shrink-0 border-t border-slate-200 bg-white px-5 py-3 dark:border-slate-800 dark:bg-slate-950">
+          <button form="new-task-form" type="submit" disabled={isSubmitting}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-slate-950">
+            <Plus className="size-4" /> {isSubmitting ? "Salvando tarefa..." : "Criar tarefa"}
+          </button>
+        </footer>
       </div>
     </div>
     </Fragment>

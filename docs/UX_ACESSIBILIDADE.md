@@ -74,3 +74,12 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - No formulário de tags, o espaço reservado para chips só é exibido quando existe ao menos uma tag. Sem tags, o campo de texto e o botão **Adicionar** aparecem imediatamente, lado a lado.
 - O ícone ao lado do título do formulário de login mantém largura e altura fixas ao alternar entre Guest, conta pessoal e cadastro; o texto pode quebrar sem redimensionar o ícone.
 - Os seletores de responsável, filtros e contagem de membros usam apenas a lista do projeto ativo. Na página Equipe, o contexto de workspace e projeto aparece antes da inclusão ou remoção.
+
+## Duplicação e formulário unificado de tarefas
+
+- Cada cartão oferece o botão discreto **Duplicar tarefa**, com identificação acessível. O botão não inicia drag-and-drop nem abre o drawer; a cópia fica diretamente abaixo do cartão original, preservando as propriedades, com novos IDs para tarefa e comentários.
+- Nos formulários de **Nova tarefa** e **Detalhes da tarefa**, coluna, responsável, prioridade, prazo e tags usam os mesmos componentes, proporções, bordas e largura de drawer. O título novo é preenchido no campo de criação; na edição é exibido como título com botão **Editar**, sem input permanente.
+- Somente o painel de detalhes exibe a seção de comentários e a ação de exclusão da tarefa. O formulário de criação mantém o botão de criação no rodapé fixo.
+- O campo de busca é identificado apenas como **Buscar** em todas as larguras de tela, sem texto cortado.
+- Os avatares de membros da equipe possuem nome no tooltip nativo (mouse) e nome acessível no foco por teclado; o texto da bolinha não pode ser selecionado.
+- Ao adicionar uma tag, uma camada de espera apresenta **Salvando tag...** enquanto o cadastro/associação é confirmado; os erros permanecem visíveis após a operação.

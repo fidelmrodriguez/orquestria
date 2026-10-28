@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageCircle, Tag } from "lucide-react";
+import { Copy, MessageCircle, Tag } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { cn, formatDate, getInitials } from "@/lib/utils";
 import { useBoardStore } from "@/store/board-store";
@@ -17,9 +17,10 @@ type TaskCardProps = {
   task: Task;
   member?: Member;
   onPrepareDrag?: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
+  onDuplicateTask?: (taskId: string) => void;
 };
 
-export function TaskCard({ task, member, onPrepareDrag }: TaskCardProps) {
+export function TaskCard({ task, member, onPrepareDrag, onDuplicateTask }: TaskCardProps) {
   const setSelectedTask = useBoardStore((state) => state.setSelectedTask);
 
   return (
@@ -42,9 +43,18 @@ export function TaskCard({ task, member, onPrepareDrag }: TaskCardProps) {
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-950 dark:text-white">{task.title}</h3>
-        <span className={cn("shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold capitalize", priorityStyles[task.priority])}>
-          {task.priority}
-        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          {onDuplicateTask && <button type="button" title={`Duplicar tarefa ${task.title}`}
+            aria-label={`Duplicar tarefa ${task.title}`}
+            onPointerDown={event => event.stopPropagation()}
+            onClick={event => { event.stopPropagation(); onDuplicateTask(task.id); }}
+            className="rounded-lg p-1.5 text-slate-400 opacity-70 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:opacity-100 group-hover:opacity-100 dark:hover:bg-slate-800 dark:hover:text-white">
+            <Copy className="size-3.5" />
+          </button>}
+          <span className={cn("rounded-full px-2 py-1 text-[11px] font-semibold capitalize", priorityStyles[task.priority])}>
+            {task.priority}
+          </span>
+        </div>
       </div>
 
       <p className="line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{task.description}</p>

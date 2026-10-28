@@ -60,7 +60,7 @@ export function CompactSearch({ value, onChange }: CompactSearchProps) {
           ref={searchRef}
           className="order-last w-full basis-full rounded-2xl 2xl:hidden border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900"
         >
-          <SearchField value={value} onChange={onChange} placeholder="Pesquisar tarefas, tags ou responsáveis" />
+          <SearchField value={value} onChange={onChange} placeholder="Buscar" />
         </div>
       )}
     </>

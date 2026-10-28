@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { LoaderCircle } from "lucide-react";
 import { addTag, normalizeTag, removeTag, renameTag } from "@/lib/tags-utils";
 
 type CatalogEntry = { id: string; name: string };
@@ -28,6 +30,7 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
   const [editing, setEditing] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [savingTag, setSavingTag] = useState(false);
   const [error, setError] = useState("");
 
   const query = normalizeTag(text);
@@ -81,35 +84,40 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
     let canonical = exact?.name || name;
     if (already.has(canonical.toLocaleLowerCase("pt-BR"))) { setText(""); return; }
     if (value.length >= maxTags) { setError(`Limite de ${maxTags} tags atingido.`); return; }
-    // Só registra tags novas: nunca duplica um nome que já exista no catálogo.
-    if (!fromCatalog && !exact && token && apiBase) {
-      setBusy(true); setError("");
-      try {
-        const response = await fetch(`${apiBase.replace(/\/+$/, "")}/api/tags`, {
-          method: "POST", cache: "no-store",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ name }),
-        });
-        if (response.status === 409) {
-          // Outra aba pode ter cadastrado ao mesmo tempo: busca a grafia canônica.
-          const existing = await fetch(`${apiBase.replace(/\/+$/, "")}/api/tags?q=${encodeURIComponent(name)}`, {
-            headers: { Authorization: `Bearer ${token}` }, cache: "no-store",
+    setSavingTag(true);
+    try {
+      // Só registra tags novas: nunca duplica um nome que já exista no catálogo.
+      if (!fromCatalog && !exact && token && apiBase) {
+        setBusy(true); setError("");
+        try {
+          const response = await fetch(`${apiBase.replace(/\/+$/, "")}/api/tags`, {
+            method: "POST", cache: "no-store",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ name }),
           });
-          if (!existing.ok) throw new Error("Não foi possível recuperar a tag já cadastrada.");
-          const rows = await existing.json() as CatalogEntry[];
-          canonical = rows.find(row => row.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR"))?.name || name;
-        } else if (!response.ok) {
-          throw new Error(`Não foi possível cadastrar a tag (HTTP ${response.status}).`);
-        } else {
-          canonical = ((await response.json()) as CatalogEntry).name;
+          if (response.status === 409) {
+            // Outra aba pode ter cadastrado ao mesmo tempo: busca a grafia canônica.
+            const existing = await fetch(`${apiBase.replace(/\/+$/, "")}/api/tags?q=${encodeURIComponent(name)}`, {
+              headers: { Authorization: `Bearer ${token}` }, cache: "no-store",
+            });
+            if (!existing.ok) throw new Error("Não foi possível recuperar a tag já cadastrada.");
+            const rows = await existing.json() as CatalogEntry[];
+            canonical = rows.find(row => row.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR"))?.name || name;
+          } else if (!response.ok) {
+            throw new Error(`Não foi possível cadastrar a tag (HTTP ${response.status}).`);
+          } else {
+            canonical = ((await response.json()) as CatalogEntry).name;
+          }
+        } catch (cause) {
+          setError(cause instanceof Error ? cause.message : "Falha ao cadastrar tag.");
+          setBusy(false); return;
         }
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Falha ao cadastrar tag.");
-        setBusy(false); return;
+        setBusy(false);
       }
-      setBusy(false);
+      if (await persist(addTag(value, canonical, maxTags))) { setText(""); setFocused(false); setOptions([]); }
+    } finally {
+      setSavingTag(false);
     }
-    if (await persist(addTag(value, canonical, maxTags))) { setText(""); setFocused(false); setOptions([]); }
   }
 
   async function finishEdit() {
@@ -206,5 +214,14 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
     </div>
     <p className="text-xs text-slate-500">Sugestões automáticas · ✎ editar · × remover · {value.length}/{maxTags}</p>
     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+    {(busy || savingTag) && typeof document !== "undefined" && createPortal(
+      <div className="fixed inset-0 z-[120] grid place-items-center bg-slate-950/45 px-4 backdrop-blur-[1px]"
+        role="status" aria-live="polite" aria-label="Salvando tag">
+        <div className="flex w-full max-w-xs flex-col items-center gap-3 rounded-3xl bg-white p-7 text-center shadow-2xl dark:bg-slate-950">
+          <LoaderCircle aria-hidden="true" className="size-9 animate-spin text-blue-600" />
+          <p className="text-base font-semibold text-slate-950 dark:text-white">Salvando tag...</p>
+          <p className="text-sm text-slate-500">Aguarde a confirmação do servidor.</p>
+        </div>
+      </div>, document.body)}
   </div>;
 }

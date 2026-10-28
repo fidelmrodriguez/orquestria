@@ -100,6 +100,43 @@ class ApiSecurityPostgresTest {
     }
 
     @Test
+    void duplicatedTaskGetsNewIdsAndIsInsertedImmediatelyAfterOriginal() throws Exception {
+        User owner = register("duplicate");
+        User outsider = register("duplicaterejected");
+        String workspaceId = idOf(createWorkspace(owner));
+        String projectId = idOf(createProject(owner, workspaceId));
+        String columnId = idOf(createColumn(owner, projectId));
+        String endpoint = "/api/projects/" + projectId + "/tasks";
+        JsonNode original = postJson(endpoint, owner, Map.of(
+            "title", "Tarefa com dados", "description", "Descrição duplicada",
+            "columnId", columnId, "priority", "ALTA", "position", 0,
+            "assigneeId", owner.id().toString(), "tags", java.util.List.of("backend", "qa"),
+            "dueDate", "2026-11-15"), 201);
+        String originalId = idOf(original);
+        String nextId = idOf(postJson(endpoint, owner, Map.of(
+            "title", "Próxima tarefa", "columnId", columnId, "position", 1), 201));
+        JsonNode withComment = postJson(endpoint + "/" + originalId + "/comments", owner,
+            Map.of("authorId", owner.id().toString(), "message", "Comentário original"), 200);
+        String originalComment = idOf(withComment.path("comments").get(0));
+        JsonNode duplicated = postJson(endpoint + "/" + originalId + "/duplicate", owner, Map.of(), 201);
+        assertNotEquals(originalId, idOf(duplicated));
+        assertEquals(original.path("title"), duplicated.path("title"));
+        assertEquals(original.path("description"), duplicated.path("description"));
+        assertEquals(original.path("priority"), duplicated.path("priority"));
+        assertEquals(original.path("assigneeId"), duplicated.path("assigneeId"));
+        assertEquals(original.path("tags"), duplicated.path("tags"));
+        assertEquals(original.path("dueDate"), duplicated.path("dueDate"));
+        assertEquals(1, duplicated.path("comments").size());
+        assertNotEquals(originalComment, idOf(duplicated.path("comments").get(0)));
+        assertEquals("Comentário original", duplicated.path("comments").get(0).path("message").asText());
+        JsonNode ordered = getJson(endpoint, owner, 200);
+        assertEquals(java.util.List.of(originalId, idOf(duplicated), nextId),
+            java.util.List.of(idOf(ordered.get(0)), idOf(ordered.get(1)), idOf(ordered.get(2))));
+        for (int i = 0; i < ordered.size(); i++) assertEquals(i, ordered.get(i).path("position").asInt());
+        postJson(endpoint + "/" + originalId + "/duplicate", outsider, Map.of(), 404);
+    }
+
+    @Test
     void taskOrderIsPersistedWhenReorderingWithinAndAcrossColumns() throws Exception {
         User user = register("reorder");
         String workspaceId = idOf(createWorkspace(user));

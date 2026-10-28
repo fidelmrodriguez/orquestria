@@ -17,6 +17,8 @@ describe("resumo de participantes da sidebar", () => {
     const { rerender } = render(<TeamPreview workspace={workspace} projectId="first" />);
     expect(screen.getByText(/2 pessoas disponíveis/)).toBeInTheDocument();
     expect(screen.getByLabelText("Convidada")).toBeInTheDocument();
+    expect(screen.getByLabelText("Convidada")).toHaveAttribute("title", "Convidada");
+    expect(screen.getByLabelText("Convidada")).toHaveClass("select-none");
     rerender(<TeamPreview workspace={workspace} projectId="second" />);
     expect(screen.getByText(/1 pessoa disponível/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Convidada")).not.toBeInTheDocument();

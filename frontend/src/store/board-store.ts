@@ -53,6 +53,7 @@ type BoardState = {
   addColumn: (projectId: string, title: string) => void;
   updateColumn: (columnId: string, title: string) => void;
   addTask: (payload: AddTaskPayload) => Promise<boolean> | void;
+  duplicateTask: (taskId: string) => Promise<boolean> | void;
   updateTask: (taskId: string, patch: Partial<Omit<Task, "id" | "comments">>) => Promise<boolean> | void;
   moveTask: (taskId: string, columnId: string, position?: number) => void;
   addComment: (taskId: string, message: string) => Promise<boolean> | void;
@@ -475,6 +476,38 @@ export const useBoardStore = create<BoardState>()(
           selectedTaskId: null,
           activities: appendActivity(`Tarefa ${task.title} criada.`, "task", state.activities)
         }));
+      },
+      duplicateTask: (taskId) => {
+        const source = get().workspaces.flatMap(space => space.tasks).find(task => task.id === taskId);
+        if (!source) return;
+        // Insere a cópia logo abaixo da tarefa original, atualizando a ordem visual.
+        const placeCopy = (state: BoardState, copy: Task) => ({
+          workspaces: state.workspaces.map(space => {
+            if (!space.projects.some(project => project.id === source.projectId)) return space;
+            const relevant = space.tasks.filter(task => task.projectId === source.projectId && task.columnId === source.columnId)
+              .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+            const others = space.tasks.filter(task => task.projectId !== source.projectId || task.columnId !== source.columnId);
+            const index = relevant.findIndex(task => task.id === taskId);
+            if (index < 0) return space;
+            relevant.splice(index + 1, 0, copy);
+            return { ...space, tasks: [...others, ...relevant.map((task, position) => ({ ...task, position }))] };
+          }),
+          selectedTaskId: null,
+          remoteError: null
+        });
+        if (isApiMode) return runRemoteEntityMutation(set, get, "Duplicando tarefa...",
+          () => postApi<ApiTask>(`/api/projects/${source.projectId}/tasks/${taskId}/duplicate`, {}),
+          (state, saved) => {
+            if (!state.currentUser) return {};
+            return placeCopy(state, mapTask(saved, state.currentUser));
+          });
+        const now = new Date().toISOString();
+        const copy: Task = { ...source, id: uid("task"),
+          comments: source.comments.map(comment => ({ ...comment, id: uid("comment"), createdAt: now })),
+          createdAt: now, updatedAt: now };
+        set(state => ({ ...placeCopy(state, copy),
+          activities: appendActivity(`Tarefa ${source.title} duplicada.`, "task", state.activities) }));
+        return true;
       },
       updateTask: (taskId, patch) => {
         if (isApiMode) return runRemoteTaskMutation(set, get, "Salvando tarefa...", async () => {

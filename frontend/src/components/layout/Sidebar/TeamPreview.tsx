@@ -21,7 +21,9 @@ export function TeamPreview({ workspace, projectId }: TeamPreviewProps) {
           <div
             key={member.id}
             aria-label={member.name}
-            className="grid size-8 place-items-center rounded-full border-2 border-white bg-slate-950 text-[10px] font-semibold text-white dark:border-slate-900 dark:bg-white dark:text-slate-950"
+            title={member.name}
+            tabIndex={0}
+            className="select-none cursor-default grid size-8 place-items-center rounded-full border-2 border-white bg-slate-950 text-[10px] font-semibold text-white dark:border-slate-900 dark:bg-white dark:text-slate-950"
           >
             {getInitials(member.name)}
           </div>

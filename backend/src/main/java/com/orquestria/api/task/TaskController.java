@@ -23,6 +23,13 @@ public class TaskController {
         TaskResponse result = service.create(projectId, request);
         return ResponseEntity.created(URI.create("/api/projects/" + projectId + "/tasks/" + result.id())).body(result);
     }
+    @PostMapping("/{taskId}/duplicate")
+    public ResponseEntity<TaskResponse> duplicate(@PathVariable UUID projectId, @PathVariable UUID taskId) {
+        guard.project(projectId);
+        TaskResponse result = service.duplicate(projectId, taskId);
+        return ResponseEntity.created(URI.create("/api/projects/" + projectId + "/tasks/" + result.id())).body(result);
+    }
+
     @PostMapping("/{taskId}/edit")
     public TaskResponse edit(@PathVariable UUID projectId, @PathVariable UUID taskId,
                              @Valid @RequestBody UpdateTaskRequest request) {

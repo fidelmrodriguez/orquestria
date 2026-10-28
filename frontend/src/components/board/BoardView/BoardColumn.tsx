@@ -31,10 +31,11 @@ type BoardColumnProps = {
   onNewTask: () => void;
   onRenameColumn: (columnId: string, title: string) => void;
   onPrepareDrag: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
+  onDuplicateTask?: (taskId: string) => void;
   mobileActive?: boolean;
 };
 
-export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, insertionIndex = -1, placeholderHeight = 0, onNewTask, onRenameColumn, onPrepareDrag, mobileActive = true }: BoardColumnProps) {
+export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, insertionIndex = -1, placeholderHeight = 0, onNewTask, onRenameColumn, onPrepareDrag, mobileActive = true, onDuplicateTask }: BoardColumnProps) {
   const [renaming, setRenaming] = useState(false);
   return (
     <div
@@ -72,7 +73,7 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, 
       <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-visible pr-1 lg:min-h-0 lg:overflow-y-auto" data-kanban-task-list="true">
         {tasks.flatMap((task, index) => [
           ...(dropTarget && insertionIndex === index ? [<DropSlot key={`insertion-slot-${index}`} height={placeholderHeight} />] : []),
-          <TaskCard key={task.id} task={task} member={members.find(member => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} />
+          <TaskCard key={task.id} task={task} member={members.find(member => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} onDuplicateTask={onDuplicateTask} />
         ])}
         {dropTarget && insertionIndex >= tasks.length && <DropSlot key={`insertion-slot-${tasks.length}`} height={placeholderHeight} />}
         {!tasks.length && totalTaskCount > 0 && !dragging && (

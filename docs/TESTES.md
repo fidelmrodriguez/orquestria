@@ -79,3 +79,10 @@ Os testes HTTP sobre PostgreSQL validam o isolamento entre projetos privados e c
 - Os testes de propriedades e filtros usam a lista de participantes do projeto selecionado.
 - A integração HTTP com PostgreSQL confere que um usuário presente na equipe legada **não pode ser atribuído** a uma tarefa sem o vínculo explícito em `project_members`.
 - Conferir manualmente no Netlify: abrir e fechar o modal de nova tarefa, conferir a lista de membros por projeto, alternar projetos no mesmo workspace e adicionar a primeira tag sem faixa vazia.
+
+## Regressão de duplicação e formulários de tarefas
+
+1. No Kanban, duplicar um cartão com título, descrição, tags, prioridade, responsável, prazo e comentário. Conferir que a cópia aparece abaixo, tem outro UUID, preserva o conteúdo e que cada comentário copiado também tem novo UUID.
+2. Atualizar a página e conferir que a ordem da coluna permanece. Tentar duplicar uma tarefa de projeto privado com outra conta: a API deve responder `404` e não criar cópia.
+3. Comparar os drawers de criação e edição: largura, campos de seleção, prazo e tags devem ser idênticos; somente a edição apresenta comentários. O título na edição é um heading com ação Editar.
+4. Em Tags, verificar inclusão por Enter e por botão, com mensagem de espera durante chamada à API; em Equipe, conferir tooltip e texto não selecionável; no cabeçalho, conferir o placeholder Buscar.

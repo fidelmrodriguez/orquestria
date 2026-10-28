@@ -46,6 +46,7 @@ Projetos podem estar associados a workspaces. A exclusão de um workspace com pr
 | `POST` | `/api/projects/{projectId}/columns/{columnId}/delete` | Excluir coluna sem tarefas |
 | `GET` / `POST` | `/api/projects/{projectId}/tasks` | Listar e criar tarefas |
 | `POST` | `/api/projects/{projectId}/tasks/{taskId}/edit` | Atualizar detalhes da tarefa |
+| `POST` | `/api/projects/{projectId}/tasks/{taskId}/duplicate` | Duplicar tarefa na mesma coluna com novo ID e posição seguinte |
 | `POST` | `/api/projects/{projectId}/tasks/{taskId}/comments` | Registrar comentário |
 | `POST` | `/api/projects/{projectId}/tasks/{taskId}/comments/{commentId}/delete` | Excluir um comentário da tarefa |
 | `DELETE` | `/api/projects/{projectId}/tasks/{taskId}/comments/{commentId}` | Alternativa REST para excluir um comentário |
@@ -53,6 +54,8 @@ Projetos podem estar associados a workspaces. A exclusão de um workspace com pr
 | `POST` | `/api/projects/{projectId}/tasks/{taskId}/delete` | Excluir tarefa |
 
 As exclusões também possuem métodos `DELETE` correspondentes. As rotas de ação `POST /delete` e `POST /rename` estão presentes por compatibilidade com as restrições de CORS do ambiente de publicação.
+
+A duplicação de tarefas exige autenticação e acesso ao projeto (admin ou membro-admin), retorna `201 Created` com o novo ID e mantém título, descrição, responsável, prioridade, prazo e tags. Comentários também são duplicados com novos IDs e novas datas de registro, mantendo texto e autor. A cópia é inserida imediatamente abaixo do original e a ordem da coluna é normalizada na mesma transação. Não é criada uma nova migração.
 
 A exclusão de comentários exige autenticação, valida a propriedade do projeto e confirma que o comentário pertence à tarefa. Retorna `404` para IDs inválidos ou de outros recursos. As operações de escrita de tarefas e comentários retornam a tarefa atualizada em JSON, permitindo atualizar apenas o item alterado no frontend.
 

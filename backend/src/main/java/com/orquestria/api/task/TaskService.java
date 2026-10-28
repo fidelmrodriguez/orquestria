@@ -70,6 +70,34 @@ public class TaskService {
             request.assigneeId(), request.tags());
         return TaskResponse.from(task);
     }
+    /** Duplicação persistente: novo UUID para tarefa e comentários, inserida logo abaixo da origem. */
+    @Transactional
+    public TaskResponse duplicate(UUID projectId, UUID taskId) {
+        Task original = requireTask(projectId, taskId);
+        List<Task> ordered = tasks.findByProject_IdOrderByPositionAscIdAsc(projectId).stream()
+            .filter(item -> item.getColumn().getId().equals(original.getColumn().getId()))
+            .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+        int originalIndex = java.util.stream.IntStream.range(0, ordered.size())
+            .filter(index -> ordered.get(index).getId().equals(taskId)).findFirst()
+            .orElseThrow(() -> new ResourceNotFoundException("Tarefa"));
+        Task copy = new Task(original.getProject(), original.getColumn(), original.getTitle(),
+            original.getDescription(), original.getPriority(), originalIndex + 1, original.getDueDate());
+        copy.setDetails(original.getTitle(), original.getDescription(), original.getPriority(),
+            original.getDueDate(), original.getAssigneeId(), original.getTags());
+        for (TaskComment comment : original.getComments()) {
+            copy.addComment(comment.getAuthorId(), comment.getMessage());
+        }
+        // Salvar com UUIDs novos e reindexar a coluna. Os outros projetos não são tocados.
+        Task saved = tasks.saveAndFlush(copy);
+        ordered.add(originalIndex + 1, saved);
+        for (int index = 0; index < ordered.size(); index++) {
+            Task item = ordered.get(index);
+            if (item.getPosition() != index) item.moveTo(item.getColumn(), index);
+        }
+        tasks.flush();
+        return TaskResponse.from(saved);
+    }
+
     @Transactional(readOnly = true)
     public List<TaskResponse> list(UUID projectId) {
         if (!projects.existsById(projectId)) throw new ProjectNotFoundException(projectId);

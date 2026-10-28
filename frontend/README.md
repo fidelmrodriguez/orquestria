@@ -6,7 +6,7 @@ Interface web do Orquestria, desenvolvida com **Next.js 14 (App Router), React 1
 
 ## Interface e experiência
 
-- **Kanban:** criação e edição de colunas e tarefas, reordenação de cartões por drag-and-drop e movimentação entre colunas com persistência da posição no servidor.
+- **Kanban:** criação, edição e duplicação de tarefas com novos IDs, reordenação de cartões por drag-and-drop e movimentação entre colunas com persistência da posição no servidor.
 - **Detalhes da tarefa:** painel lateral para título, descrição, prioridade, responsável, prazo, tags e comentários; exclusão contextual com confirmação.
 - **Navegação responsiva:** múltiplas colunas no desktop; em telas menores que 1024 px, uma coluna por vez, com seletor e botões de navegação. Sidebar recolhível em desktop e menu adaptado para celular.
 - **Pesquisa e filtros:** busca por tarefas, prioridade e responsável; o campo de pesquisa se adapta ao tamanho da tela.

@@ -10,8 +10,7 @@ import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
 import { selectActiveWorkspace, selectSelectedTask, useBoardStore } from "@/store/board-store";
 import { TaskCommentsSection } from "./TaskCommentsSection";
-import { TaskPlanningCards } from "./TaskPlanningCards";
-import { TaskPropertiesForm } from "./TaskPropertiesForm";
+import { TaskEditorFields } from "@/components/tasks/TaskEditorFields";
 
 function TaskDescriptionEditor({ task, onSave }: {
   task: Task; onSave: (id: string, patch: {description: string}) => void;
@@ -91,10 +90,22 @@ export function TaskDetailPanel() {
             inputClassName="text-xl font-semibold"
           />
 
-          <TaskDescriptionEditor task={task} onSave={updateTask} />
-
-          <TaskPropertiesForm task={task} workspace={workspace} members={members} onUpdateTask={updateTask} onMoveTask={moveTask} />
-          <TaskPlanningCards task={task} onUpdateTask={updateTask} />
+          <div className="space-y-2">
+            <span className="label">Descrição</span>
+            <TaskDescriptionEditor task={task} onSave={updateTask} />
+          </div>
+          <TaskEditorFields
+            columns={workspace.columns.filter(item => item.projectId === task.projectId)}
+            members={members}
+            values={{ columnId: task.columnId, assigneeId: task.assigneeId,
+              priority: task.priority, dueDate: task.dueDate, tags: task.tags }}
+            onColumnChange={columnId => { if (columnId !== task.columnId) moveTask(task.id, columnId); }}
+            onAssigneeChange={assigneeId => updateTask(task.id, { assigneeId })}
+            onPriorityChange={priority => updateTask(task.id, { priority })}
+            onDueDateChange={dueDate => updateTask(task.id, {
+              dueDate: dueDate ? new Date(`${dueDate}T12:00:00Z`).toISOString() : ""
+            })}
+            onTagsChange={tags => updateTask(task.id, { tags })} />
           <TaskCommentsSection task={task} members={members} fallbackMember={member} onSubmitComment={submitComment} onDeleteComment={deleteComment} />
         </div>
         <footer className="border-t border-slate-200 bg-white px-5 py-3 dark:border-slate-800 dark:bg-slate-950">

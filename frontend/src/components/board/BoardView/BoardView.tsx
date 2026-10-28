@@ -43,6 +43,7 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   const priorityFilter = useBoardStore(state => state.priorityFilter);
   const assigneeFilter = useBoardStore(state => state.assigneeFilter);
   const moveTask = useBoardStore(state => state.moveTask);
+  const duplicateTask = useBoardStore(state => state.duplicateTask);
   const updateProject = useBoardStore(state => state.updateProject);
   const updateColumn = useBoardStore(state => state.updateColumn);
   const remoteLoading = useBoardStore(state => state.remoteLoading);
@@ -173,7 +174,7 @@ export function BoardView({ onNewTask }: BoardViewProps) {
         dragging={Boolean(dragging)} dropTarget={dragging?.destinationId === column.id}
         insertionIndex={dragging?.destinationId === column.id ? dragging.insertionIndex : -1}
         placeholderHeight={dragging?.height ?? 0}
-        onPrepareDrag={prepareDrag} onRenameColumn={updateColumn} />)}
+        onPrepareDrag={prepareDrag} onRenameColumn={updateColumn} onDuplicateTask={duplicateTask} />)}
       {!columns.length && <div className="grid min-h-[200px] w-full place-items-center rounded-2xl border border-dashed border-slate-300 px-6 text-sm text-slate-500">Adicione uma coluna para começar.</div>}
     </div>
     {dragging && mounted && createPortal(<TaskDragPreview drag={dragging} previewRef={previewRef} />, document.body)}
