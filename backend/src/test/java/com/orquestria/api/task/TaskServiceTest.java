@@ -2,6 +2,7 @@ package com.orquestria.api.task;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.*;
 import com.orquestria.api.auth.AuthService;
 import com.orquestria.api.auth.AppUser;
