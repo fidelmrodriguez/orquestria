@@ -6,6 +6,8 @@ Este arquivo registra mudanças relevantes do produto por versão. O histórico 
 
 ### Melhorias de usabilidade e desempenho
 
+- Menu mobile com layout em grade e rodapé **Sair** dentro da viewport visível em diferentes tamanhos de tela; substitui classes conflitantes `100vh`/`100dvh` pela medição de `VisualViewport` com fallback CSS e preserva o scroll independente.
+
 - Login guest e pessoal com descrições mais curtas, válidas no desktop e mobile.
 - Menu mobile com identificação da conta abaixo da marca Orquestria e botão Sair sempre visível em rodapé fixo do painel, sem cortar opções roláveis.
 - Recuo adicional das setas de filtros personalizados e do seletor de projetos da página Equipe.

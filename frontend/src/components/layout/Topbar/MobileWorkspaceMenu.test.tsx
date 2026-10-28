@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MobileWorkspaceMenu } from "./MobileWorkspaceMenu";
 
 jest.mock("@/components/layout/Sidebar/Sidebar", () => ({
@@ -29,6 +29,8 @@ const props = {
 };
 
 describe("menu de navegação mobile/tablet", () => {
+  const originalVisualViewport = Object.getOwnPropertyDescriptor(window, "visualViewport");
+
   beforeEach(() => {
     props.onNavigate.mockClear();
     props.onLogout.mockClear();
@@ -37,6 +39,11 @@ describe("menu de navegação mobile/tablet", () => {
 
   afterEach(() => {
     document.body.style.overflow = "";
+    if (originalVisualViewport) {
+      Object.defineProperty(window, "visualViewport", originalVisualViewport);
+    } else {
+      Reflect.deleteProperty(window, "visualViewport");
+    }
   });
 
   it("usa portal fora do topbar e bloqueia a rolagem e o conteúdo de fundo", () => {
@@ -45,7 +52,8 @@ describe("menu de navegação mobile/tablet", () => {
 
     expect(dialog.parentElement).toBe(document.body);
     expect(dialog).toHaveAttribute("aria-modal", "true");
-    expect(dialog).toHaveClass("fixed", "inset-0", "h-[100dvh]", "bg-white");
+    expect(dialog).toHaveClass("fixed", "inset-0", "grid", "mobile-navigation-dialog", "bg-white");
+    expect(dialog).not.toHaveClass("h-screen");
     // Há um só contêiner com rolagem vertical; a barra é ocultada por CSS.
     expect(dialog.querySelector(".mobile-navigation-scroll")).toHaveClass("overflow-y-auto", "overflow-x-hidden");
     // O rodapé fica fora do scroll: o botão Sair não depende da rolagem do Android.
@@ -54,7 +62,7 @@ describe("menu de navegação mobile/tablet", () => {
     const logout = screen.getByRole("button", { name: "Sair" });
     expect(scroll).toBeInTheDocument();
     expect(dialog.querySelector(".mobile-navigation-end-spacer")).not.toBeInTheDocument();
-    expect(footer).toHaveClass("shrink-0");
+    expect(footer).not.toHaveClass("absolute", "fixed");
     expect(footer).toHaveClass("pb-[max(12px,env(safe-area-inset-bottom))]");
     expect(footer).toContainElement(logout);
     expect(scroll).not.toContainElement(logout);
@@ -72,6 +80,48 @@ describe("menu de navegação mobile/tablet", () => {
     rerender(<header data-testid="topbar"><MobileWorkspaceMenu {...props} open={false} /></header>);
     expect(screen.queryByRole("dialog", { name: "Navegação mobile" })).not.toBeInTheDocument();
     expect(document.body.style.overflow).toBe("");
+  });
+
+  it.each([
+    [320, 480], // Celular pequeno, orientação vertical com barras abertas
+    [390, 650], // Chrome Android
+    [768, 850], // Tablet
+    [1023, 580] // Tablet em orientação horizontal
+  ])("usa a viewport visível com %ipx por %ipx, mantendo o rodapé independente da rolagem", (width, height) => {
+    const listeners: Record<string, EventListener> = {};
+    const viewport = {
+      offsetLeft: 0, offsetTop: 0, width, height,
+      addEventListener: jest.fn((type: string, listener: EventListener) => { listeners[type] = listener; }),
+      removeEventListener: jest.fn()
+    };
+    Object.defineProperty(window, "visualViewport", { configurable: true, value: viewport });
+
+    render(<MobileWorkspaceMenu {...props} />);
+    const dialog = screen.getByRole("dialog", { name: "Navegação mobile" });
+    const footer = screen.getByTestId("mobile-navigation-footer");
+    const scroll = dialog.querySelector(".mobile-navigation-scroll");
+    expect(dialog).toHaveStyle({ width: `${width}px`, height: `${height}px` });
+    expect(scroll?.nextElementSibling).toBe(footer);
+    expect(scroll).not.toContainElement(screen.getByRole("button", { name: "Sair" }));
+
+    // Abrir o teclado/recolher a barra do navegador muda a área visível.
+    viewport.height = height - 140;
+    viewport.offsetTop = 24;
+    act(() => { listeners.resize(new Event("resize")); });
+    expect(dialog).toHaveStyle({ height: `${height - 140}px`, top: "24px" });
+
+    viewport.width = width - 18;
+    viewport.offsetLeft = 9;
+    act(() => { listeners.scroll(new Event("scroll")); });
+    expect(dialog).toHaveStyle({ width: `${width - 18}px`, left: "9px" });
+  });
+
+  it("usa 100dvh como fallback quando VisualViewport não existe", () => {
+    Object.defineProperty(window, "visualViewport", { configurable: true, value: undefined });
+    render(<MobileWorkspaceMenu {...props} />);
+    const dialog = screen.getByRole("dialog", { name: "Navegação mobile" });
+    expect(dialog).toHaveClass("mobile-navigation-dialog");
+    expect(dialog.style.height).toBe("");
   });
 
   it("mantém a navegação por teclado dentro do painel", () => {

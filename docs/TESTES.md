@@ -122,3 +122,8 @@ A central de notificações não é um serviço push nem utiliza uma nova tabela
 - Abrir guest e login pessoal na mesma largura: validar que as descrições logo abaixo dos títulos são concisas e não excedem duas linhas em condições usuais de exibição; conferir que a cópia permanece idêntica no desktop.
 - Comparar o recuo das setas em **Filtrar por prioridade**, **Filtrar por responsável** e no seletor **Projeto que será compartilhado** da página Equipe; validar abertura e seleção em todos.
 - Conferir que o rodapé **Sair** não se sobrepõe às opções do menu: a seção superior deve rolar independentemente e os itens finais continuar acessíveis.
+
+### Menu em múltiplas resoluções e alturas de viewport
+
+- `MobileWorkspaceMenu.test.tsx`: verificar layout em grade com rodapé fora do contêiner rolável, ausência de `h-screen` e dimensões da `VisualViewport`. Simular 320×480, 390×650, 768×850 e 1023×580; quando a altura da viewport diminuir, o menu e o rodapé precisam acompanhar a mudança. Testar fallback sem `VisualViewport`.
+- Teste visual no Chrome Android e Safari iOS: barras de navegação expandidas/recolhidas, modo retrato/paisagem, zoom e teclado exibido ao editar um workspace. Confirmar que **Sair** permanece totalmente visível, as seções chegam ao fim e o fundo não rola. Conferir o fechamento automático ao cruzar 1024px e a sidebar desktop intacta.

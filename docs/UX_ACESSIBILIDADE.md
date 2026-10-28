@@ -119,3 +119,9 @@ Verificação manual recomendada: Chrome Android com barras de endereço e naveg
 - Os textos auxiliares sob **Entrar como guest** e **Entrar na minha conta** foram encurtados para caber em até duas linhas nos tamanhos usuais de celular, sem truncar o conteúdo. O texto é o mesmo em todas as resoluções.
 - O menu mobile exibe a marca Orquestria primeiro e, logo abaixo, a identificação **Conectado como**. O restante do menu tem rolagem independente, mas **Sair** fica em um rodapé permanente, fora do conteúdo rolável e com espaçamento para a área segura inferior do dispositivo.
 - Nos filtros da navegação, os selects personalizados oferecem recuo adicional à direita para o ícone de seta. Na página Equipe, o select de projetos usa uma seta própria com `appearance-none` e padding reservado para o ícone.
+
+### Dimensionamento do menu em telas de qualquer altura
+
+- O menu hambúrguer é utilizado abaixo de **1024px** e é montado como portal no `body`. A estrutura é uma grade de três linhas: cabeçalho automático, navegação com `minmax(0, 1fr)` e rodapé automático com **Sair**. Somente a região central rola; o rodapé não depende do tamanho da lista.
+- A altura tem fallback CSS `100vh` → `100dvh`; quando disponível, `window.visualViewport` fornece largura, altura e deslocamento visíveis, inclusive durante rotação, zoom, abertura do teclado e mudança das barras do navegador. Isso evita que o rodapé fique sob a interface do Android/iOS.
+- A borda inferior mantém um padding pequeno com `env(safe-area-inset-bottom)`. Não adicionar spacers grandes nem usar `h-screen` junto com `100dvh` no mesmo elemento.
