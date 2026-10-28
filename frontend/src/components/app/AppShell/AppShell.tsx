@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { RemoteOperationOverlay } from "@/components/feedback/RemoteOperationOverlay/RemoteOperationOverlay";
 import { BoardView } from "@/components/board/BoardView/BoardView";
 import { LoginScreen } from "@/components/auth/LoginScreen/LoginScreen";
@@ -23,6 +23,7 @@ export function AppShell() {
   const remoteError = useBoardStore((state) => state.remoteError);
   const reloadRemote = useBoardStore((state) => state.reloadRemote);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [topbarHeight, setTopbarHeight] = useState(84);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [newTaskColumnId, setNewTaskColumnId] = useState<string | undefined>(undefined);
@@ -71,8 +72,12 @@ export function AppShell() {
         <Sidebar collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(value => !value)} />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col pt-[84px] sm:pt-[92px] lg:pt-0 lg:h-dvh lg:min-h-0">
+      <div
+        className="flex min-w-0 flex-1 flex-col pt-[var(--orquestria-topbar-height)] lg:pt-0 lg:h-dvh lg:min-h-0"
+        style={{ "--orquestria-topbar-height": `${topbarHeight}px` } as CSSProperties}
+      >
         <Topbar
+          onHeightChange={setTopbarHeight}
           mobileMenuOpen={mobileMenuOpen}
           onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}
           onNewTask={() => { setMobileMenuOpen(false); openNewTask(); }}

@@ -43,14 +43,14 @@ describe("pesquisa compacta até 1919px", () => {
     expect(screen.getByRole("textbox", { name: "Buscar" })).toHaveFocus();
   });
 
-  it("mostra dropdown flutuante até 1919px, com filtros desde 768px", () => {
+  it("expande a busca no fluxo do topbar até 1919px, com filtros desde 768px", () => {
     render(<Example />);
     const trigger = screen.getByRole("button", { name: "Abrir busca" });
     expect(trigger).toHaveClass("min-[1920px]:hidden");
     fireEvent.click(trigger);
     const panel = screen.getByRole("search", { name: "Pesquisar tarefas" });
-    expect(panel).toHaveClass("absolute", "min-[1920px]:hidden");
-    expect(panel).toHaveClass("w-[calc(100vw-24px)]", "max-w-[740px]");
+    expect(panel).toHaveClass("order-last", "w-full", "basis-full", "min-[1920px]:hidden");
+    expect(panel).not.toHaveClass("absolute", "max-w-[740px]");
     expect(screen.getByRole("textbox", { name: "Buscar" })).toBeInTheDocument();
     const filters = screen.getByRole("combobox", { name: "Filtrar por prioridade" }).parentElement?.parentElement?.parentElement;
     expect(filters).toHaveClass("hidden", "md:flex");

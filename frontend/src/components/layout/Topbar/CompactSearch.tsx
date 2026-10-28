@@ -19,7 +19,8 @@ type CompactSearchProps = {
 
 /**
  * Busca compacta acionada por botão até 1919px.
- * A partir de 768px o dropdown apresenta o input e os dois filtros lado a lado.
+ * A partir de 768px a faixa expandida apresenta input e filtros lado a lado,
+ * ocupando toda a largura do topbar e deslocando o Kanban para baixo.
  */
 export function CompactSearch({
   value,
@@ -83,7 +84,7 @@ export function CompactSearch({
           role="search"
           aria-label="Pesquisar tarefas"
           ref={searchRef}
-          className="absolute right-3 top-[calc(100%+8px)] z-50 w-[calc(100vw-24px)] max-w-[740px] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl min-[1920px]:hidden dark:border-slate-700 dark:bg-slate-950"
+          className="order-last relative z-10 w-full basis-full rounded-2xl border border-slate-200 bg-white p-3 shadow-card min-[1920px]:hidden dark:border-slate-700 dark:bg-slate-950"
         >
           <div className="flex flex-col gap-2 md:flex-row md:items-start">
             <SearchField value={value} onChange={onChange} placeholder="Buscar" className="min-w-0 flex-1" />

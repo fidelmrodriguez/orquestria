@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Menu, Plus, X } from "lucide-react";
 import { AddColumnForm } from "@/components/board/BoardView/AddColumnForm";
 import { MobileWorkspaceMenu } from "./MobileWorkspaceMenu";
@@ -16,9 +17,27 @@ type TopbarProps = {
   mobileMenuOpen: boolean;
   onToggleMobileMenu: () => void;
   onNewTask: () => void;
+  onHeightChange: (height: number) => void;
 };
 
-export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: TopbarProps) {
+export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask, onHeightChange }: TopbarProps) {
+  const headerRef = useRef<HTMLElement>(null);
+
+  // No mobile/tablet o cabeçalho permanece fixo. O espaço reservado no AppShell
+  // deve acompanhar a altura real, inclusive quando a busca expandida é aberta.
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const updateHeight = () => onHeightChange(Math.ceil(header.getBoundingClientRect().height));
+    updateHeight();
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(updateHeight);
+      observer.observe(header);
+      return () => observer.disconnect();
+    }
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, [onHeightChange]);
   const workspace = useBoardStore(selectActiveWorkspace);
   const project = useBoardStore(selectActiveProject);
   const currentUser = useBoardStore((state) => state.currentUser);
@@ -35,7 +54,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
   const addColumn = useBoardStore((state) => state.addColumn);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 shrink-0 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:relative lg:z-30 lg:px-6">
+    <header ref={headerRef} className="fixed inset-x-0 top-0 z-40 shrink-0 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:relative lg:z-30 lg:px-6">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <button
           type="button"
