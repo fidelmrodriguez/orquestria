@@ -6,6 +6,20 @@ export const apiUrl = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "").trim().
 export const isApiMode = Boolean(apiUrl);
 export const UNASSIGNED_WORKSPACE_ID = "workspace-sem-vinculo";
 
+/** Retém o status HTTP sem modificar as mensagens usadas pelos formulários. */
+export class ApiRequestError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
+/** A API antiga interpreta /projects/invited como um UUID em /projects/{id}. */
+export function isMissingCollaborationEndpoint(error: unknown): boolean {
+  return error instanceof ApiRequestError &&
+    (error.status === 404 || (error.status === 400 && error.message === "Parâmetro inválido."));
+}
+
 export type ApiWorkspace = { id: string; name: string; description: string | null };
 export type ApiProject = { id: string; name: string; description: string | null; workspaceId: string | null; createdAt: string };
 export type ApiInvitedProject = ApiProject & { workspaceName: string | null; ownerName: string; role: "membro-admin" };
@@ -40,7 +54,7 @@ export async function requestApi<T>(path: string, options: RequestInit = {}): Pr
     const type = response.headers.get("content-type");
     // Não ler corpos arbitrariamente grandes de páginas HTML do provedor.
     const body = type?.toLowerCase().includes("json") ? (await response.text()).slice(0, 1024) : "";
-    throw new Error(readableApiError(response.status, type, body));
+    throw new ApiRequestError(response.status, readableApiError(response.status, type, body));
   }
   if (response.status === 204) return undefined as T;
   const type = response.headers.get("content-type")?.toLowerCase() || "";
@@ -90,14 +104,29 @@ export function mapTask(task: ApiTask, member: Member): Task {
   };
 }
 
+/** O frontend pode ser publicado antes do backend sem bloquear toda a aplicação.
+ *  O fallback é restrito a endpoints de colaboração inexistentes na API antiga.
+ *  Erros de autenticação, permissão e indisponibilidade continuam sendo propagados.
+ */
+async function fetchInvitedProjects(): Promise<{ invited: ApiInvitedProject[]; supported: boolean }> {
+  try {
+    return { invited: await requestApi<ApiInvitedProject[]>("/api/projects/invited"), supported: true };
+  } catch (error) {
+    if (!isMissingCollaborationEndpoint(error)) throw error;
+    console.warn("[Orquestria][collaboration] Backend sem endpoints de projetos convidados. Aguarde a publicação da API com Flyway V10.");
+    return { invited: [], supported: false };
+  }
+}
+
 /** Dados do servidor são a fonte de verdade. Não importa dados locais ou DummyJSON. */
 export async function loadRemoteBoard(member: Member): Promise<Workspace[]> {
-  const [spaces, projects, teammates, invited] = await Promise.all([
+  const [spaces, projects, teammates, collaboration] = await Promise.all([
     requestApi<ApiWorkspace[]>("/api/workspaces"),
     requestApi<ApiProject[]>("/api/projects"),
     requestApi<{id:string;name:string;username:string}[]>("/api/team/members"),
-    requestApi<ApiInvitedProject[]>("/api/projects/invited")
+    fetchInvitedProjects()
   ]);
+  const { invited, supported: collaborationSupported } = collaboration;
   const actualMembers: Member[] = [member, ...teammates.filter(user => user.id !== member.id).map(user => ({
     id: user.id, name: user.name, email: "", avatar: "", role: "editor" as const
   }))];
@@ -127,7 +156,9 @@ export async function loadRemoteBoard(member: Member): Promise<Workspace[]> {
     const [columns, tasks, projectMembers] = await Promise.all([
       requestApi<ApiColumn[]>(`/api/projects/${project.id}/columns`),
       requestApi<ApiTask[]>(`/api/projects/${project.id}/tasks`),
-      requestApi<ApiProjectMember[]>(`/api/projects/${project.id}/members`)
+      collaborationSupported
+        ? requestApi<ApiProjectMember[]>(`/api/projects/${project.id}/members`)
+        : Promise.resolve(null)
     ]);
     return { project, columns, tasks, projectMembers };
   }));
@@ -137,12 +168,14 @@ export async function loadRemoteBoard(member: Member): Promise<Workspace[]> {
       ? spaceMap.get(`invited-${project.workspaceId || `unassigned-${project.id}`}`)
       : (project.workspaceId && spaceMap.get(project.workspaceId)) || spaceMap.get(UNASSIGNED_WORKSPACE_ID);
     if (!workspace) continue;
-    workspace.members = projectMembers.reduce<Member[]>((list, person) => {
-      if (!list.some(item => item.id === person.id)) list.push({
-        id: person.id, name: person.name, email: "", avatar: "", role: person.role
-      });
-      return list;
-    }, workspace.invited ? [] : [...workspace.members]);
+    if (projectMembers) {
+      workspace.members = projectMembers.reduce<Member[]>((list, person) => {
+        if (!list.some(item => item.id === person.id)) list.push({
+          id: person.id, name: person.name, email: "", avatar: "", role: person.role
+        });
+        return list;
+      }, workspace.invited ? [] : [...workspace.members]);
+    }
     workspace.projects.push({ id: project.id, workspaceId: workspace.id, name: project.name,
       description: project.description || "", visibility: "equipe", createdAt: project.createdAt } satisfies Project);
     workspace.columns.push(...columns.map(mapColumn));
