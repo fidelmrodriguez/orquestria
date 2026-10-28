@@ -70,8 +70,8 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
           assigneeFilter={assigneeFilter}
           onPriorityChange={(value) => setPriorityFilter(value as Priority | "todas")}
           onAssigneeChange={setAssigneeFilter}
-          priorityClassName="hidden rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 md:block"
-          assigneeClassName="hidden rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 lg:block"
+          priorityClassName="hidden w-[106px] shrink-0 md:block"
+          assigneeClassName="hidden w-[112px] shrink-0 lg:block"
         />
 
         {project && <AddColumnForm key={project.id} projectId={project.id} onAddColumn={addColumn} />}

@@ -36,8 +36,8 @@ export function MobileWorkspaceMenu({ open, workspace, priorityFilter, assigneeF
             assigneeFilter={assigneeFilter}
             onPriorityChange={onPriorityChange}
             onAssigneeChange={onAssigneeChange}
-            priorityClassName="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900"
-            assigneeClassName="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900"
+            priorityClassName="min-w-0 w-full"
+            assigneeClassName="min-w-0 w-full"
           />
         </div>
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 p-2 dark:border-slate-800">

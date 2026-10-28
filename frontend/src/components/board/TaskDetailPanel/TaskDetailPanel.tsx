@@ -25,7 +25,7 @@ function TaskDescriptionEditor({ task, onSave }: {
       if (!isApiMode) onSave(task.id, { description: event.target.value });
     }}
     onBlur={() => { if (isApiMode && draft !== task.description) onSave(task.id, { description: draft }); }}
-    className="min-h-32 w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+    className="orquestria-inset-field min-h-32 w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-slate-600"
     aria-label="Descrição da tarefa"
   />;
 }

@@ -119,6 +119,15 @@ aside::-webkit-scrollbar-thumb {
   outline-color: #64748b;
 }
 
+
+/* Inputs inseridos em caixas que já possuem borda/foco externo.
+   O foco é indicado na borda da caixa, evitando um segundo retângulo
+   quadrado desenhado pelo navegador dentro do campo. */
+.orquestria-inset-field:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {

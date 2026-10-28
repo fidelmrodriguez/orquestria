@@ -61,3 +61,9 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - Na barra compacta, workspaces e projetos permanecem selecionáveis por ícones com `title` e nomes acessíveis. Os links de gerenciamento, equipe e tags continuam disponíveis. A criação e exclusão de recursos permanecem acessíveis ao expandir a sidebar.
 - O botão para expandir/recolher é visível, funciona pelo teclado e permite retornar à navegação completa. A barra compacta também mostra abreviações de duas letras para diferenciar workspaces/projetos com ícones iguais. No celular, continua sendo utilizado o menu responsivo original, sem uma segunda sidebar; a alteração de tema permanece no menu mobile.
 - A busca compacta fica em uma linha própria no cabeçalho e não usa `position: absolute` nem `z-index` de popover; ao abrir, desloca o conteúdo em vez de cobri-lo.
+
+## Campos de texto e filtros do Kanban
+
+- A busca, a descrição da tarefa e o campo de comentários usam apenas o contorno do respectivo recipiente ao receber foco, evitando contornos internos duplicados. A borda externa continua sinalizando o foco em mouse e teclado, inclusive no tema escuro.
+- Os filtros de prioridade e responsável no cabeçalho usam o mesmo seletor acessível das propriedades das tarefas, com lista de opções personalizada, seleção por teclado, destaque do valor ativo e fechamento com Escape ou clique fora. Os filtros mantêm o estado e as regras de filtragem existentes.
+- Na navegação mobile, os filtros usam esse mesmo componente dentro do menu, sem `<select>` nativo ou popup desenhado sobre outros diálogos.

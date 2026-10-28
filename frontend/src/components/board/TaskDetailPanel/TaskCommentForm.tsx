@@ -21,11 +21,11 @@ export function TaskCommentForm({ onSubmitComment }: TaskCommentFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="rounded-3xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+    <form onSubmit={handleSubmit(submit)} className="rounded-3xl border border-slate-200 bg-slate-50 p-3 transition-colors focus-within:border-slate-400 dark:border-slate-800 dark:bg-slate-900/60 dark:focus-within:border-slate-600">
       <textarea
         {...register("message")}
         placeholder="Escreva uma atualização para a equipe"
-        className="min-h-24 w-full resize-none bg-transparent p-2 text-sm outline-none placeholder:text-slate-400"
+        className="orquestria-inset-field min-h-24 w-full resize-none border-0 bg-transparent p-2 text-sm outline-none placeholder:text-slate-400"
       />
       {errors.message && <p className="px-2 text-sm text-red-500">{errors.message.message}</p>}
       <div className="flex justify-end">
