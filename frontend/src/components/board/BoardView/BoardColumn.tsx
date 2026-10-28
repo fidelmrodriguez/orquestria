@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
@@ -7,15 +7,16 @@ import { TaskCard } from "@/components/board/TaskCard/TaskCard";
 import { cn } from "@/lib/utils";
 import type { Column, Member, Task } from "@/types/board";
 
-function DropSlot({ height }: { height: number }) {
-  const [expanded, setExpanded] = useState(false);
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setExpanded(true));
-    return () => cancelAnimationFrame(frame);
-  }, []);
+function DropSlot({ height, active }: { height: number; active: boolean }) {
+  // O slot permanece montado no mesmo local, inclusive quando está fechado.
+  // Sua altura e margem animam em vez de fazer os cartões saltarem.
   return <div aria-hidden="true" data-kanban-drop-slot="true"
-    className="kanban-reorder-slot shrink-0 overflow-hidden rounded-3xl border-2 border-dashed border-blue-400/80 bg-blue-100/50 transition-[height,opacity] duration-200 ease-out dark:bg-blue-950/30"
-    style={{ height: expanded ? Math.max(90, height) : 0, opacity: expanded ? 1 : 0 }} />;
+    className="pointer-events-none kanban-reorder-slot shrink-0 overflow-hidden rounded-2xl border-dashed border-blue-400/80 bg-blue-100/50 transition-[height,margin-bottom,opacity] duration-[220ms] ease-out dark:bg-blue-950/30"
+    style={{ height: active ? Math.max(90, height) : 0,
+      marginBottom: active ? 12 : 0, opacity: active ? 1 : 0,
+      borderWidth: active ? 2 : 0 }}>
+    <div className="grid h-full place-items-center text-xs font-medium text-blue-700 dark:text-blue-300">Soltar aqui</div>
+  </div>;
 }
 
 
@@ -28,6 +29,7 @@ type BoardColumnProps = {
   dropTarget: boolean;
   insertionIndex?: number;
   placeholderHeight?: number;
+  hoveredTaskId?: string | null;
   onNewTask: () => void;
   onRenameColumn: (columnId: string, title: string) => void;
   onPrepareDrag: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
@@ -35,7 +37,7 @@ type BoardColumnProps = {
   mobileActive?: boolean;
 };
 
-export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, insertionIndex = -1, placeholderHeight = 0, onNewTask, onRenameColumn, onPrepareDrag, mobileActive = true, onDuplicateTask }: BoardColumnProps) {
+export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, dropTarget, insertionIndex = -1, placeholderHeight = 0, hoveredTaskId = null, onNewTask, onRenameColumn, onPrepareDrag, mobileActive = true, onDuplicateTask }: BoardColumnProps) {
   const [renaming, setRenaming] = useState(false);
   return (
     <div
@@ -70,12 +72,15 @@ export function BoardColumn({ column, tasks, totalTaskCount, members, dragging, 
         </div>}
       </div>
 
-      <div className="kanban-scroll flex flex-1 flex-col gap-3 overflow-y-visible pr-1 lg:min-h-0 lg:overflow-y-auto" data-kanban-task-list="true">
-        {tasks.flatMap((task, index) => [
-          ...(dropTarget && insertionIndex === index ? [<DropSlot key={`insertion-slot-${index}`} height={placeholderHeight} />] : []),
-          <TaskCard key={task.id} task={task} member={members.find(member => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} onDuplicateTask={onDuplicateTask} />
-        ])}
-        {dropTarget && insertionIndex >= tasks.length && <DropSlot key={`insertion-slot-${tasks.length}`} height={placeholderHeight} />}
+      <div className="kanban-scroll flex flex-1 flex-col overflow-y-visible pr-1 lg:min-h-0 lg:overflow-y-auto" data-kanban-task-list="true">
+        {tasks.map((task, index) => <div key={task.id} className="mb-3 flex shrink-0 flex-col">
+          <DropSlot height={placeholderHeight} active={dropTarget && insertionIndex === index} />
+          <div className={cn("rounded-3xl transition-transform duration-200 ease-out",
+            hoveredTaskId === task.id && "translate-y-2")}>
+            <TaskCard task={task} member={members.find(member => member.id === task.assigneeId)} onPrepareDrag={onPrepareDrag} onDuplicateTask={onDuplicateTask} />
+          </div>
+        </div>)}
+        <DropSlot height={placeholderHeight} active={dropTarget && insertionIndex === tasks.length} />
         {!tasks.length && totalTaskCount > 0 && !dragging && (
           <div className="grid min-h-32 place-items-center rounded-3xl border border-dashed border-slate-300 bg-white/70 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400">
             Nenhuma tarefa corresponde aos filtros atuais.

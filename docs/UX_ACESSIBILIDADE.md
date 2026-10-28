@@ -37,6 +37,8 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - O título da tarefa pode ser alterado no painel lateral usando **Editar**, com confirmação por Enter ou pelo botão Salvar e cancelamento por Escape ou Cancelar.
 - O campo de tags mantém as sugestões do catálogo e aceita inclusão tanto por Enter quanto pelo botão **Adicionar** na mesma linha.
 - O drag-and-drop permite reordenar tarefas dentro da mesma coluna, inserindo-as antes ou depois de outro cartão. Um espaço azul animado antecipa a posição de destino, e o cartão arrastado acompanha o cursor.
+- Não é necessário acertar o vão entre os cartões: durante o arrasto, sobrepor parte de um cartão já define uma inserção. Ao mover de cima para baixo, a parte principal do cartão indica **depois**; ao mover de baixo para cima, indica **antes**. Uma faixa estreita na extremidade ainda permite a posição oposta.
+- Os espaços de destino permanecem montados e animam a altura e a margem suavemente. Os cartões usam posições de referência capturadas no início do arrasto, impedindo que o espaço se desloque repetidamente enquanto os cartões cedem lugar. O cartão sob o ponteiro recebe também um movimento sutil de confirmação.
 - Arrastos cancelados, solturas fora das colunas e movimentos para a posição original não enviam requisições de gravação.
 - A ordem é armazenada pelo backend, mantendo-se após atualização da página. A mudança entre colunas reorganiza tanto a origem quanto o destino.
 

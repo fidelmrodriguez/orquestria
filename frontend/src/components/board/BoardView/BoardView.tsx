@@ -9,6 +9,7 @@ import { useBoardViewData } from "./useBoardViewData";
 import { TaskDragPreview } from "./TaskDragPreview";
 import { MobileColumnSwitcher } from "./MobileColumnSwitcher";
 import { positionFromVisibleTasks, isNoopReorder } from "@/lib/task-order";
+import { insertionFromCardHover } from "@/lib/kanban-hover-position";
 import { selectActiveProject, selectActiveWorkspace, useBoardStore } from "@/store/board-store";
 import { getProjectMembers, type Task } from "@/types/board";
 
@@ -26,14 +27,35 @@ type DragSession = {
   height: number;
   destinationId: string | null;
   insertionIndex: number;
+  hoveredTaskId: string | null;
+  sourceVisibleIndex: number;
+  anchorRects: Map<string, { top: number; bottom: number }>;
+  scrollOrigins: Map<string, number>;
+  windowScrollOrigin: number;
 };
 
 type BoardViewProps = { onNewTask: (columnId?: string) => void };
 
-function insertionFromPointer(column: HTMLElement, clientY: number): number {
-  // Elementos da prévia e do espaço reservado não entram no cálculo.
-  const cards = Array.from(column.querySelectorAll<HTMLElement>("[data-kanban-task-id]"));
-  return cards.filter(card => clientY > card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2).length;
+function insertionFromPointer(column: HTMLElement, clientY: number, drag: DragSession) {
+  // A medição é feita no começo do drag, ANTES de abrir o espaço animado.
+  // Assim, deslocamentos dos cartões não fazem o alvo saltar de posição.
+  const columnId = column.dataset.kanbanColumnId;
+  const list = column.querySelector<HTMLElement>("[data-kanban-task-list]");
+  const scrollDelta = (list?.scrollTop ?? 0) - (drag.scrollOrigins.get(columnId ?? "") ?? 0);
+  const pageDelta = window.scrollY - drag.windowScrollOrigin;
+  const cards = Array.from(column.querySelectorAll<HTMLElement>("[data-kanban-task-id]"))
+    .filter(card => card.dataset.kanbanTaskId !== drag.task.id)
+    .map(card => {
+      const anchor = drag.anchorRects.get(card.dataset.kanbanTaskId ?? "");
+      const rect = anchor ?? card.getBoundingClientRect();
+      return { id: card.dataset.kanbanTaskId ?? "",
+        top: rect.top - scrollDelta - pageDelta, bottom: rect.bottom - scrollDelta - pageDelta };
+    });
+  return {
+    insertionIndex: insertionFromCardHover(cards, clientY,
+      columnId === drag.task.columnId ? drag.sourceVisibleIndex : null),
+    hoveredTaskId: cards.find(card => clientY >= card.top && clientY <= card.bottom)?.id ?? null
+  };
 }
 
 export function BoardView({ onNewTask }: BoardViewProps) {
@@ -82,8 +104,9 @@ export function BoardView({ onNewTask }: BoardViewProps) {
       const hit = document.elementFromPoint(event.clientX, event.clientY);
       const column = hit?.closest<HTMLElement>("[data-kanban-column-id]");
       const destinationId = column?.dataset.kanbanColumnId ?? null;
-      const insertionIndex = column ? insertionFromPointer(column, event.clientY) : -1;
-      const next = { ...pending, x: event.clientX, y: event.clientY, destinationId, insertionIndex };
+      const target = column ? insertionFromPointer(column, event.clientY, pending) : null;
+      const next = { ...pending, x: event.clientX, y: event.clientY, destinationId,
+        insertionIndex: target?.insertionIndex ?? -1, hoveredTaskId: target?.hoveredTaskId ?? null };
       const previous = activeRef.current;
       activeRef.current = next;
       // Atualiza a prévia sem renderizar o quadro inteiro em cada movimento do mouse.
@@ -91,7 +114,8 @@ export function BoardView({ onNewTask }: BoardViewProps) {
         previewRef.current.style.left = `${next.x - next.offsetX}px`;
         previewRef.current.style.top = `${next.y - next.offsetY}px`;
       }
-      if (!previous || previous.destinationId !== destinationId || previous.insertionIndex !== insertionIndex)
+      if (!previous || previous.destinationId !== destinationId ||
+        previous.insertionIndex !== next.insertionIndex || previous.hoveredTaskId !== next.hoveredTaskId)
         setDragging(next);
 
       const viewport = boardRef.current;
@@ -147,11 +171,26 @@ export function BoardView({ onNewTask }: BoardViewProps) {
     if (event.button !== 0 || pendingRef.current || remoteLoading) return;
     if ((event.target as HTMLElement).closest("button, input, select, textarea, a")) return;
     const rect = event.currentTarget.getBoundingClientRect();
+    const anchorRects = new Map<string, { top: number; bottom: number }>();
+    const scrollOrigins = new Map<string, number>();
+    boardRef.current?.querySelectorAll<HTMLElement>("[data-kanban-task-id]").forEach(card => {
+      const cardRect = card.getBoundingClientRect();
+      anchorRects.set(card.dataset.kanbanTaskId ?? "", { top: cardRect.top, bottom: cardRect.bottom });
+    });
+    boardRef.current?.querySelectorAll<HTMLElement>("[data-kanban-column-id]").forEach(column => {
+      scrollOrigins.set(column.dataset.kanbanColumnId ?? "",
+        column.querySelector<HTMLElement>("[data-kanban-task-list]")?.scrollTop ?? 0);
+    });
+    const sourceVisibleIndex = Math.max(0, dataRef.current.filteredTasks
+      .filter(item => item.columnId === task.columnId)
+      .findIndex(item => item.id === task.id));
     pendingRef.current = {
       task, pointerId: event.pointerId,
       startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY,
       offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top,
-      width: rect.width, height: rect.height, destinationId: task.columnId, insertionIndex: 0
+      width: rect.width, height: rect.height, destinationId: task.columnId,
+      insertionIndex: sourceVisibleIndex, hoveredTaskId: null, sourceVisibleIndex,
+      anchorRects, scrollOrigins, windowScrollOrigin: window.scrollY
     };
   };
 
@@ -173,6 +212,7 @@ export function BoardView({ onNewTask }: BoardViewProps) {
         mobileActive={column.id === activeMobileColumn?.id}
         dragging={Boolean(dragging)} dropTarget={dragging?.destinationId === column.id}
         insertionIndex={dragging?.destinationId === column.id ? dragging.insertionIndex : -1}
+        hoveredTaskId={dragging?.destinationId === column.id ? dragging.hoveredTaskId : null}
         placeholderHeight={dragging?.height ?? 0}
         onPrepareDrag={prepareDrag} onRenameColumn={updateColumn} onDuplicateTask={duplicateTask} />)}
       {!columns.length && <div className="grid min-h-[200px] w-full place-items-center rounded-2xl border border-dashed border-slate-300 px-6 text-sm text-slate-500">Adicione uma coluna para começar.</div>}
