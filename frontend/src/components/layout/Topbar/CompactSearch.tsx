@@ -18,8 +18,8 @@ type CompactSearchProps = {
 };
 
 /**
- * Busca compacta acionada por botão até 1535px.
- * Em tablets/notebooks ela expande um dropdown com input + filtros.
+ * Busca compacta acionada por botão até 1919px.
+ * A partir de 768px o dropdown apresenta o input e os dois filtros lado a lado.
  */
 export function CompactSearch({
   value,
@@ -51,11 +51,16 @@ export function CompactSearch({
       setOpen(false);
       triggerRef.current?.focus();
     };
+    const closeOnDesktop = () => {
+      if (window.innerWidth >= 1920) setOpen(false);
+    };
     document.addEventListener("pointerdown", closeOnOutside);
     document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", closeOnDesktop);
     return () => {
       document.removeEventListener("pointerdown", closeOnOutside);
       document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", closeOnDesktop);
     };
   }, [open]);
 
@@ -67,7 +72,7 @@ export function CompactSearch({
         aria-label={open ? "Fechar busca" : "Abrir busca"}
         aria-expanded={open}
         aria-controls={panelId}
-        className="icon-button 2xl:hidden"
+        className="icon-button min-[1920px]:hidden"
         onClick={() => setOpen((current) => !current)}
       >
         {open ? <X className="size-4" /> : <Search className="size-4" />}
@@ -78,7 +83,7 @@ export function CompactSearch({
           role="search"
           aria-label="Pesquisar tarefas"
           ref={searchRef}
-          className="order-last w-full basis-full rounded-2xl border border-slate-200 bg-white p-2 shadow-card 2xl:hidden dark:border-slate-700 dark:bg-slate-950"
+          className="absolute right-3 top-[calc(100%+8px)] z-50 w-[calc(100vw-24px)] max-w-[740px] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl min-[1920px]:hidden dark:border-slate-700 dark:bg-slate-950"
         >
           <div className="flex flex-col gap-2 md:flex-row md:items-start">
             <SearchField value={value} onChange={onChange} placeholder="Buscar" className="min-w-0 flex-1" />

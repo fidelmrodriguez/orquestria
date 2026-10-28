@@ -33,7 +33,7 @@ function Example() {
   );
 }
 
-describe("pesquisa compacta para tablets", () => {
+describe("pesquisa compacta até 1919px", () => {
   it("mantém a pesquisa recolhida até ser solicitada", () => {
     render(<Example />);
     expect(screen.getByRole("button", { name: "Abrir busca" })).toHaveAttribute("aria-expanded", "false");
@@ -43,12 +43,31 @@ describe("pesquisa compacta para tablets", () => {
     expect(screen.getByRole("textbox", { name: "Buscar" })).toHaveFocus();
   });
 
-  it("abre uma faixa no fluxo do cabeçalho em vez de um painel flutuante", () => {
+  it("mostra dropdown flutuante até 1919px, com filtros desde 768px", () => {
+    render(<Example />);
+    const trigger = screen.getByRole("button", { name: "Abrir busca" });
+    expect(trigger).toHaveClass("min-[1920px]:hidden");
+    fireEvent.click(trigger);
+    const panel = screen.getByRole("search", { name: "Pesquisar tarefas" });
+    expect(panel).toHaveClass("absolute", "min-[1920px]:hidden");
+    expect(panel).toHaveClass("w-[calc(100vw-24px)]", "max-w-[740px]");
+    expect(screen.getByRole("textbox", { name: "Buscar" })).toBeInTheDocument();
+    const filters = screen.getByRole("combobox", { name: "Filtrar por prioridade" }).parentElement?.parentElement?.parentElement;
+    expect(filters).toHaveClass("hidden", "md:flex");
+    expect(screen.getByRole("combobox", { name: "Filtrar por responsável" })).toBeInTheDocument();
+  });
+
+  it("fecha o dropdown ao passar para 1920px", () => {
+    const previousWidth = window.innerWidth;
     render(<Example />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir busca" }));
-    const field = screen.getByRole("search");
-    expect(field).toHaveClass("order-last", "w-full", "basis-full");
-    expect(field).not.toHaveClass("absolute");
+    try {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: 1920 });
+      fireEvent.resize(window);
+      expect(screen.queryByRole("search")).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: previousWidth });
+    }
   });
 
   it("permite pesquisar e fechar com Escape, retornando o foco ao botão", () => {

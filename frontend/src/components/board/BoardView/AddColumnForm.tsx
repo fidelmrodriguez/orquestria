@@ -37,7 +37,7 @@ export function AddColumnForm({ projectId, onAddColumn }: AddColumnFormProps) {
       aria-label="Adicionar coluna ao projeto" aria-expanded={expanded}
       aria-controls="orquestria-new-column-form"
       className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-      <Plus className="size-4" /> <span className="hidden 2xl:inline">Nova coluna</span>
+      <Plus className="size-4" /> <span className="hidden min-[1920px]:inline">Nova coluna</span>
     </button>
     {expanded && <form id="orquestria-new-column-form" className="absolute right-0 top-full z-[60] mt-2 flex w-[min(90vw,320px)] items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
       onSubmit={(event) => {
