@@ -71,7 +71,7 @@ export function AppShell() {
         <Sidebar collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(value => !value)} />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col lg:h-dvh lg:min-h-0">
+      <div className="flex min-w-0 flex-1 flex-col pt-[84px] sm:pt-[92px] lg:pt-0 lg:h-dvh lg:min-h-0">
         <Topbar
           mobileMenuOpen={mobileMenuOpen}
           onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}

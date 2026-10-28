@@ -35,7 +35,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
   const addColumn = useBoardStore((state) => state.addColumn);
 
   return (
-    <header className="relative z-30 shrink-0 border-b border-slate-200 bg-white/95 px-3 py-3 dark:border-slate-800 dark:bg-slate-950/95 lg:px-6">
+    <header className="fixed inset-x-0 top-0 z-40 shrink-0 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:static lg:z-30 lg:px-6">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <button
           type="button"
@@ -59,10 +59,8 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
           value={search}
           onChange={setSearch}
           placeholder="Buscar"
-          className="hidden min-w-[200px] max-w-md flex-1 2xl:flex"
+          className="hidden min-w-[220px] max-w-md flex-1 2xl:flex"
         />
-
-        <CompactSearch value={search} onChange={setSearch} />
 
         <TopbarFilters
           workspace={workspace}
@@ -71,17 +69,29 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
           assigneeFilter={assigneeFilter}
           onPriorityChange={(value) => setPriorityFilter(value as Priority | "todas")}
           onAssigneeChange={setAssigneeFilter}
-          priorityClassName="hidden w-[106px] shrink-0 md:block"
-          assigneeClassName="hidden w-[112px] shrink-0 lg:block"
+          priorityClassName="hidden w-[106px] shrink-0 2xl:block"
+          assigneeClassName="hidden w-[112px] shrink-0 2xl:block"
         />
 
         {project && <AddColumnForm key={project.id} projectId={project.id} onAddColumn={addColumn} />}
 
+        <ThemeToggle theme={theme} onChangeTheme={setTheme} className="icon-button grid" />
+
+        <CompactSearch
+          value={search}
+          onChange={setSearch}
+          workspace={workspace}
+          projectId={project?.id}
+          priorityFilter={priorityFilter}
+          assigneeFilter={assigneeFilter}
+          onPriorityChange={(value) => setPriorityFilter(value as Priority | "todas")}
+          onAssigneeChange={setAssigneeFilter}
+        />
+
         <button type="button" onClick={onNewTask} className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-card dark:bg-white dark:text-slate-950">
-          <Plus className="size-4" /> <span className="hidden sm:inline">Nova tarefa</span>
+          <Plus className="size-4" /> <span className="hidden 2xl:inline">Nova tarefa</span>
         </button>
 
-        <ThemeToggle theme={theme} onChangeTheme={setTheme} className="icon-button hidden sm:grid" />
         <NotificationsMenu activities={activities} />
         <UserMenu currentUser={currentUser} onLogout={logout} />
       </div>

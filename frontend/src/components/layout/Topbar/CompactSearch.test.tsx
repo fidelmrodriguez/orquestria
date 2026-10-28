@@ -1,10 +1,36 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { CompactSearch } from "./CompactSearch";
+import type { Workspace } from "@/types/board";
+
+const workspace = {
+  members: [
+    { id: "user-1", name: "João" },
+    { id: "user-2", name: "Maria" }
+  ],
+  projects: [{
+    id: "proj",
+    members: [
+      { id: "user-1", name: "João" },
+      { id: "user-2", name: "Maria" }
+    ]
+  }]
+} as Workspace;
 
 function Example() {
   const [query, setQuery] = useState("");
-  return <CompactSearch value={query} onChange={setQuery} />;
+  return (
+    <CompactSearch
+      value={query}
+      onChange={setQuery}
+      workspace={workspace}
+      projectId="proj"
+      priorityFilter="todas"
+      assigneeFilter="todos"
+      onPriorityChange={jest.fn()}
+      onAssigneeChange={jest.fn()}
+    />
+  );
 }
 
 describe("pesquisa compacta para tablets", () => {

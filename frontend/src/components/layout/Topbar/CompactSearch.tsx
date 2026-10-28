@@ -3,14 +3,34 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { SearchField } from "./SearchField";
+import { TopbarFilters } from "./TopbarFilters";
+import type { Priority, Workspace } from "@/types/board";
 
 type CompactSearchProps = {
   value: string;
   onChange: (value: string) => void;
+  workspace?: Workspace | null;
+  projectId?: string | null;
+  priorityFilter: Priority | "todas";
+  assigneeFilter: string | "todos";
+  onPriorityChange: (value: Priority | "todas") => void;
+  onAssigneeChange: (value: string | "todos") => void;
 };
 
-/** Campo sob demanda que se expande no fluxo do cabeçalho, sem sobrepor o Kanban. */
-export function CompactSearch({ value, onChange }: CompactSearchProps) {
+/**
+ * Busca compacta acionada por botão até 1535px.
+ * Em tablets/notebooks ela expande um dropdown com input + filtros.
+ */
+export function CompactSearch({
+  value,
+  onChange,
+  workspace,
+  projectId,
+  priorityFilter,
+  assigneeFilter,
+  onPriorityChange,
+  onAssigneeChange
+}: CompactSearchProps) {
   const [open, setOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -58,9 +78,23 @@ export function CompactSearch({ value, onChange }: CompactSearchProps) {
           role="search"
           aria-label="Pesquisar tarefas"
           ref={searchRef}
-          className="order-last w-full basis-full rounded-2xl 2xl:hidden border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900"
+          className="order-last w-full basis-full rounded-2xl border border-slate-200 bg-white p-2 shadow-card 2xl:hidden dark:border-slate-700 dark:bg-slate-950"
         >
-          <SearchField value={value} onChange={onChange} placeholder="Buscar" />
+          <div className="flex flex-col gap-2 md:flex-row md:items-start">
+            <SearchField value={value} onChange={onChange} placeholder="Buscar" className="min-w-0 flex-1" />
+            <div className="hidden md:flex md:items-start md:gap-2">
+              <TopbarFilters
+                workspace={workspace}
+                projectId={projectId}
+                priorityFilter={priorityFilter}
+                assigneeFilter={assigneeFilter}
+                onPriorityChange={onPriorityChange}
+                onAssigneeChange={onAssigneeChange}
+                priorityClassName="w-[136px] shrink-0"
+                assigneeClassName="w-[144px] shrink-0"
+              />
+            </div>
+          </div>
         </div>
       )}
     </>

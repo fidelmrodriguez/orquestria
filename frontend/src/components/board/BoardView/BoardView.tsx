@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { BoardColumn } from "./BoardColumn";
-import { BoardSummary } from "./BoardSummary";
 import { EmptyBoardState } from "./EmptyBoardState";
 import { useBoardViewData } from "./useBoardViewData";
 import { TaskDragPreview } from "./TaskDragPreview";
@@ -66,7 +65,6 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   const assigneeFilter = useBoardStore(state => state.assigneeFilter);
   const moveTask = useBoardStore(state => state.moveTask);
   const duplicateTask = useBoardStore(state => state.duplicateTask);
-  const updateProject = useBoardStore(state => state.updateProject);
   const updateColumn = useBoardStore(state => state.updateColumn);
   const remoteLoading = useBoardStore(state => state.remoteLoading);
   const { columns, filteredTasks } = useBoardViewData(workspace, project, search, priorityFilter, assigneeFilter);
@@ -198,8 +196,6 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   const members = getProjectMembers(workspace, project.id);
 
   return <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 lg:h-full">
-    <BoardSummary project={project} taskCount={filteredTasks.length} memberCount={members.length}
-      columnCount={columns.length} onRenameProject={updateProject} />
     <MobileColumnSwitcher columns={columns} activeColumnId={activeMobileColumn?.id ?? null} taskCounts={taskCounts}
       onChange={setMobileColumnId} onNewTask={columnId => onNewTask(columnId)} />
     <div ref={boardRef} onClickCapture={event => {
