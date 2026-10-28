@@ -24,6 +24,8 @@ A variável pública de build `NEXT_PUBLIC_ORQUESTRIA_API_URL` determina o ender
 
 O [frontend](../frontend/README.md) utiliza Next.js com `output: "export"`: após o build, o Netlify publica arquivos estáticos, sem processo Next.js persistente. A interface emprega Zustand para estado do quadro, TanStack Query para consultas e React Hook Form/Zod para formulários.
 
+A central de notificações utiliza atividades do Zustand e prazos dos cards disponíveis no navegador. Apenas operações confirmadas pela API geram eventos de ação no modo remoto; o estado de leitura é local, persistido pelo armazenamento Zustand. A central não consulta uma fila de notificações no servidor, não acompanha ações de terceiros em tempo real e não envia push.
+
 O Kanban exibe workspaces, projetos, colunas e tarefas. Operações de escrita feitas no modo remoto enviam requisições HTTP para a API e atualizam os dados apresentados. Criar ou renomear colunas e projetos, criar, editar ou mover tarefas e incluir/excluir comentários reutiliza a resposta JSON da própria mutação para atualizar o item, sem recarregar os projetos inteiros. Exclusões confirmadas também atualizam a coleção local; o recarregamento manual continua disponível para reconciliação. A listagem de tarefas utiliza busca conjunta dos comentários para reduzir o número de consultas ao banco. O projeto também mantém um modo de demonstração local utilizado quando não há URL de API configurada; esse modo não representa os dados do PostgreSQL.
 
 ## API e persistência

@@ -87,3 +87,17 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - O campo de busca é identificado apenas como **Buscar** em todas as larguras de tela, sem texto cortado.
 - Os avatares de membros da equipe possuem nome no tooltip nativo (mouse) e nome acessível no foco por teclado; o texto da bolinha não pode ser selecionado.
 - Ao adicionar uma tag, uma camada de espera apresenta **Salvando tag...** enquanto o cadastro/associação é confirmado; os erros permanecem visíveis após a operação.
+
+## Menu mobile, movimentação e criação de colunas
+
+- Em telas menores que 1024px, o menu hambúrguer ocupa a viewport como diálogo modal, com rolagem em um único contêiner, scrollbar oculto e margem inferior respeitando a área segura do navegador (`env(safe-area-inset-bottom)`). Esc e o botão de fechar retornam à navegação anterior; o conteúdo atrás do menu não rola.
+- O seletor mobile apresenta Nova coluna (branco) e Nova tarefa (escuro) lado a lado. O formulário Nova coluna expande uma linha completa **abaixo** dos botões, sem popover absoluto, inclusive quando o teclado virtual está ativo.
+- Os cards mobile oferecem Mover: subir, descer ou escolher outra coluna, sem interferir na rolagem por toque. O menu de movimentação usa React Portal, fica acima dos outros cards e fecha por Escape, clique externo ou rolagem da página.
+- No desktop, o drag-and-drop mantém prévia e indicador de inserção com traço de 3px, evitando anéis visuais pesados.
+
+## Central de notificações
+
+- A campainha mostra o indicador verde apenas quando existem notificações relevantes ainda não visualizadas. Abrir a central registra como lidas as entradas exibidas; o botão Marcar todas como lidas também permanece disponível. O estado é mantido no navegador.
+- Notificações de operações são produzidas **após confirmação** no modo API: criação de workspaces, projetos, colunas e tarefas, edição, movimentação, duplicação e comentários. Erros de API não geram avisos falsos de sucesso; login e sincronização de dados não acendem a campainha.
+- São exibidos lembretes para tarefas atribuídas ao usuário atual que estão vencidas, vencem hoje ou em até três dias. Avisos de tarefas oferecem Abrir tarefa quando o card ainda existe.
+- Esta central é um recurso local da aplicação web, não um serviço de push: não entrega mensagens enquanto o aplicativo está fechado, não sincroniza a leitura entre navegadores e não observa alterações de outros usuários sem um fluxo de atualização explícito.

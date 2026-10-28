@@ -84,7 +84,7 @@ export function MobileWorkspaceMenu({ open, workspace, projectId, priorityFilter
       role="dialog"
       aria-modal="true"
       aria-label="Navegação mobile"
-      className="fixed inset-0 z-[100] flex h-screen h-[100dvh] min-w-0 flex-col overflow-hidden bg-white px-4 pb-6 pt-4 dark:bg-slate-950 lg:hidden"
+      className="fixed inset-0 z-[100] flex h-screen h-[100dvh] min-w-0 flex-col overflow-hidden bg-white px-4 pt-4 dark:bg-slate-950 lg:hidden"
     >
       <div className="mb-4 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
         <div>

@@ -12,6 +12,8 @@ Interface web do Orquestria, desenvolvida com **Next.js 14 (App Router), React 1
 - **Pesquisa e filtros:** busca por tarefas, prioridade e responsável; o campo de pesquisa se adapta ao tamanho da tela.
 - **Formulários e feedback:** validação, indicadores de salvamento, mensagens de erro, estados vazios e controles com suporte a teclado.
 - **Conta e personalização:** login pessoal ou Guest, sessão restaurada entre atualizações, tema claro/escuro, gerenciamento de equipe e catálogo de tags com sugestões.
+- **Notificações locais:** campainha sinaliza eventos ainda não visualizados e prazos de tarefas atribuídas (hoje, vencidos ou em até três dias). Abrir a central marca as entradas exibidas como lidas e permite abrir o card quando ele ainda existe. O estado de leitura persiste no navegador durante a sessão; não há push, fila de notificações ou sincronização de leitura entre dispositivos.
+- **Navegação touch:** botão Mover para subir, descer e trocar de coluna em telas menores que 1024px; no desktop, permanece o drag-and-drop. O formulário de Nova coluna é inline no mobile e permanece acessível quando o teclado aparece.
 
 O modo Guest utiliza dados compartilhados com outros visitantes; contas pessoais têm seus recursos isolados pela API. Adicionar um usuário à equipe de um projeto concede acesso somente àquele projeto, com o papel **membro-admin**. O proprietário mantém o papel **admin** e o controle sobre os participantes. Na sidebar, a pessoa encontra os projetos compartilhados em **Workspaces convidados**.
 

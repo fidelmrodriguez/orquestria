@@ -88,3 +88,14 @@ Os testes HTTP sobre PostgreSQL validam o isolamento entre projetos privados e c
 4. Em Tags, verificar inclusão por Enter e por botão, com mensagem de espera durante chamada à API; em Equipe, conferir tooltip e texto não selecionável; no cabeçalho, conferir o placeholder Buscar.
 5. Diagnóstico do `401` ao duplicar: verificar que o frontend consulta `GET /api/auth/me` **uma única vez após a recusa**, sem reenviar o `POST /duplicate`. Se `/me` retornar 200, a sessão permanece ativa e o Kanban mostra erro sem criar cópia local; se `/me` retornar 401/403, somente o token que falhou é removido. Se `/me` falhar por rede/5xx, a sessão é preservada.
 6. No console, localizar `[Orquestria][auth] Operação recusada` com `operacao=duplicar_tarefa`, `sessao` e `requestId`, sem copiar credenciais. No Blitz, correlacionar pelo `rid` a linha `duplicacao_tarefa bearer=valido|ausente_ou_malformado|invalido_revogado_ou_expirado`. Um Bearer válido com 401 na duplicação exige investigação adicional da implantação/proxy; um Bearer inválido exige login novamente.
+
+## Regressão da navegação mobile, movimento e notificações
+
+- `AddColumnForm.test.tsx`: formulário Nova coluna preenche a segunda linha do grid no mobile sem `position:absolute`, permite editar, criar ou cancelar. Validar no Chrome Android com teclado aberto em 360px e 390px.
+- `MobileTaskMove.test.tsx`: o painel Mover é montado em um portal no `body`, acima dos cards, sem ser coberto por botões de outras tarefas; testar Escape, clique externo e escolha de coluna.
+- `MobileWorkspaceMenu.test.tsx`: painel modal com um contêiner rolável e espaço inferior para área segura. Conferir presencialmente em celular que o último botão Sair é alcançável por rolagem, sem barra visual aparente.
+- `notifications.test.ts` e `NotificationsMenu.test.tsx`: atividades confirmadas e avisos de prazo, isolamento por usuário, estado não lido/lido e abertura contextual de tarefas.
+- Teste visual em desktop: ao arrastar um card para o meio de uma coluna, o indicador azul deve ter cerca de 3px e não apresentar anel grosso.
+- Testar notificação de uma operação confirmada, atualizar a página, abrir a central e conferir a ausência da bolinha verde; uma falha HTTP não deve gerar aviso de sucesso.
+
+A central de notificações não é um serviço push nem utiliza uma nova tabela na API. O teste de sincronização entre contas/dispositivos permanece fora do escopo deste recurso local.

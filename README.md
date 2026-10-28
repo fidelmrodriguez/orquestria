@@ -15,6 +15,7 @@
 - **Gerenciamento:** exclusão contextual de tarefas, colunas, projetos e workspaces, além da página específica de gerenciamento. Operações destrutivas exigem confirmação e respeitam dependências.
 - **Contas e sessões:** cadastro, login por nome de usuário ou e-mail, sessão persistida entre atualizações e isolamento dos dados de cada conta.
 - **Interface:** busca, filtros, navegação responsiva e temas claro/escuro.
+- **Notificações no navegador:** avisos de prazos das tarefas atribuídas e histórico de operações confirmadas, com leitura e abertura contextual da tarefa. Não são notificações push entre dispositivos.
 
 A aplicação oferece uma conta de demonstração compartilhada (*guest*), acessível pela tela de login. **Dados inseridos nessa conta podem ser vistos e alterados por outros visitantes.** Para conteúdo privado, utilize uma conta pessoal.
 

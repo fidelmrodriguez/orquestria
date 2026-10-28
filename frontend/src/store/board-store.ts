@@ -30,6 +30,8 @@ type BoardState = {
   theme: ThemeMode;
   bootstrapped: boolean;
   activities: Activity[];
+  notificationReadIds: string[];
+  markNotificationsRead: (ids: string[]) => void;
   remoteReady: boolean;
   remoteLoading: boolean;
   remoteActionLabel: string;
@@ -78,12 +80,16 @@ function getActiveWorkspace(state: BoardState) {
   return state.workspaces.find((workspace) => workspace.id === state.activeWorkspaceId);
 }
 
-function appendActivity(message: string, type: Activity["type"] = "system", activities: Activity[] = []) {
+type ActivityLink = { taskId?: string; projectId?: string };
+
+function appendActivity(message: string, type: Activity["type"] = "system", activities: Activity[] = [], link: ActivityLink = {}, notifiable = type !== "sync") {
   return [
     {
       id: uid("activity"),
       message,
       type,
+      notifiable,
+      ...link,
       createdAt: new Date().toISOString()
     },
     ...activities
@@ -117,7 +123,8 @@ async function runRemoteMutation(
   set: (value: Partial<BoardState>) => void,
   get: () => BoardState,
   actionLabel: string,
-  action: () => Promise<RemoteSelection>
+  action: () => Promise<RemoteSelection>,
+  activity?: (selection: RemoteSelection) => { message: string; type: Activity["type"]; projectId?: string; taskId?: string }
 ): Promise<boolean> {
   if (get().remoteLoading) {
     set({ remoteError: "Aguarde a operação anterior terminar antes de continuar." });
@@ -133,6 +140,7 @@ async function runRemoteMutation(
     const selectedWorkspace = preferred.workspaceId
       || workspaces.find((space) => space.projects.some((p) => p.id === preferred.projectId))?.id;
     set({
+      ...(activity ? { activities: appendActivity(activity(preferred).message, activity(preferred).type, get().activities, activity(preferred)) } : {}),
       ...(selectedWorkspace ? { activeWorkspaceId: selectedWorkspace } : {}),
       ...(preferred.projectId ? { activeProjectId: preferred.projectId } : {}),
       ...(preferred.taskId ? { selectedTaskId: preferred.taskId } : {}),
@@ -154,7 +162,8 @@ async function runRemoteEntityMutation<T>(
   get: () => BoardState,
   label: string,
   request: () => Promise<T>,
-  apply: (state: BoardState, result: T) => Partial<BoardState>
+  apply: (state: BoardState, result: T) => Partial<BoardState>,
+  activity?: (result: T) => { message: string; type: Activity["type"]; projectId?: string; taskId?: string }
 ): Promise<boolean> {
   if (get().remoteLoading) {
     set({ remoteError: "Aguarde a operação anterior terminar antes de continuar." });
@@ -163,7 +172,9 @@ async function runRemoteEntityMutation<T>(
   set({ remoteLoading: true, remoteActionLabel: label, remoteError: null });
   try {
     const result = await request();
-    set((state) => ({ ...apply(state, result), remoteError: null }));
+    set((state) => ({ ...apply(state, result),
+      ...(activity ? { activities: appendActivity(activity(result).message, activity(result).type, state.activities, activity(result)) } : {}),
+      remoteError: null }));
     return true;
   } catch (error) {
     console.error("[Orquestria] Falha ao atualizar dados", error);
@@ -181,7 +192,8 @@ async function runRemoteTaskMutation(
   get: () => BoardState,
   label: string,
   action: () => Promise<ApiTask>,
-  selectCreated = false
+  selectCreated = false,
+  activity?: (result: ApiTask) => { message: string; type: Activity["type"]; projectId?: string; taskId?: string }
 ): Promise<boolean> {
   if (get().remoteLoading) {
     set({ remoteError: "Aguarde a operação anterior terminar antes de continuar." });
@@ -203,6 +215,7 @@ async function runRemoteTaskMutation(
           : space.tasks
       })),
       ...(selectCreated ? { selectedTaskId: mapped.id } : {}),
+      ...(activity ? { activities: appendActivity(activity(result).message, activity(result).type, state.activities, activity(result)) } : {}),
       remoteError: null
     }));
     return true;
@@ -229,6 +242,8 @@ export const useBoardStore = create<BoardState>()(
       theme: "light",
       bootstrapped: false,
       activities: [],
+      notificationReadIds: [],
+      markNotificationsRead: (ids) => set((state) => ({ notificationReadIds: Array.from(new Set([...(state.notificationReadIds ?? []), ...ids])).slice(-300) })),
       remoteReady: false,
       remoteLoading: false,
       remoteActionLabel: "Salvando alterações...",
@@ -269,13 +284,14 @@ export const useBoardStore = create<BoardState>()(
           workspaces: [], activeWorkspaceId: null, activeProjectId: null,
           remoteReady: false,
           remoteError: null,
-          activities: appendActivity("User entrou no ambiente de trabalho.", "system", state.activities)
+          notificationReadIds: [],
+          activities: []
         }));
       },
       logout: () => {
         if (isApiMode) void revokeSession();
         set({ currentUser: null, workspaces: [], activeWorkspaceId: null, activeProjectId: null,
-          selectedTaskId: null, remoteReady: false, remoteError: null, bootstrapped: false, activities: [] });
+          selectedTaskId: null, remoteReady: false, remoteError: null, bootstrapped: false, activities: [], notificationReadIds: [] });
       },
       hydrateFromSource: (todos, users) => {
         const state = get();
@@ -320,7 +336,7 @@ export const useBoardStore = create<BoardState>()(
             });
             await createDefaultColumns(project.id);
             return { workspaceId: created.id, projectId: project.id };
-          });
+          }, (selection) => ({ message: `Workspace ${name} criado.`, type: "system", projectId: selection.projectId }));
         }
         const id = uid("workspace");
         const projectId = uid("project");
@@ -361,7 +377,7 @@ export const useBoardStore = create<BoardState>()(
             });
             await createDefaultColumns(created.id);
             return { workspaceId, projectId: created.id };
-          });
+          }, (selection) => ({ message: `Projeto ${name} criado.`, type: "system", projectId: selection.projectId }));
         }
         const id = uid("project");
         const now = new Date().toISOString();
@@ -397,7 +413,7 @@ export const useBoardStore = create<BoardState>()(
           () => postApi<{id:string; name:string}>(`/api/projects/${projectId}/rename`, { name }),
           (state, saved) => ({ workspaces: state.workspaces.map((space) => ({ ...space,
             projects: space.projects.map((project) => project.id === saved.id ? { ...project, name: saved.name } : project)
-          })) }));
+          })) }), () => ({ message: `Projeto renomeado para ${name}.`, type: "system", projectId }));
         set((state) => ({
           workspaces: state.workspaces.map((workspace) => ({
             ...workspace,
@@ -416,7 +432,7 @@ export const useBoardStore = create<BoardState>()(
             ? [...space.columns, { id: saved.id, projectId: saved.projectId, title: saved.title,
               order: saved.position, color: saved.color.startsWith("bg-") ? saved.color : "bg-slate-400" }]
             : space.columns
-        })) }));
+        })) }), () => ({ message: `Coluna ${title} criada.`, type: "system", projectId }));
         set((state) => ({
           ...updateWorkspace(state, (workspace) => {
             const projectColumns = workspace.columns.filter((column) => column.projectId === projectId);
@@ -444,7 +460,7 @@ export const useBoardStore = create<BoardState>()(
           return postApi<{id:string;title:string}>(`/api/projects/${column.projectId}/columns/${column.id}/rename`, { title });
         }, (state, saved) => ({ workspaces: state.workspaces.map((space) => ({ ...space,
           columns: space.columns.map((column) => column.id === saved.id ? { ...column, title: saved.title } : column)
-        })) }));
+        })) }), () => ({ message: `Coluna renomeada para ${title}.`, type: "system" }));
         set((state) => ({
           ...updateWorkspace(state, (workspace) => ({
             ...workspace,
@@ -461,7 +477,7 @@ export const useBoardStore = create<BoardState>()(
             priority: toApiPriority(payload.priority), dueDate: toApiDate(payload.dueDate),
             position: current.length, assigneeId: payload.assigneeId, tags: payload.tags
           });
-        });
+        }, false, (saved) => ({ message: `Tarefa ${payload.title} criada.`, type: "task", projectId: saved.projectId, taskId: saved.id }));
         const now = new Date().toISOString();
         const task: Task = {
           id: uid("task"),
@@ -474,7 +490,7 @@ export const useBoardStore = create<BoardState>()(
         set((state) => ({
           ...updateWorkspace(state, (workspace) => ({ ...workspace, tasks: [task, ...workspace.tasks] })),
           selectedTaskId: null,
-          activities: appendActivity(`Tarefa ${task.title} criada.`, "task", state.activities)
+          activities: appendActivity(`Tarefa ${task.title} criada.`, "task", state.activities, { projectId: task.projectId, taskId: task.id })
         }));
       },
       duplicateTask: (taskId) => {
@@ -500,13 +516,13 @@ export const useBoardStore = create<BoardState>()(
           (state, saved) => {
             if (!state.currentUser) return {};
             return placeCopy(state, mapTask(saved, state.currentUser));
-          });
+          }, (saved) => ({ message: `Tarefa ${source.title} duplicada.`, type: "task", projectId: source.projectId, taskId: saved.id }));
         const now = new Date().toISOString();
         const copy: Task = { ...source, id: uid("task"),
           comments: source.comments.map(comment => ({ ...comment, id: uid("comment"), createdAt: now })),
           createdAt: now, updatedAt: now };
         set(state => ({ ...placeCopy(state, copy),
-          activities: appendActivity(`Tarefa ${source.title} duplicada.`, "task", state.activities) }));
+          activities: appendActivity(`Tarefa ${source.title} duplicada.`, "task", state.activities, { projectId: source.projectId, taskId: copy.id }) }));
         // A duplicação local atualiza o estado imediatamente; somente a API retorna Promise<boolean>.
         return;
       },
@@ -519,14 +535,15 @@ export const useBoardStore = create<BoardState>()(
             title: data.title, description: data.description, priority: toApiPriority(data.priority),
             dueDate: toApiDate(data.dueDate), assigneeId: data.assigneeId, tags: data.tags
           });
-        });
+        }, false, (saved) => ({ message: `Tarefa ${saved.title} atualizada.`, type: "task", projectId: saved.projectId, taskId: saved.id }));
         set((state) => ({
           ...updateWorkspace(state, (workspace) => ({
             ...workspace,
             tasks: workspace.tasks.map((task) =>
               task.id === taskId ? { ...task, ...patch, updatedAt: new Date().toISOString() } : task
             )
-          }))
+          })),
+          activities: appendActivity("Tarefa atualizada.", "task", state.activities, { taskId, projectId: state.workspaces.flatMap(space => space.tasks).find(task => task.id === taskId)?.projectId })
         }));
       },
       moveTask: (taskId, columnId, position) => {
@@ -546,7 +563,7 @@ export const useBoardStore = create<BoardState>()(
             tasks: applyTaskReorder(workspace.tasks, taskId, result.columnId, result.position)
               .map(task => task.id === taskId && state.currentUser ? mapTask(result, state.currentUser) : task)
           }))
-        }));
+        }), (saved) => ({ message: `Tarefa ${existing.title} movida.`, type: "task", projectId: saved.projectId, taskId: saved.id }));
         set((state) => ({
           ...updateWorkspace(state, (workspace) => ({
             ...workspace,
@@ -563,7 +580,7 @@ export const useBoardStore = create<BoardState>()(
           return postApi<ApiTask>(`/api/projects/${task.projectId}/tasks/${taskId}/comments`, {
             authorId: author.id, message
           });
-        });
+        }, false, (saved) => ({ message: `Comentário adicionado em ${saved.title}.`, type: "comment", projectId: saved.projectId, taskId: saved.id }));
         const state = get();
         const currentUser = state.currentUser;
         if (!currentUser) return;
@@ -589,7 +606,7 @@ export const useBoardStore = create<BoardState>()(
                 : task
             )
           })),
-          activities: appendActivity("Novo comentário adicionado.", "comment", current.activities)
+          activities: appendActivity("Novo comentário adicionado.", "comment", current.activities, { projectId: state.workspaces.flatMap(space => space.tasks).find(task => task.id === taskId)?.projectId, taskId })
         }));
       },
       removeComment: (taskId, commentId) => {
@@ -597,7 +614,7 @@ export const useBoardStore = create<BoardState>()(
           const task = get().workspaces.flatMap((space) => space.tasks).find((item) => item.id === taskId);
           if (!task) throw new Error("Tarefa não encontrada.");
           return postApi<ApiTask>(`/api/projects/${task.projectId}/tasks/${task.id}/comments/${commentId}/delete`, {});
-        });
+        }, false, (saved) => ({ message: `Comentário removido de ${saved.title}.`, type: "comment", projectId: saved.projectId, taskId: saved.id }));
         set((state) => ({ ...updateWorkspace(state, (space) => ({ ...space,
           tasks: space.tasks.map((task) => task.id === taskId
             ? { ...task, comments: task.comments.filter((comment) => comment.id !== commentId) }
@@ -618,6 +635,10 @@ export const useBoardStore = create<BoardState>()(
         })).filter((space) => !(target.kind === "workspace" && space.id === target.id));
         const workspaceId = spaces.some((space) => space.id === state.activeWorkspaceId)
           ? state.activeWorkspaceId : (spaces[0]?.id || null);
+        const deletedName = target.kind === "task" ? state.workspaces.flatMap(space => space.tasks).find(task => task.id === target.id)?.title
+          : target.kind === "column" ? state.workspaces.flatMap(space => space.columns).find(column => column.id === target.id)?.title
+          : target.kind === "project" ? state.workspaces.flatMap(space => space.projects).find(project => project.id === target.id)?.name
+          : state.workspaces.find(space => space.id === target.id)?.name;
         const projectId = spaces.some((space) => space.projects.some((project) => project.id === state.activeProjectId))
           ? state.activeProjectId : (spaces.find((space) => space.id === workspaceId)?.projects[0]?.id || null);
         return {
@@ -625,6 +646,7 @@ export const useBoardStore = create<BoardState>()(
           activeWorkspaceId: workspaceId,
           activeProjectId: projectId,
           selectedTaskId: target.kind === "task" && state.selectedTaskId === target.id ? null : state.selectedTaskId,
+          activities: appendActivity(`${target.kind === "task" ? "Tarefa" : target.kind === "column" ? "Coluna" : target.kind === "project" ? "Projeto" : "Workspace"} ${deletedName || "selecionado"} excluído.`, target.kind === "task" ? "task" : "system", state.activities),
           remoteError: null
         };
       }),
@@ -651,7 +673,8 @@ export const useBoardStore = create<BoardState>()(
         assigneeFilter: state.assigneeFilter,
         theme: state.theme,
         bootstrapped: isApiMode ? false : state.bootstrapped,
-        activities: state.activities
+        activities: state.activities,
+        notificationReadIds: state.notificationReadIds
       })
     }
   )

@@ -181,6 +181,7 @@ body.orquestria-remote-pending select { display: none !important; }
   scrollbar-gutter: auto;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
 }
 .mobile-navigation-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .mobile-navigation-scroll .sidebar-menu-scroll { overflow: visible; scrollbar-width: none; }

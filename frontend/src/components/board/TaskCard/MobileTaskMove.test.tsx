@@ -39,3 +39,13 @@ describe("menu de movimentação mobile", () => {
     expect(move).not.toHaveBeenCalled();
   });
 });
+
+
+it("monta o dropdown no body para não ser coberto por outros cards", () => {
+  const { container } = render(<MobileTaskMove task={task} columns={columns} canMoveUp canMoveDown onMove={jest.fn()} />);
+  fireEvent.click(screen.getByRole("button", { name: "Mover tarefa Verificar integração" }));
+  const panel = screen.getByRole("group", { name: "Movimentar Verificar integração" });
+  expect(panel.parentElement).toBe(document.body);
+  expect(panel).toHaveClass("z-[130]");
+  expect(container.querySelector('[role="group"]')).toBeNull();
+});

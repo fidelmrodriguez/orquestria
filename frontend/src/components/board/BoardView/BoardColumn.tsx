@@ -10,7 +10,7 @@ import type { Column, Member, Task } from "@/types/board";
 function DropSlot() {
   // Indicador leve e imediato: sem reflow de um card inteiro a cada mudança de alvo.
   return <div aria-hidden="true" data-kanban-drop-slot="true"
-    className="my-1 h-2 shrink-0 rounded-full bg-blue-500/75 ring-2 ring-blue-100 dark:bg-blue-400 dark:ring-blue-950" />;
+    className="my-1 h-[3px] shrink-0 rounded-full bg-blue-500/80 dark:bg-blue-400" />;
 }
 
 

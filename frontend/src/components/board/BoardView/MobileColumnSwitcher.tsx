@@ -44,7 +44,7 @@ export function MobileColumnSwitcher({ columns, activeColumnId, taskCounts, onCh
   }, [open]);
 
   if (!activeColumn) return onAddColumn && projectId ? (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 lg:hidden dark:border-slate-800 dark:bg-slate-950">
+    <div className="grid grid-cols-2 rounded-2xl border border-slate-200 bg-white p-3 lg:hidden dark:border-slate-800 dark:bg-slate-950">
       <AddColumnForm mobile projectId={projectId} onAddColumn={onAddColumn} />
     </div>
   ) : null;
@@ -90,7 +90,7 @@ export function MobileColumnSwitcher({ columns, activeColumnId, taskCounts, onCh
           ))}
         </div>
       )}
-      <div className="mt-3 flex min-w-0 items-stretch gap-2" aria-label="Ações do projeto">
+      <div className="mt-3 grid min-w-0 grid-cols-2 items-stretch gap-2" aria-label="Ações do projeto">
         {onAddColumn && <AddColumnForm mobile projectId={activeColumn.projectId} onAddColumn={onAddColumn} />}
         <button type="button" onClick={() => onNewTask(activeColumn.id)} aria-label={`Nova tarefa em ${activeColumn.title}`}
           className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-slate-950 px-2 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">

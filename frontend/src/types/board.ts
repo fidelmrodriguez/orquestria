@@ -68,6 +68,10 @@ export type Activity = {
   message: string;
   createdAt: string;
   type: "system" | "task" | "comment" | "sync";
+  /** Apenas eventos relevantes geram sinalização de não lido. */
+  notifiable?: boolean;
+  taskId?: string;
+  projectId?: string;
 };
 
 export type SourceTodo = {

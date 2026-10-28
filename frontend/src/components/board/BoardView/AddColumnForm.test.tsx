@@ -12,3 +12,16 @@ describe("criação de colunas pelo controle compacto da barra superior", () => 
     expect(screen.getByRole("button", { name: /adicionar coluna ao projeto/i })).toBeInTheDocument();
   });
 });
+
+
+it("exibe formulário mobile no fluxo do layout, sem posicionamento absoluto", () => {
+  const add = jest.fn();
+  const { container } = render(<div className="grid grid-cols-2"><AddColumnForm mobile projectId="p1" onAddColumn={add} /><button>Nova tarefa</button></div>);
+  fireEvent.click(screen.getByRole("button", { name: "Adicionar coluna ao projeto" }));
+  const form = container.querySelector("#orquestria-mobile-new-column-form");
+  expect(form).toHaveClass("col-span-2", "order-last");
+  expect(form).not.toHaveClass("absolute");
+  fireEvent.change(screen.getByRole("textbox", { name: "Nome da nova coluna" }), { target: { value: "  Ideias  " } });
+  fireEvent.click(screen.getByRole("button", { name: "Criar" }));
+  expect(add).toHaveBeenCalledWith("p1", "Ideias");
+});

@@ -6,6 +6,11 @@ Este arquivo registra mudanças relevantes do produto por versão. O histórico 
 
 ### Melhorias de usabilidade e desempenho
 
+- Menu mobile com rolagem até o último item, respeitando áreas seguras e escondendo apenas o trilho de rolagem.
+- Formulário Nova coluna integrado ao seletor no mobile, sem cortes laterais ao abrir o teclado.
+- Menu de movimentação de tarefas acima de outros cards por portal e linha de inserção do drag-and-drop mais discreta.
+- Central de notificações local: operações confirmadas, lembretes de vencimento, controle de leitura e abertura contextual de tarefas; sem push externo.
+
 - Criação de tarefa contextual em cada coluna e ação de nova coluna acima do Kanban.
 - Ajustes de altura, navegação horizontal no rodapé do quadro e rolagem interna da sidebar quando necessária.
 - Exclusão individual de comentários com confirmação e isolamento por projeto.
