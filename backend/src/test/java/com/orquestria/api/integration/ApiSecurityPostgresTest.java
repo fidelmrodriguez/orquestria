@@ -118,7 +118,11 @@ class ApiSecurityPostgresTest {
         JsonNode withComment = postJson(endpoint + "/" + originalId + "/comments", owner,
             Map.of("authorId", owner.id().toString(), "message", "Comentário original"), 200);
         String originalComment = idOf(withComment.path("comments").get(0));
+        assertEquals(owner.id().toString(), getJson("/api/auth/me", owner, 200).path("id").asText());
+        // O mesmo Bearer aceito em /me deve autorizar a duplicação; sem Bearer, deve ser 401.
+        postJson(endpoint + "/" + originalId + "/duplicate", null, Map.of(), 401);
         JsonNode duplicated = postJson(endpoint + "/" + originalId + "/duplicate", owner, Map.of(), 201);
+        assertEquals(owner.id().toString(), getJson("/api/auth/me", owner, 200).path("id").asText());
         assertNotEquals(originalId, idOf(duplicated));
         assertEquals(original.path("title"), duplicated.path("title"));
         assertEquals(original.path("description"), duplicated.path("description"));

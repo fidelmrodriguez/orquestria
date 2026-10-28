@@ -1,6 +1,6 @@
 import { readableApiError } from "@/lib/api-error";
 import type { Column, Member, Priority, Project, Task, Workspace } from "@/types/board";
-import { clearAuthToken, getAuthToken } from "@/lib/auth-client";
+import { clearAuthTokenIfCurrent, getAuthToken } from "@/lib/auth-client";
 
 export const apiUrl = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "").trim().replace(/\/+$/, "");
 export const isApiMode = Boolean(apiUrl);
@@ -32,6 +32,18 @@ export type ApiTask = {
   assigneeId?: string | null; tags?: string[]; comments?: ApiComment[];
 };
 
+/** Um 401 isolado não comprova expiração da sessão. Nunca reenvia automaticamente um POST. */
+async function verifyRejectedToken(token: string): Promise<"valid" | "invalid" | "unknown"> {
+  try {
+    const check = await fetch(`${apiUrl}/api/auth/me`, {
+      method: "GET", headers: { Authorization: `Bearer ${token}` }, cache: "no-store"
+    });
+    if (check.status === 401 || check.status === 403) return "invalid";
+    if (check.ok) return "valid";
+  } catch { /* Indisponibilidade da API não comprova sessão vencida. */ }
+  return "unknown";
+}
+
 export async function requestApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!isApiMode) throw new Error("A URL da API Java não foi configurada.");
   const token = getAuthToken();
@@ -46,9 +58,26 @@ export async function requestApi<T>(path: string, options: RequestInit = {}): Pr
     throw new Error("Não foi possível conectar ao servidor. Sua sessão foi mantida; tente novamente.");
   }
   if (response.status === 401) {
-    clearAuthToken();
-    window.dispatchEvent(new Event("orquestria:auth-expired"));
-    throw new Error("A sessão expirou. Entre novamente.");
+    const verification = await verifyRejectedToken(token);
+    const requestId = response.headers?.get("X-Request-ID") || null;
+    // Identifica a operação sem expor IDs de projeto/tarefa, token ou dados da conta.
+    console.warn("[Orquestria][auth] Operação recusada", {
+      operacao: path.endsWith("/duplicate") ? "duplicar_tarefa" : "requisicao_api",
+      metodo: options.method || "GET", status: response.status,
+      sessao: verification, requestId
+    });
+    if (verification === "invalid") {
+      if (clearAuthTokenIfCurrent(token)) {
+        window.dispatchEvent(new Event("orquestria:auth-expired"));
+      }
+      throw new ApiRequestError(401, "A sessão expirou. Entre novamente.");
+    }
+    if (verification === "valid") {
+      throw new ApiRequestError(401,
+        "A API recusou a operação (HTTP 401), mas sua sessão continua válida. Nenhuma alteração foi confirmada.");
+    }
+    throw new ApiRequestError(401,
+      "A API recusou a operação (HTTP 401). Não foi possível confirmar a expiração; sua sessão foi preservada.");
   }
   if (!response.ok) {
     const type = response.headers.get("content-type");

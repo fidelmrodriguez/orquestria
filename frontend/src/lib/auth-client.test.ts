@@ -1,6 +1,6 @@
 import {
   AUTH_TOKEN_STORAGE_KEY, getAuthToken, saveAuthToken, clearAuthToken,
-  restoreAuthSession, revokeSession
+  restoreAuthSession, revokeSession, clearAuthTokenIfCurrent
 } from "@/lib/auth-client";
 
 const originalFetch = globalThis.fetch;
@@ -37,6 +37,14 @@ describe("persistência da sessão entre abas", () => {
     }
   });
 
+  it("não apaga sessão mais nova ao receber resposta antiga", () => {
+    saveAuthToken("token-novo");
+    expect(clearAuthTokenIfCurrent("token-antigo")).toBe(false);
+    expect(getAuthToken()).toBe("token-novo");
+    expect(clearAuthTokenIfCurrent("token-novo")).toBe(true);
+    expect(getAuthToken()).toBeNull();
+  });
+
   it("migra sem perda tokens antigos do sessionStorage", () => {
     window.sessionStorage.setItem(AUTH_TOKEN_STORAGE_KEY, "token-legado");
     expect(getAuthToken()).toBe("token-legado");
@@ -69,6 +77,19 @@ describe("persistência da sessão entre abas", () => {
     (globalThis.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({ ok: false, status: 401 } as Response);
     await expect(restoreAuthSession()).resolves.toBeNull();
     expect(getAuthToken()).toBeNull();
+  });
+
+  it("não remove token de login novo durante restauração antiga", async () => {
+    saveAuthToken("token-antigo");
+    let respond: (response: Response) => void = () => {};
+    (globalThis.fetch as jest.MockedFunction<typeof fetch>).mockImplementationOnce(
+      () => new Promise<Response>(resolve => { respond = resolve; })
+    );
+    const pending = restoreAuthSession();
+    saveAuthToken("token-novo");
+    respond({ ok: false, status: 401 } as Response);
+    await expect(pending).resolves.toBeNull();
+    expect(getAuthToken()).toBe("token-novo");
   });
 
   it("preserva token em falha temporária da API para permitir retentativa", async () => {

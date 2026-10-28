@@ -58,6 +58,13 @@ export function clearAuthToken(): void {
   emitAuthChanged();
 }
 
+/** Não apagar um login novo por causa de um 401 de uma requisição antiga. */
+export function clearAuthTokenIfCurrent(expectedToken: string): boolean {
+  if (!expectedToken || getAuthToken() !== expectedToken) return false;
+  clearAuthToken();
+  return true;
+}
+
 export type AuthUser = {
   id: string;
   name: string;
@@ -88,7 +95,7 @@ export async function restoreAuthSession(): Promise<AuthUser | null> {
 
   console.info("[Orquestria][auth] Validação de sessão", { status: response.status, sucesso: response.ok });
   if (response.status === 401 || response.status === 403) {
-    clearAuthToken();
+    clearAuthTokenIfCurrent(token);
     return null;
   }
   if (!response.ok) {
