@@ -14,7 +14,7 @@ describe("pesquisa compacta para tablets", () => {
     expect(screen.queryByRole("search")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Abrir busca" }));
     expect(screen.getByRole("search")).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Pesquisar tarefas, tags ou responsáveis" })).toHaveFocus();
+    expect(screen.getByRole("textbox", { name: "Buscar" })).toHaveFocus();
   });
 
   it("abre uma faixa no fluxo do cabeçalho em vez de um painel flutuante", () => {
@@ -28,7 +28,7 @@ describe("pesquisa compacta para tablets", () => {
   it("permite pesquisar e fechar com Escape, retornando o foco ao botão", () => {
     render(<Example />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir busca" }));
-    const input = screen.getByRole("textbox", { name: "Pesquisar tarefas, tags ou responsáveis" });
+    const input = screen.getByRole("textbox", { name: "Buscar" });
     fireEvent.change(input, { target: { value: "Planejamento" } });
     expect(input).toHaveValue("Planejamento");
     fireEvent.keyDown(document, { key: "Escape" });
@@ -39,10 +39,10 @@ describe("pesquisa compacta para tablets", () => {
   it("fecha ao clicar fora sem apagar o texto pesquisado", () => {
     render(<div><Example /><button type="button">Fora</button></div>);
     fireEvent.click(screen.getByRole("button", { name: "Abrir busca" }));
-    fireEvent.change(screen.getByRole("textbox", { name: "Pesquisar tarefas, tags ou responsáveis" }), { target: { value: "API" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Buscar" }), { target: { value: "API" } });
     fireEvent.pointerDown(screen.getByRole("button", { name: "Fora" }));
     expect(screen.queryByRole("search")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Abrir busca" }));
-    expect(screen.getByRole("textbox", { name: "Pesquisar tarefas, tags ou responsáveis" })).toHaveValue("API");
+    expect(screen.getByRole("textbox", { name: "Buscar" })).toHaveValue("API");
   });
 });
