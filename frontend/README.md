@@ -92,3 +92,13 @@ Para configuração de ambiente e publicação, consulte [Deploy no Netlify](../
 ## Projetos compartilhados
 
 O frontend carrega os projetos próprios e os compartilhados separadamente. **Workspaces convidados** é uma categoria de navegação que contém somente os projetos autorizados; não é uma cópia de todo o workspace do proprietário. Veja [regras de colaboração](../docs/COLABORACAO.md).
+
+
+## Tema claro e escuro em todas as páginas
+
+O tema selecionado no dashboard fica salvo em `orquestria-storage-v1`. O layout aplica
+essa preferência antes de exibir as páginas e o `ThemeSync` dos Providers acompanha
+alterações enquanto a aplicação está aberta. Login/cadastro, Gerenciar itens,
+Equipe e Minhas tags seguem a mesma preferência sem precisar exibir um botão
+próprio de tema. O link **Voltar ao Kanban** mantém aparência consistente e foco
+visível em todas as páginas administrativas.

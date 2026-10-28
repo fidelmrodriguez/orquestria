@@ -1,5 +1,7 @@
 "use client";
 
+import { BackToKanbanLink } from "@/components/navigation/BackToKanbanLink";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthToken, restoreAuthSession, type AuthUser } from "@/lib/auth-client";
 import { ChevronDown } from "lucide-react";
@@ -113,17 +115,17 @@ export default function EquipePage() {
 
   return <main className="min-h-screen bg-slate-50 px-4 py-9 text-slate-950 dark:bg-slate-950 dark:text-white sm:px-8">
     <div className="mx-auto max-w-3xl space-y-7">
-      <a href="/" className="inline-flex text-sm font-semibold text-blue-700 hover:underline dark:text-blue-300">← Voltar ao Kanban</a>
+      <BackToKanbanLink />
       <header>
         <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-sky-700 dark:text-sky-400">Orquestria</p>
         <h1 className="text-3xl font-bold">Equipe</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-300">Selecione um projeto e adicione usuários cadastrados. A pessoa terá acesso imediato como membro-admin somente ao projeto escolhido. Para remover, reatribua suas tarefas primeiro.</p>
       </header>
       {!ready && <p role="status">Carregando sua equipe...</p>}
-      {ready && !user && <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">Faça login para gerenciar a equipe. <a href="/" className="font-semibold underline">Ir ao login</a></p>}
-      {ready && user?.accountType === "GUEST" && <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">O ambiente Guest é compartilhado. Entre com uma conta pessoal para criar sua equipe.</p>}
-      {error && <p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
-      {notice && <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">{notice}</p>}
+      {ready && !user && <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100">Faça login para gerenciar a equipe. <a href="/" className="font-semibold underline">Ir ao login</a></p>}
+      {ready && user?.accountType === "GUEST" && <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100">O ambiente Guest é compartilhado. Entre com uma conta pessoal para criar sua equipe.</p>}
+      {error && <p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-200">{error}</p>}
+      {notice && <p role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">{notice}</p>}
       {ready && user?.accountType === "USER" && token && <>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <label htmlFor="team-project" className="mb-2 block text-sm font-semibold">Projeto que será compartilhado</label>

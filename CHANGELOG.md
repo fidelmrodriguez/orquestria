@@ -6,6 +6,8 @@ Este arquivo registra mudanças relevantes do produto por versão. O histórico 
 
 ### Melhorias de usabilidade e desempenho
 
+- Tema claro/escuro sincronizado globalmente entre login, dashboard, Gerenciar itens, Equipe e Minhas tags, inclusive após navegação/reload. Corrige o contraste do login escuro e padroniza o botão Voltar ao Kanban.
+
 - Menu mobile com layout em grade e rodapé **Sair** dentro da viewport visível em diferentes tamanhos de tela; substitui classes conflitantes `100vh`/`100dvh` pela medição de `VisualViewport` com fallback CSS e preserva o scroll independente.
 
 - Login guest e pessoal com descrições mais curtas, válidas no desktop e mobile.

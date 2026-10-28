@@ -30,6 +30,14 @@ Os dois jobs são independentes. Uma execução só deve ser considerada aprovad
 
 ## Documentação e release
 
+
+## Tema escuro em todas as rotas
+
+- Ative o tema escuro no Kanban; abra `/gerenciar`, `/equipe` e `/tags` pelos respectivos links e atualize as páginas. O fundo, os cartões, os campos, os estados e os botões devem continuar escuros, com contraste legível.
+- Use **Voltar ao Kanban** em cada página: a ação deve manter borda, ícone e feedback de foco nos dois temas.
+- Faça logout com o tema escuro; confirme a tela de login com fundo escuro uniforme, textos legíveis e sem botão para alternar tema. Troque para claro no dashboard e repita.
+- Os testes `ThemeSync.test.tsx`, `BackToKanbanLink.test.tsx` e `LoginScreen.test.tsx` verificam a sincronização, o link e o contraste esperado.
+
 A etapa de frontend do CI também executa `node ../scripts/check-doc-links.mjs` para localizar links relativos quebrados nos arquivos Markdown do repositório. A verificação não depende de conexão com serviços externos e não valida links HTTP.
 
 A validação funcional antes de marcar uma versão segue o [checklist de publicação](RELEASE.md). O sucesso do CI **não** confirma sozinho que o ambiente publicado e os fluxos de negócio foram testados.

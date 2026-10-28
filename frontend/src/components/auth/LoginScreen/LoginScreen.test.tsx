@@ -225,3 +225,15 @@ describe("textos de apoio do login", () => {
     expect(screen.getByText("Entre com seu usuário ou e-mail e senha.")).toBeInTheDocument();
   });
 });
+
+
+describe("contraste do login nos dois temas", () => {
+  it("remove o gradiente claro no modo escuro sem adicionar botão de tema", () => {
+    const { container } = render(<LoginScreen />);
+    const main = container.querySelector("main");
+    expect(main).toHaveClass("dark:bg-none", "dark:bg-slate-950");
+    expect(screen.getByRole("heading", { name: "Entrar como guest" }).closest("form"))
+      .toHaveClass("dark:bg-slate-900");
+    expect(screen.queryByRole("button", { name: "Alternar tema" })).not.toBeInTheDocument();
+  });
+});

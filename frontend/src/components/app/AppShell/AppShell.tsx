@@ -16,7 +16,6 @@ import { getAuthToken } from "@/lib/auth-client";
 
 export function AppShell() {
   const currentUser = useBoardStore((state) => state.currentUser);
-  const theme = useBoardStore((state) => state.theme);
   const remoteReady = useBoardStore((state) => state.remoteReady);
   const remoteLoading = useBoardStore((state) => state.remoteLoading);
   const remoteActionLabel = useBoardStore((state) => state.remoteActionLabel);
@@ -45,10 +44,6 @@ export function AppShell() {
   useEffect(() => {
     setMobileMenuOwnerId(null);
   }, [currentUser?.id]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
 
   useEffect(() => {
     if (!isApiMode) return;
