@@ -1,5 +1,5 @@
 import { SafeSelect } from "@/components/forms/SafeSelect";
-import type { Priority, Task, Workspace } from "@/types/board";
+import type { Member, Priority, Task, Workspace } from "@/types/board";
 
 const priorityOptions: {value: Priority; label: string}[] = [
   { value: "baixa", label: "Baixa" },
@@ -11,16 +11,17 @@ const priorityOptions: {value: Priority; label: string}[] = [
 type TaskPropertiesFormProps = {
   task: Task;
   workspace: Workspace;
+  members: Member[];
   onUpdateTask: (taskId: string, patch: Partial<Omit<Task, "id" | "comments">>) => void;
   onMoveTask: (taskId: string, columnId: string) => void;
 };
 
-export function TaskPropertiesForm({ task, workspace, onUpdateTask, onMoveTask }: TaskPropertiesFormProps) {
+export function TaskPropertiesForm({ task, workspace, members, onUpdateTask, onMoveTask }: TaskPropertiesFormProps) {
   return <div className="grid gap-3 sm:grid-cols-2">
     <div className="space-y-2">
       <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Responsável</span>
       <SafeSelect label="Responsável" value={task.assigneeId}
-        options={workspace.members.map(member => ({value: member.id, label: member.name}))}
+        options={members.map(member => ({value: member.id, label: member.name}))}
         onChange={assigneeId => onUpdateTask(task.id, {assigneeId})} />
     </div>
     <div className="space-y-2">

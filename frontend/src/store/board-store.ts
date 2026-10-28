@@ -460,7 +460,7 @@ export const useBoardStore = create<BoardState>()(
             priority: toApiPriority(payload.priority), dueDate: toApiDate(payload.dueDate),
             position: current.length, assigneeId: payload.assigneeId, tags: payload.tags
           });
-        }, true);
+        });
         const now = new Date().toISOString();
         const task: Task = {
           id: uid("task"),
@@ -472,7 +472,7 @@ export const useBoardStore = create<BoardState>()(
 
         set((state) => ({
           ...updateWorkspace(state, (workspace) => ({ ...workspace, tasks: [task, ...workspace.tasks] })),
-          selectedTaskId: task.id,
+          selectedTaskId: null,
           activities: appendActivity(`Tarefa ${task.title} criada.`, "task", state.activities)
         }));
       },

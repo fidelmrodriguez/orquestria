@@ -67,3 +67,10 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 - A busca, a descrição da tarefa e o campo de comentários usam apenas o contorno do respectivo recipiente ao receber foco, evitando contornos internos duplicados. A borda externa continua sinalizando o foco em mouse e teclado, inclusive no tema escuro.
 - Os filtros de prioridade e responsável no cabeçalho usam o mesmo seletor acessível das propriedades das tarefas, com lista de opções personalizada, seleção por teclado, destaque do valor ativo e fechamento com Escape ou clique fora. Os filtros mantêm o estado e as regras de filtragem existentes.
 - Na navegação mobile, os filtros usam esse mesmo componente dentro do menu, sem `<select>` nativo ou popup desenhado sobre outros diálogos.
+
+## Criação de tarefas, membros e tags
+
+- Após a API confirmar a criação de uma tarefa, o drawer de criação se fecha e a nova tarefa aparece no quadro **sem abrir automaticamente o painel de detalhes**. Erros mantêm o formulário aberto para correção.
+- No formulário de tags, o espaço reservado para chips só é exibido quando existe ao menos uma tag. Sem tags, o campo de texto e o botão **Adicionar** aparecem imediatamente, lado a lado.
+- O ícone ao lado do título do formulário de login mantém largura e altura fixas ao alternar entre Guest, conta pessoal e cadastro; o texto pode quebrar sem redimensionar o ícone.
+- Os seletores de responsável, filtros e contagem de membros usam apenas a lista do projeto ativo. Na página Equipe, o contexto de workspace e projeto aparece antes da inclusão ou remoção.

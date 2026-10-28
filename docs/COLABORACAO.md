@@ -5,8 +5,8 @@ O compartilhamento do Orquestria é por **projeto**, não por workspace inteiro.
 ## Adicionar alguém
 
 1. Entre com uma conta pessoal, abra o projeto desejado e acesse **Membros da equipe**.
-2. Confira o projeto no seletor **Projeto que será compartilhado**.
-3. Pesquise pelo nome ou `@usuário` de uma conta existente e selecione o resultado.
+2. Confira o **workspace e o projeto** no seletor **Projeto que será compartilhado**. A tela identifica os dois separadamente, para não confundir projetos de nomes iguais.
+3. Pesquise pelo nome ou `@usuário` de uma conta existente (ao menos dois caracteres) e selecione o resultado. A lista inclui o proprietário como **admin** e os outros participantes como **membro-admin**.
 4. Na próxima atualização do quadro (ou ao entrar novamente), o usuário encontrará **Workspaces convidados** na sidebar, com apenas o projeto para o qual recebeu permissão.
 
 A inclusão não disponibiliza os outros projetos daquele workspace nem concede acesso às rotas `/api/workspaces/{id}` do proprietário.
@@ -27,6 +27,8 @@ Excluir o projeto é uma operação irreversível para todos os participantes e 
 ## Remoção e atribuições
 
 O admin pode remover participantes pela mesma página **Equipe**. Se houver tarefas atribuídas à pessoa **nesse projeto**, é necessário reatribuí-las antes da remoção. Remover um vínculo revoga imediatamente o acesso às rotas do projeto; a conta pessoal não é excluída.
+
+Contadores de membros, responsáveis disponíveis, filtros e avatares do Kanban usam **somente os participantes do projeto ativo**, não a antiga lista global de equipe do workspace. A lista global legada não concede acesso a novos projetos. A API só aceita atribuir novos responsáveis quando são o proprietário ou participantes explícitos daquele projeto.
 
 O catálogo de tags continua pessoal. As tags gravadas nas tarefas compartilhadas são visíveis a quem tem acesso a essas tarefas.
 

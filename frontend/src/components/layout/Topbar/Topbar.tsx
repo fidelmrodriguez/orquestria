@@ -66,6 +66,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
 
         <TopbarFilters
           workspace={workspace}
+          projectId={project?.id}
           priorityFilter={priorityFilter}
           assigneeFilter={assigneeFilter}
           onPriorityChange={(value) => setPriorityFilter(value as Priority | "todas")}
@@ -88,6 +89,7 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask }: Topbar
       <MobileWorkspaceMenu
         open={mobileMenuOpen}
         workspace={workspace}
+        projectId={project?.id}
         priorityFilter={priorityFilter}
         assigneeFilter={assigneeFilter}
         onNavigate={onToggleMobileMenu}

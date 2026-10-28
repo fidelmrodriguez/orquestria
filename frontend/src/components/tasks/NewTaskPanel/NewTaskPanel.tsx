@@ -11,7 +11,7 @@ import { z } from "zod";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
 import { useAccessiblePanel } from "@/hooks/use-accessible-panel";
 import { selectActiveProject, selectActiveWorkspace, useBoardStore } from "@/store/board-store";
-import type { Priority } from "@/types/board";
+import { getProjectMembers, type Priority } from "@/types/board";
 
 const schema = z.object({
   title: z.string().min(3, "Informe um título com pelo menos 3 caracteres."),
@@ -34,6 +34,8 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
   const workspace = useBoardStore(selectActiveWorkspace);
   const project = useBoardStore(selectActiveProject);
   const addTask = useBoardStore((state) => state.addTask);
+  const setSelectedTask = useBoardStore((state) => state.setSelectedTask);
+  const projectMembers = getProjectMembers(workspace, project?.id);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   useEffect(() => { if (!open) setSelectedTags([]); }, [open]);
   const { notify } = useToast();
@@ -55,7 +57,7 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
       title: "",
       description: "",
       columnId: (columns.some((column) => column.id === initialColumnId) ? initialColumnId : columns[0]?.id) || "",
-      assigneeId: workspace?.members[0]?.id || "",
+      assigneeId: projectMembers[0]?.id || "",
       priority: "media",
       dueDate: defaultDate
     }
@@ -80,6 +82,8 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
     }
     reset();
     setSelectedTags([]);
+    // A criação não deve abrir automaticamente o drawer de detalhes.
+    setSelectedTask(null);
     notify("Tarefa criada com sucesso.", "success");
     onClose();
   };
@@ -129,7 +133,7 @@ export function NewTaskPanel({ open, onClose, initialColumnId }: NewTaskPanelPro
             <label className="block space-y-2">
               <span className="label">Responsável</span>
               <select {...register("assigneeId")} className="field" aria-invalid={Boolean(errors.assigneeId)} aria-describedby={errors.assigneeId ? "new-task-assignee-error" : undefined}>
-                {workspace.members.map((member) => (
+                {projectMembers.map((member) => (
                   <option key={member.id} value={member.id}>
                     {member.name}
                   </option>

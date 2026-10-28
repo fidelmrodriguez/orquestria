@@ -8,6 +8,7 @@ import { TopbarFilters } from "./TopbarFilters";
 type MobileWorkspaceMenuProps = {
   open: boolean;
   workspace?: Workspace | null;
+  projectId?: string | null;
   priorityFilter: Priority | "todas";
   assigneeFilter: string | "todos";
   onNavigate: () => void;
@@ -18,7 +19,7 @@ type MobileWorkspaceMenuProps = {
   onAssigneeChange: (value: string | "todos") => void;
 };
 
-export function MobileWorkspaceMenu({ open, workspace, priorityFilter, assigneeFilter, onNavigate, onLogout, theme, onChangeTheme, onPriorityChange, onAssigneeChange }: MobileWorkspaceMenuProps) {
+export function MobileWorkspaceMenu({ open, workspace, projectId, priorityFilter, assigneeFilter, onNavigate, onLogout, theme, onChangeTheme, onPriorityChange, onAssigneeChange }: MobileWorkspaceMenuProps) {
   return (
     <div id="orquestria-mobile-navigation" role="navigation" aria-label="Navegação mobile" aria-hidden={!open} onKeyDown={(event) => {
       if (event.key === "Escape") {
@@ -32,6 +33,7 @@ export function MobileWorkspaceMenu({ open, workspace, priorityFilter, assigneeF
         <div className="grid grid-cols-2 gap-2">
           <TopbarFilters
             workspace={workspace}
+            projectId={projectId}
             priorityFilter={priorityFilter}
             assigneeFilter={assigneeFilter}
             onPriorityChange={onPriorityChange}

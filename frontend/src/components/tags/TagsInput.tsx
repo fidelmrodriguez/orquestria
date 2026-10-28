@@ -156,7 +156,7 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
     <label htmlFor={fieldId} className="block text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</label>
     <div className="relative">
       <div className="rounded-xl border border-slate-300 bg-white p-2 focus-within:ring-1 focus-within:ring-slate-300 dark:focus-within:ring-slate-600 dark:border-slate-700 dark:bg-slate-900">
-        <div className="flex min-h-[40px] flex-wrap items-center gap-2">
+        {value.length > 0 && <div className="flex flex-wrap items-center gap-2">
           {value.map((tag, index) => <span key={`${index}-${tag}`} className="inline-flex max-w-full items-center gap-1 rounded bg-sky-500 px-2 py-1 text-sm font-semibold text-white">
             {editing === index ? <input autoFocus aria-label={`Editar tag ${tag}`} value={draft} maxLength={32}
               onChange={event => setDraft(event.target.value)} onBlur={() => void finishEdit()}
@@ -167,8 +167,8 @@ export default function TagsInput({ value, onChange, label = "Tags", disabled = 
             <button type="button" aria-label={`Remover tag ${tag}`} title="Remover tag" disabled={disabled || busy}
               onClick={() => void persist(removeTag(value, index))} className="rounded px-1 hover:bg-sky-600 disabled:opacity-50">×</button>
           </span>)}
-        </div>
-        {value.length < maxTags && <div className="mt-2 flex items-center gap-2">
+        </div>}
+        {value.length < maxTags && <div className={`${value.length ? "mt-2 " : ""}flex items-center gap-2`}>
           <input id={fieldId} type="text" value={text} maxLength={32}
             disabled={disabled || busy} autoComplete="off" role="combobox" aria-autocomplete="list" aria-expanded={open}
             aria-controls={listId} aria-activedescendant={open && visible[active] ? `${listId}-${visible[active].id}` : undefined}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthToken, restoreAuthSession, type AuthUser } from "@/lib/auth-client";
 import TeamMemberPicker, { type DirectoryUser } from "@/components/team/TeamMemberPicker";
 
@@ -23,6 +23,8 @@ async function teamRequest<T>(token: string, path: string, method: "GET" | "POST
 }
 
 type OwnedProject = { id: string; name: string; workspaceId: string | null };
+type OwnedWorkspace = { id: string; name: string };
+type ProjectMember = DirectoryUser & { role: "admin" | "membro-admin" };
 
 export default function EquipePage() {
   const [token, setToken] = useState<string | null>(null);
@@ -31,16 +33,21 @@ export default function EquipePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [members, setMembers] = useState<DirectoryUser[]>([]);
+  const [members, setMembers] = useState<ProjectMember[]>([]);
+  const [workspaces, setWorkspaces] = useState<OwnedWorkspace[]>([]);
+  const currentProjectRef = useRef("");
   const [projects, setProjects] = useState<OwnedProject[]>([]);
   const [projectId, setProjectId] = useState("");
   const [pendingRemove, setPendingRemove] = useState<DirectoryUser | null>(null);
 
   const refresh = useCallback(async (accessToken: string, selectedProject: string) => {
-    if (!selectedProject) { setMembers([]); return; }
-    const list = await teamRequest<(DirectoryUser & {role:string})[]>(accessToken, `/api/projects/${selectedProject}/members`);
-    if (!Array.isArray(list)) throw new Error("A API retornou um formato inesperado para a equipe.");
-    setMembers(list.filter(row => row.role === "membro-admin"));
+    currentProjectRef.current = selectedProject;
+    setMembers([]);
+    if (!selectedProject) return;
+    const list = await teamRequest<ProjectMember[]>(accessToken, `/api/projects/${selectedProject}/members`);
+    if (!Array.isArray(list) || !list.length) throw new Error("A API não retornou o proprietário do projeto. Confira a publicação do backend com Flyway V10.");
+    // Uma resposta atrasada de outro projeto não pode substituir seus participantes.
+    if (currentProjectRef.current === selectedProject) setMembers(list);
   }, []);
 
   useEffect(() => {
@@ -52,9 +59,13 @@ export default function EquipePage() {
         const accessToken = getAuthToken();
         setUser(account); setToken(account && accessToken ? accessToken : null);
         if (account?.accountType === "USER" && accessToken) {
-          const owned = await teamRequest<OwnedProject[]>(accessToken, "/api/projects");
+          const [owned, ownedWorkspaces] = await Promise.all([
+            teamRequest<OwnedProject[]>(accessToken, "/api/projects"),
+            teamRequest<OwnedWorkspace[]>(accessToken, "/api/workspaces")
+          ]);
           if (!live) return;
           setProjects(owned);
+          setWorkspaces(ownedWorkspaces);
           const requested = new URLSearchParams(window.location.search).get("projectId");
           const selected = owned.find(p => p.id === requested)?.id || owned[0]?.id || "";
           setProjectId(selected);
@@ -93,6 +104,12 @@ export default function EquipePage() {
     } finally { setBusy(false); }
   }
 
+  const selectedProject = projects.find(project => project.id === projectId);
+  const selectedWorkspaceName = selectedProject?.workspaceId
+    ? workspaces.find(workspace => workspace.id === selectedProject.workspaceId)?.name || "Workspace não encontrado"
+    : "Projetos sem workspace";
+  const invitedMembers = members.filter(member => member.role === "membro-admin");
+
   return <main className="min-h-screen bg-slate-50 px-4 py-9 text-slate-950 dark:bg-slate-950 dark:text-white sm:px-8">
     <div className="mx-auto max-w-3xl space-y-7">
       <a href="/" className="inline-flex text-sm font-semibold text-blue-700 hover:underline dark:text-blue-300">← Voltar ao Kanban</a>
@@ -114,21 +131,28 @@ export default function EquipePage() {
             if (token) void refresh(token, event.target.value).catch(cause => setError(cause instanceof Error ? cause.message : "Falha ao carregar membros."));
           }} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950">
             {!projects.length && <option value="">Crie um projeto antes de adicionar membros</option>}
-            {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
+            {projects.map(project => <option key={project.id} value={project.id}>{project.workspaceId
+              ? workspaces.find(workspace => workspace.id === project.workspaceId)?.name || "Workspace não encontrado"
+              : "Projetos sem workspace"} / {project.name}</option>)}
           </select>
+          {selectedProject && <div className="mt-3 rounded-xl bg-slate-50 px-3 py-3 text-sm dark:bg-slate-950">
+            <p><span className="font-semibold">Workspace:</span> {selectedWorkspaceName}</p>
+            <p className="mt-1"><span className="font-semibold">Projeto:</span> {selectedProject.name}</p>
+          </div>}
           <p className="mt-2 text-xs text-slate-500">O membro verá somente este projeto em Workspaces convidados; outros projetos do mesmo workspace continuam privados.</p>
         </section>
         {Boolean(projectId) && <><section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <TeamMemberPicker token={token} apiBase={API_BASE} members={members} onAdded={add} onRemove={setPendingRemove} disabled={busy} />
+          <TeamMemberPicker key={projectId} token={token} apiBase={API_BASE} members={invitedMembers} onAdded={add} onRemove={setPendingRemove} disabled={busy} />
         </section>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="text-lg font-bold">Membros ({members.length})</h2>
-          {!members.length && <p className="mt-4 text-sm text-slate-500">Nenhum membro adicionado ainda.</p>}
+          <h2 className="text-lg font-bold">Participantes do projeto ({members.length})</h2>
+          {!members.length && <p className="mt-4 text-sm text-slate-500">Nenhum participante carregado para este projeto.</p>}
+          {members.length === 1 && <p className="mt-2 text-sm text-slate-500">Somente o proprietário participa deste projeto. Pesquise um usuário acima para compartilhar o acesso.</p>}
           <ul className="mt-3 divide-y divide-slate-200 dark:divide-slate-700">
             {members.map(member => <li key={member.id} className="flex items-center justify-between gap-3 py-4">
-              <div><p className="font-semibold">{member.name}</p><p className="text-sm text-slate-500">@{member.username}</p></div>
-              <button type="button" disabled={busy} onClick={() => setPendingRemove(member)}
-                className="rounded-lg border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-40 dark:text-red-300">Remover</button>
+              <div><p className="font-semibold">{member.name} <span className="ml-2 rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">{member.role}</span></p><p className="mt-1 text-sm text-slate-500">@{member.username}</p></div>
+              {member.role === "membro-admin" && <button type="button" disabled={busy} onClick={() => setPendingRemove(member)}
+                className="rounded-lg border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-40 dark:text-red-300">Remover</button>}
             </li>)}
           </ul>
         </section>

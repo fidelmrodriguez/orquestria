@@ -23,7 +23,7 @@ describe("edição de propriedades por teclado e sem selects nativos", () => {
   it("move a tarefa apenas entre colunas do mesmo projeto", async () => {
     const user = userEvent.setup();
     const onMoveTask = jest.fn();
-    const { container } = render(<TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={jest.fn()} onMoveTask={onMoveTask} />);
+    const { container } = render(<TaskPropertiesForm task={task} workspace={workspace} members={workspace.members} onUpdateTask={jest.fn()} onMoveTask={onMoveTask} />);
     expect(container.querySelector("select")).toBeNull();
     await user.click(screen.getByRole("combobox", { name: "Coluna" }));
     expect(screen.getByRole("option", { name: "A fazer" })).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("edição de propriedades por teclado e sem selects nativos", () => {
   it("não envia alteração quando seleciona a coluna atual", async () => {
     const user = userEvent.setup();
     const onMoveTask = jest.fn();
-    render(<TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={jest.fn()} onMoveTask={onMoveTask} />);
+    render(<TaskPropertiesForm task={task} workspace={workspace} members={workspace.members} onUpdateTask={jest.fn()} onMoveTask={onMoveTask} />);
     await user.click(screen.getByRole("combobox", { name: "Coluna" }));
     await user.click(screen.getByRole("option", { name: "A fazer" }));
     expect(onMoveTask).not.toHaveBeenCalled();
@@ -45,7 +45,7 @@ describe("edição de propriedades por teclado e sem selects nativos", () => {
   it("permite alterar a prioridade sem criar popup nativo sobre a confirmação", async () => {
     const user = userEvent.setup();
     const update = jest.fn();
-    render(<TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={update} onMoveTask={jest.fn()} />);
+    render(<TaskPropertiesForm task={task} workspace={workspace} members={workspace.members} onUpdateTask={update} onMoveTask={jest.fn()} />);
     await user.click(screen.getByRole("combobox", { name: "Prioridade" }));
     await user.click(screen.getByRole("option", { name: "Alta" }));
     expect(update).toHaveBeenCalledWith("task-1", { priority: "alta" });

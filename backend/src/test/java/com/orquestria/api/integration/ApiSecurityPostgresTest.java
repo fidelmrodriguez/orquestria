@@ -231,6 +231,10 @@ class ApiSecurityPostgresTest {
         assertTrue(getJson("/api/team/members", owner, 200).toString().contains(member.id().toString()));
         assertFalse(getJson("/api/team/members", outsider, 200).toString().contains(member.id().toString()));
 
+        // Estar na equipe global não deve permitir atribuição fora do projeto compartilhado.
+        createTask(owner, projectId, columnId, member.id().toString(), 400);
+        postJson("/api/projects/" + projectId + "/members", owner,
+                Map.of("userId", member.id().toString()), 204);
         String taskId = idOf(createTask(owner, projectId, columnId, member.id().toString(), 201));
         call(authenticated(post("/api/team/members/" + member.id() + "/remove"), owner), 409);
         call(authenticated(post("/api/projects/" + projectId + "/tasks/" + taskId + "/delete"), owner), 204);
@@ -283,6 +287,8 @@ class ApiSecurityPostgresTest {
         assertEquals("membro-admin", team.get(1).path("role").asText());
 
         String taskId = idOf(createTask(invited, sharedId, columnId, invited.id().toString(), 201));
+        String otherColumn = idOf(createColumn(admin, privateId));
+        createTask(admin, privateId, otherColumn, invited.id().toString(), 400);
         String spareColumn = idOf(createColumn(invited, sharedId));
         call(authenticated(post("/api/projects/" + sharedId + "/columns/" + spareColumn + "/delete"), invited), 204);
         postJson("/api/projects/" + sharedId + "/members", invited,

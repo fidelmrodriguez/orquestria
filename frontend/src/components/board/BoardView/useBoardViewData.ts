@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Project, Workspace } from "@/types/board";
+import { getProjectMembers, type Project, type Workspace } from "@/types/board";
 
 export function useBoardViewData(workspace: Workspace | null | undefined, project: Project | null | undefined, search: string, priorityFilter: string, assigneeFilter: string) {
   const columns = useMemo(() => {
@@ -10,6 +10,7 @@ export function useBoardViewData(workspace: Workspace | null | undefined, projec
   const filteredTasks = useMemo(() => {
     if (!workspace || !project) return [];
     const term = search.trim().toLowerCase();
+    const members = getProjectMembers(workspace, project.id);
 
     return workspace.tasks.filter((task) => {
       if (task.projectId !== project.id) return false;
@@ -17,7 +18,7 @@ export function useBoardViewData(workspace: Workspace | null | undefined, projec
       if (assigneeFilter !== "todos" && task.assigneeId !== assigneeFilter) return false;
 
       if (!term) return true;
-      const member = workspace.members.find((item) => item.id === task.assigneeId);
+      const member = members.find((item) => item.id === task.assigneeId);
       return [task.title, task.description, ...task.tags, member?.name || ""]
         .join(" ")
         .toLowerCase()

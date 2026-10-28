@@ -42,11 +42,11 @@ public class TaskService {
             .getOwner().getId();
         if (owner.equals(target)) return;
         Integer count = jdbc.queryForObject(
-            "SELECT COUNT(*) FROM team_members WHERE owner_id = ? AND member_id = ?",
-            Integer.class, owner, target);
+            "SELECT COUNT(*) FROM project_members WHERE project_id = ? AND member_id = ?",
+            Integer.class, projectId, target);
         if (count == null || count == 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "O responsável precisa ser o proprietário ou um membro da equipe");
+                "O responsável precisa ser o proprietário ou membro deste projeto");
         }
     }
     private BoardColumn requireColumn(UUID projectId, UUID columnId) {

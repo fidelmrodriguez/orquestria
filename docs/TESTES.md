@@ -72,3 +72,10 @@ Os resultados correntes do pipeline podem ser consultados na [aba Actions](https
 ## Colaboração por projeto
 
 Os testes HTTP sobre PostgreSQL validam o isolamento entre projetos privados e compartilhados: um membro-admin só enxerga o projeto ao qual foi adicionado, pode operar colunas e tarefas desse projeto, não acessa o workspace do proprietário e não pode adicionar/remover membros. A revogação de acesso é imediata. Os testes de Flyway validam também a migração V10.
+
+## Participantes por projeto e criação de tarefas
+
+- O teste `frontend/src/lib/project-members.test.ts` confere que participantes de um projeto não são herdados pelos demais projetos do mesmo workspace.
+- Os testes de propriedades e filtros usam a lista de participantes do projeto selecionado.
+- A integração HTTP com PostgreSQL confere que um usuário presente na equipe legada **não pode ser atribuído** a uma tarefa sem o vínculo explícito em `project_members`.
+- Conferir manualmente no Netlify: abrir e fechar o modal de nova tarefa, conferir a lista de membros por projeto, alternar projetos no mesmo workspace e adicionar a primeira tag sem faixa vazia.

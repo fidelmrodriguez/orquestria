@@ -10,7 +10,7 @@ import { TaskDragPreview } from "./TaskDragPreview";
 import { MobileColumnSwitcher } from "./MobileColumnSwitcher";
 import { positionFromVisibleTasks, isNoopReorder } from "@/lib/task-order";
 import { selectActiveProject, selectActiveWorkspace, useBoardStore } from "@/store/board-store";
-import type { Task } from "@/types/board";
+import { getProjectMembers, type Task } from "@/types/board";
 
 // Pointer Events: a tarefa acompanha o cursor; as outras abrem espaço para sua posição final.
 type DragSession = {
@@ -155,9 +155,10 @@ export function BoardView({ onNewTask }: BoardViewProps) {
   };
 
   if (!workspace || !project) return <EmptyBoardState />;
+  const members = getProjectMembers(workspace, project.id);
 
   return <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 lg:h-full">
-    <BoardSummary project={project} taskCount={filteredTasks.length} memberCount={workspace.members.length}
+    <BoardSummary project={project} taskCount={filteredTasks.length} memberCount={members.length}
       columnCount={columns.length} onRenameProject={updateProject} />
     <MobileColumnSwitcher columns={columns} activeColumnId={activeMobileColumn?.id ?? null} taskCounts={taskCounts}
       onChange={setMobileColumnId} onNewTask={columnId => onNewTask(columnId)} />
@@ -167,7 +168,7 @@ export function BoardView({ onNewTask }: BoardViewProps) {
       {columns.map(column => <BoardColumn key={column.id} column={column}
         tasks={filteredTasks.filter(task => task.columnId === column.id && task.id !== dragging?.task.id)}
         totalTaskCount={workspace.tasks.filter(task => task.columnId === column.id && task.projectId === project.id).length}
-        members={workspace.members} onNewTask={() => onNewTask(column.id)}
+        members={members} onNewTask={() => onNewTask(column.id)}
         mobileActive={column.id === activeMobileColumn?.id}
         dragging={Boolean(dragging)} dropTarget={dragging?.destinationId === column.id}
         insertionIndex={dragging?.destinationId === column.id ? dragging.insertionIndex : -1}

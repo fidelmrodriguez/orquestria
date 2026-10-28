@@ -7,11 +7,15 @@ const workspace = {
   members: [
     { id: "user-1", name: "João" },
     { id: "user-2", name: "Maria" }
-  ]
+  ],
+  projects: [{ id: "proj", members: [
+    { id: "user-1", name: "João" }, { id: "user-2", name: "Maria" }
+  ] }]
 } as Workspace;
 
 const props = {
   workspace,
+  projectId: "proj",
   priorityFilter: "todas" as const,
   assigneeFilter: "todos" as const,
   priorityClassName: "hidden md:block",

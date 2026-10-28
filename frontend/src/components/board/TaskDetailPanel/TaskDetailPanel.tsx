@@ -5,7 +5,7 @@ import QuickDeleteAction from "@/components/board/QuickDeleteAction";
 import { Fragment, useEffect, useState } from "react";
 import { useAccessiblePanel } from "@/hooks/use-accessible-panel";
 import { isApiMode } from "@/lib/remote-board";
-import type { Task } from "@/types/board";
+import { getProjectMembers, type Task } from "@/types/board";
 import { InlineEdit } from "@/components/forms/InlineEdit/InlineEdit";
 import { useToast } from "@/components/feedback/ToastProvider/ToastProvider";
 import { selectActiveWorkspace, selectSelectedTask, useBoardStore } from "@/store/board-store";
@@ -48,7 +48,8 @@ export function TaskDetailPanel() {
 
   if (!task || !workspace) return null;
 
-  const member = workspace.members.find((item) => item.id === task.assigneeId);
+  const members = getProjectMembers(workspace, task.projectId);
+  const member = members.find((item) => item.id === task.assigneeId);
   const column = workspace.columns.find((item) => item.id === task.columnId);
 
   const submitComment = async (message: string) => {
@@ -92,9 +93,9 @@ export function TaskDetailPanel() {
 
           <TaskDescriptionEditor task={task} onSave={updateTask} />
 
-          <TaskPropertiesForm task={task} workspace={workspace} onUpdateTask={updateTask} onMoveTask={moveTask} />
+          <TaskPropertiesForm task={task} workspace={workspace} members={members} onUpdateTask={updateTask} onMoveTask={moveTask} />
           <TaskPlanningCards task={task} onUpdateTask={updateTask} />
-          <TaskCommentsSection task={task} members={workspace.members} fallbackMember={member} onSubmitComment={submitComment} onDeleteComment={deleteComment} />
+          <TaskCommentsSection task={task} members={members} fallbackMember={member} onSubmitComment={submitComment} onDeleteComment={deleteComment} />
         </div>
         <footer className="border-t border-slate-200 bg-white px-5 py-3 dark:border-slate-800 dark:bg-slate-950">
           <QuickDeleteAction target={{kind:"task",projectId:task.projectId,id:task.id}}

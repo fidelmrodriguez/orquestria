@@ -141,10 +141,10 @@ export function LoginScreen() {
         </div>
         <form onSubmit={(event) => void submit(event)} className="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-soft dark:border-slate-800 dark:bg-slate-950/90 sm:p-8">
           <div className="mb-8 flex items-center gap-3">
-            <div className="grid size-12 place-items-center rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
+            <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
               <LockKeyhole className="size-5" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">{title}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
             </div>

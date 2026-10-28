@@ -168,16 +168,14 @@ export async function loadRemoteBoard(member: Member): Promise<Workspace[]> {
       ? spaceMap.get(`invited-${project.workspaceId || `unassigned-${project.id}`}`)
       : (project.workspaceId && spaceMap.get(project.workspaceId)) || spaceMap.get(UNASSIGNED_WORKSPACE_ID);
     if (!workspace) continue;
-    if (projectMembers) {
-      workspace.members = projectMembers.reduce<Member[]>((list, person) => {
-        if (!list.some(item => item.id === person.id)) list.push({
-          id: person.id, name: person.name, email: "", avatar: "", role: person.role
-        });
-        return list;
-      }, workspace.invited ? [] : [...workspace.members]);
-    }
+    // Participantes NÃO são de workspace: cada projeto recebe somente seus vínculos.
+    // A lista global legada do workspace permanece como fallback apenas para APIs antigas.
+    const members: Member[] | undefined = projectMembers?.map(person => ({
+      id: person.id, name: person.name, email: "", avatar: "", role: person.role
+    }));
     workspace.projects.push({ id: project.id, workspaceId: workspace.id, name: project.name,
-      description: project.description || "", visibility: "equipe", createdAt: project.createdAt } satisfies Project);
+      description: project.description || "", visibility: "equipe", createdAt: project.createdAt,
+      ...(members ? { members } : {}) } satisfies Project);
     workspace.columns.push(...columns.map(mapColumn));
     workspace.tasks.push(...tasks.map((task) => mapTask(task, member)));
   }

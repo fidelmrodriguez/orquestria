@@ -47,6 +47,8 @@ export type Project = {
   description: string;
   visibility: "privado" | "equipe";
   createdAt: string;
+  /** Participantes deste projeto; não herda participantes dos outros projetos do workspace. */
+  members?: Member[];
 };
 
 export type Workspace = {
@@ -82,3 +84,12 @@ export type SourceUser = {
   email: string;
   image?: string;
 };
+
+/** Permissões e lista de responsáveis são sempre específicas do projeto ativo.
+ *  O fallback mantém compatibilidade com dados demonstrativos sem colaboração. */
+export function getProjectMembers(workspace: Workspace | null | undefined, projectId: string | null | undefined): Member[] {
+  if (!workspace || !projectId) return [];
+  const project = workspace.projects.find(item => item.id === projectId);
+  if (!project) return [];
+  return project.members ?? workspace.members;
+}
