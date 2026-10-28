@@ -507,7 +507,8 @@ export const useBoardStore = create<BoardState>()(
           createdAt: now, updatedAt: now };
         set(state => ({ ...placeCopy(state, copy),
           activities: appendActivity(`Tarefa ${source.title} duplicada.`, "task", state.activities) }));
-        return true;
+        // A duplicação local atualiza o estado imediatamente; somente a API retorna Promise<boolean>.
+        return;
       },
       updateTask: (taskId, patch) => {
         if (isApiMode) return runRemoteTaskMutation(set, get, "Salvando tarefa...", async () => {
