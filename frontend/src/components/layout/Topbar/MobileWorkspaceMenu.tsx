@@ -7,9 +7,12 @@ import { Sidebar } from "@/components/layout/Sidebar/Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import type { Priority, Workspace } from "@/types/board";
 import { TopbarFilters } from "./TopbarFilters";
+import { getInitials } from "@/lib/utils";
+import type { Member } from "@/types/board";
 
 type MobileWorkspaceMenuProps = {
   open: boolean;
+  currentUser: Member | null;
   workspace?: Workspace | null;
   projectId?: string | null;
   priorityFilter: Priority | "todas";
@@ -23,7 +26,7 @@ type MobileWorkspaceMenuProps = {
 };
 
 /** O portal impede que o backdrop-blur do topbar limite a área do menu fixo. */
-export function MobileWorkspaceMenu({ open, workspace, projectId, priorityFilter, assigneeFilter, onNavigate, onLogout, theme, onChangeTheme, onPriorityChange, onAssigneeChange }: MobileWorkspaceMenuProps) {
+export function MobileWorkspaceMenu({ open, currentUser, workspace, projectId, priorityFilter, assigneeFilter, onNavigate, onLogout, theme, onChangeTheme, onPriorityChange, onAssigneeChange }: MobileWorkspaceMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -97,6 +100,17 @@ export function MobileWorkspaceMenu({ open, workspace, projectId, priorityFilter
       </div>
 
       <div className="mobile-navigation-scroll min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+        {currentUser && (
+          <div className="mb-4 flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900" aria-label={`Conectado como ${currentUser.name}`}>
+            <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-semibold text-white dark:bg-white dark:text-slate-950">
+              {getInitials(currentUser.name)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Conectado como</p>
+              <p className="truncate text-sm font-semibold text-slate-900 dark:text-white" title={currentUser.name}>{currentUser.name}</p>
+            </div>
+          </div>
+        )}
         <Sidebar onNavigate={onNavigate} dropdown />
         <div className="mt-4 grid gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
           <div className="grid grid-cols-2 gap-2">
@@ -119,8 +133,6 @@ export function MobileWorkspaceMenu({ open, workspace, projectId, priorityFilter
             <LogOut className="size-4" /> Sair
           </button>
         </div>
-        {/* Espaço rolável real: permite trazer Sair acima das barras do Android. */}
-        <div aria-hidden="true" className="mobile-navigation-end-spacer shrink-0" />
       </div>
     </div>,
     document.body

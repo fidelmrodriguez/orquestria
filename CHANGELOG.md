@@ -6,6 +6,8 @@ Este arquivo registra mudanças relevantes do produto por versão. O histórico 
 
 ### Melhorias de usabilidade e desempenho
 
+- Tela **Preparando seu ambiente** compactada no celular, mantendo tempo e acompanhamento automático da API.
+- Menu mobile mostra o nome da conta atual, fecha no logout/troca de conta e usa espaçamento inferior pequeno, sem cortar o botão **Sair**.
 - Login e cadastro apresentados primeiro no mobile, mantendo a composição institucional do desktop.
 - Correção de quebra de nomes muito longos em Gerenciar itens, sem expandir horizontalmente os cartões.
 - Área rolável de segurança após o botão Sair no menu mobile e espaçamento para as setas dos filtros.

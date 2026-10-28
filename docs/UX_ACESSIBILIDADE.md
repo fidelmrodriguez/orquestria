@@ -106,7 +106,9 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 
 - **Acesso prioritário:** abaixo de 1024 px, o formulário de login ou cadastro aparece antes do conteúdo institucional. No desktop, a apresentação permanece à esquerda e o formulário à direita; a autenticação em si não muda.
 - **Gerenciar itens:** nomes de workspaces, projetos, colunas e tarefas sem espaços passam a quebrar em mais de uma linha quando atingem a borda do cartão. A largura da grade permanece limitada à viewport, sem exigir rolagem horizontal.
-- **Menu de navegação:** a região com rolagem mantém um espaçador após **Sair**, permitindo deslocar o último botão para cima das barras de navegação de celulares. A barra de rolagem continua invisível, mas o gesto vertical permanece ativo.
+- **Menu de navegação:** a região com rolagem usa um pequeno padding inferior e `env(safe-area-inset-bottom)`, em vez de reservar 112px vazios após **Sair**. O botão inteiro permanece visível ao rolar até o final no Chrome Android. A scrollbar permanece invisível, sem impedir o gesto vertical.
+- **Identidade e troca de conta:** o menu mostra o nome da conta autenticada com iniciais; o estado aberto é associado ao ID do usuário e é zerado antes do logout, evitando reabrir o menu automaticamente depois de entrar em outra conta. O fechamento por Escape, pelo X e pela navegação continua disponível.
+- **Aguardando a API:** no celular, a tela **Preparando seu ambiente** reduz ícone, espaçamentos e textos explicativos; preserva status, contador e a informação de que o servidor pode demorar a despertar. As consultas de prontidão e a transição automática não mudam.
 - **Filtros:** as setas dos menus de prioridade e responsável mantêm uma margem interna em telas pequenas, sem alterar o comportamento de teclado nem a seleção.
 
-Verificação manual recomendada: Chrome Android com barras de endereço e navegação visíveis, nomes de projeto longos sem espaços, menu aberto até alcançar **Sair**, filtros estreitos e entrada inicial no login sem rolar.
+Verificação manual recomendada: Chrome Android com barras de endereço e navegação visíveis, nomes de projeto longos sem espaços, menu aberto até alcançar **Sair** sem cortes ou espaços excessivos, troca de contas com o menu inicialmente fechado, filtros estreitos, inicialização compacta da API e entrada inicial no login sem rolar.

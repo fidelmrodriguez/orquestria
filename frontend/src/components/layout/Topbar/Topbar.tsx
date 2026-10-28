@@ -16,11 +16,12 @@ import type { Priority } from "@/types/board";
 type TopbarProps = {
   mobileMenuOpen: boolean;
   onToggleMobileMenu: () => void;
+  onLogout: () => void;
   onNewTask: () => void;
   onHeightChange: (height: number) => void;
 };
 
-export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask, onHeightChange }: TopbarProps) {
+export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onLogout, onNewTask, onHeightChange }: TopbarProps) {
   const headerRef = useRef<HTMLElement>(null);
 
   // No mobile/tablet o cabeçalho permanece fixo. O espaço reservado no AppShell
@@ -41,7 +42,6 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask, onHeight
   const workspace = useBoardStore(selectActiveWorkspace);
   const project = useBoardStore(selectActiveProject);
   const currentUser = useBoardStore((state) => state.currentUser);
-  const logout = useBoardStore((state) => state.logout);
   const search = useBoardStore((state) => state.search);
   const setSearch = useBoardStore((state) => state.setSearch);
   const priorityFilter = useBoardStore((state) => state.priorityFilter);
@@ -112,17 +112,18 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask, onHeight
         <ThemeToggle theme={theme} onChangeTheme={setTheme} className="icon-button grid" />
 
         <NotificationsMenu activities={activities} />
-        <UserMenu currentUser={currentUser} onLogout={logout} />
+        <UserMenu currentUser={currentUser} onLogout={onLogout} />
       </div>
 
       <MobileWorkspaceMenu
         open={mobileMenuOpen}
+        currentUser={currentUser}
         workspace={workspace}
         projectId={project?.id}
         priorityFilter={priorityFilter}
         assigneeFilter={assigneeFilter}
         onNavigate={onToggleMobileMenu}
-        onLogout={logout}
+        onLogout={onLogout}
         theme={theme}
         onChangeTheme={setTheme}
         onPriorityChange={(value) => setPriorityFilter(value as Priority | "todas")}

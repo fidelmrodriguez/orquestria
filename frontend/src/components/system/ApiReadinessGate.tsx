@@ -88,28 +88,29 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
   if (status === "ready") return <>{children}</>;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,.15),_transparent_38%),linear-gradient(140deg,#f8fafc,#eef2ff)] px-5 py-10 text-slate-950" aria-live="polite">
-      <section className="w-full max-w-lg rounded-[2rem] border border-white/80 bg-white/95 px-7 py-9 text-center shadow-xl sm:px-10 sm:py-12" aria-label="Inicialização do Orquestria">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg" aria-hidden="true">
-          <svg className="h-8 w-8 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 3a9 9 0 1 0 9 9" /></svg>
+    <main className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,.15),_transparent_38%),linear-gradient(140deg,#f8fafc,#eef2ff)] px-4 py-4 text-slate-950 sm:px-5 sm:py-10" aria-live="polite">
+      <section className="w-full max-w-lg rounded-3xl border border-white/80 bg-white/95 px-5 py-6 text-center shadow-xl sm:rounded-[2rem] sm:px-10 sm:py-12" aria-label="Inicialização do Orquestria">
+        <div className="mx-auto flex size-11 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg sm:size-16 sm:rounded-2xl" aria-hidden="true">
+          <svg className="size-6 animate-spin sm:size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 3a9 9 0 1 0 9 9" /></svg>
         </div>
-        <p className="mt-7 text-xs font-semibold uppercase tracking-[.25em] text-blue-700">Orquestria</p>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Preparando seu ambiente</h1>
-        <p className="mt-4 text-base leading-7 text-slate-600">
-          Estamos iniciando a API Java e conectando ao PostgreSQL para carregar seus projetos com segurança.
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[.2em] text-blue-700 sm:mt-7 sm:text-xs sm:tracking-[.25em]">Orquestria</p>
+        <h1 className="mt-2 text-xl font-semibold tracking-tight sm:mt-3 sm:text-3xl">Preparando seu ambiente</h1>
+        <p className="mt-2 text-sm leading-5 text-slate-600 sm:mt-4 sm:text-base sm:leading-7">
+          <span className="sm:hidden">Conectando à API Java e ao PostgreSQL.</span>
+          <span className="hidden sm:inline">Estamos iniciando a API Java e conectando ao PostgreSQL para carregar seus projetos com segurança.</span>
         </p>
-        <div className="mt-7 flex items-center justify-center gap-2 text-sm font-medium text-slate-700">
-          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-600" aria-hidden="true" />
+        <div className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-slate-700 sm:mt-7 sm:text-sm">
+          <span className="inline-block size-2 shrink-0 animate-pulse rounded-full bg-blue-600" aria-hidden="true" />
           Aguardando o servidor ficar disponível
         </div>
-        <p className="mt-3 font-mono text-2xl font-semibold tabular-nums tracking-wide text-slate-950" role="timer" aria-label={`Tempo decorrido: ${elapsedLabel}`} aria-live="off">
+        <p className="mt-2 font-mono text-xl font-semibold tabular-nums tracking-wide text-slate-950 sm:mt-3 sm:text-2xl" role="timer" aria-label={`Tempo decorrido: ${elapsedLabel}`} aria-live="off">
           {elapsedLabel}
         </p>
-        <p className="mt-5 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
-          <strong>Tempo de inicialização:</strong> quando o servidor está em repouso, o primeiro acesso pode levar cerca de 3 minutos. Isso é esperado no ambiente de demonstração.
+        <p className="mt-4 rounded-xl bg-slate-50 px-3 py-3 text-xs leading-5 text-slate-600 sm:mt-5 sm:px-4 sm:text-sm sm:leading-6">
+          <strong>Tempo de inicialização:</strong> o primeiro acesso pode levar até cerca de 3 minutos quando o servidor está em repouso.
         </p>
-        <p className="mt-4 text-xs text-slate-500">
-          A conexão é verificada automaticamente. Assim que a API estiver pronta, você seguirá para a aplicação sem precisar fazer nada.
+        <p className="mt-3 text-xs leading-5 text-slate-500 sm:mt-4">
+          A conexão é verificada automaticamente; você seguirá para a aplicação assim que estiver pronta.
         </p>
       </section>
     </main>

@@ -106,3 +106,11 @@ A central de notificações não é um serviço push nem utiliza uma nova tabela
 - Em largura abaixo de **1024 px**, o formulário de login deve ser o primeiro conteúdo visto e recebido na ordem de leitura. Conferir entrada como guest, login pessoal e cadastro; acima desse breakpoint, a apresentação permanece à esquerda do formulário.
 - No menu hambúrguer do Chrome Android, rolar até **Sair**, confirmando que o botão inteiro fica acima da barra de navegação do sistema. A barra visual pode ficar escondida, mas o gesto de rolagem deve continuar funcionando.
 - Nos filtros de prioridade e responsável, verificar um pequeno recuo à direita da seta no celular sem comprometer clique, teclado ou escolha das opções.
+
+## Regressão de sessão e componentes mobile (outubro de 2026)
+
+- `ApiReadinessGate.test.tsx`: enquanto a API está indisponível, o painel mantém status, contador e orientação sobre o tempo de inicialização, com estrutura compacta em telas pequenas. Confirmar em Chrome Android que o painel não exige rolagem desnecessária em altura normal.
+- `MobileWorkspaceMenu.test.tsx`: verifica nome da conta conectada, logout acionável, ausência do espaçador fixo de 112px e manutenção do contêiner com scroll e bloqueio do fundo.
+- No celular, abrir o hambúrguer e rolar até o final: **Sair** deve ficar totalmente visível e a área após o botão deve ser discreta, respeitando a barra de navegação do dispositivo.
+- Com o menu aberto, clicar em **Sair**, autenticar-se com outra conta e conferir que o menu começa **fechado** e mostra o nome do novo usuário quando aberto novamente. Repetir com a mesma conta. Verificar também o logout iniciado pelo menu do usuário em telas maiores e por expiração de sessão.
+- A tela **Preparando seu ambiente** deve permanecer menor no mobile sem alterar o intervalo de consulta ao readiness, a verificação automática ou o redirecionamento quando a API responder `UP`.

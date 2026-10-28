@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { RemoteOperationOverlay } from "@/components/feedback/RemoteOperationOverlay/RemoteOperationOverlay";
 import { BoardView } from "@/components/board/BoardView/BoardView";
 import { LoginScreen } from "@/components/auth/LoginScreen/LoginScreen";
@@ -22,7 +22,18 @@ export function AppShell() {
   const remoteActionLabel = useBoardStore((state) => state.remoteActionLabel);
   const remoteError = useBoardStore((state) => state.remoteError);
   const reloadRemote = useBoardStore((state) => state.reloadRemote);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // A navegação aberta pertence à conta atual; nunca reaproveitar esse estado
+  // depois de logout, troca de conta ou invalidação da sessão.
+  const [mobileMenuOwnerId, setMobileMenuOwnerId] = useState<string | null>(null);
+  const mobileMenuOpen = Boolean(currentUser && mobileMenuOwnerId === currentUser.id);
+  const toggleMobileMenu = useCallback(() => {
+    const id = useBoardStore.getState().currentUser?.id;
+    setMobileMenuOwnerId(previous => id && previous !== id ? id : null);
+  }, []);
+  const logoutAndCloseMenu = useCallback(() => {
+    setMobileMenuOwnerId(null);
+    useBoardStore.getState().logout();
+  }, []);
   const [topbarHeight, setTopbarHeight] = useState(84);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
@@ -30,6 +41,10 @@ export function AppShell() {
   const openNewTask = (columnId?: string) => { setNewTaskColumnId(columnId); setNewTaskOpen(true); };
   const bootstrap = useBootstrapBoard(Boolean(currentUser));
   useLiveSync(Boolean(currentUser));
+
+  useEffect(() => {
+    setMobileMenuOwnerId(null);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -79,8 +94,9 @@ export function AppShell() {
         <Topbar
           onHeightChange={setTopbarHeight}
           mobileMenuOpen={mobileMenuOpen}
-          onToggleMobileMenu={() => setMobileMenuOpen((value) => !value)}
-          onNewTask={() => { setMobileMenuOpen(false); openNewTask(); }}
+          onToggleMobileMenu={toggleMobileMenu}
+          onLogout={logoutAndCloseMenu}
+          onNewTask={() => { setMobileMenuOwnerId(null); openNewTask(); }}
         />
 
         <main className="min-h-0 flex-1 lg:overflow-hidden">

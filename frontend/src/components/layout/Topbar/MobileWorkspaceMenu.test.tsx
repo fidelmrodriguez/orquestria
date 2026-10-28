@@ -15,6 +15,7 @@ jest.mock("./TopbarFilters", () => ({
 
 const props = {
   open: true,
+  currentUser: { id: "u1", name: "Maria Teste", email: "maria@teste.local", avatar: "", role: "admin" as const },
   workspace: null,
   projectId: null,
   priorityFilter: "todas" as const,
@@ -30,6 +31,7 @@ const props = {
 describe("menu de navegação mobile/tablet", () => {
   beforeEach(() => {
     props.onNavigate.mockClear();
+    props.onLogout.mockClear();
     document.body.style.overflow = "";
   });
 
@@ -46,12 +48,15 @@ describe("menu de navegação mobile/tablet", () => {
     expect(dialog).toHaveClass("fixed", "inset-0", "h-[100dvh]", "bg-white");
     // Há um só contêiner com rolagem vertical; a barra é ocultada por CSS.
     expect(dialog.querySelector(".mobile-navigation-scroll")).toHaveClass("overflow-y-auto", "overflow-x-hidden");
-    // O espaçador integra o conteúdo rolável e fica depois do botão Sair.
-    const spacer = dialog.querySelector(".mobile-navigation-end-spacer");
+    // O scroll ocupa a altura disponível sem um bloco vazio de 112 px.
+    const scroll = dialog.querySelector(".mobile-navigation-scroll");
     const logout = screen.getByRole("button", { name: "Sair" });
-    expect(spacer).toBeInTheDocument();
+    expect(scroll).toBeInTheDocument();
+    expect(dialog.querySelector(".mobile-navigation-end-spacer")).not.toBeInTheDocument();
     expect(logout).toHaveClass("min-h-12");
-    expect(logout.parentElement?.nextElementSibling).toBe(spacer);
+    expect(logout.parentElement?.nextElementSibling).toBeNull();
+    expect(screen.getByLabelText("Conectado como Maria Teste")).toBeInTheDocument();
+    expect(screen.getByText("Maria Teste")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Projetos do menu" })).toBeInTheDocument();
     expect(screen.getByTestId("filtros-do-menu")).toBeInTheDocument();
     expect(document.body.style.overflow).toBe("hidden");
@@ -73,6 +78,12 @@ describe("menu de navegação mobile/tablet", () => {
 
     fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
     expect(logout).toHaveFocus();
+  });
+
+  it("mantém o logout acionável e mostra a identidade da sessão atual", () => {
+    render(<MobileWorkspaceMenu {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: "Sair" }));
+    expect(props.onLogout).toHaveBeenCalledTimes(1);
   });
 
   it("permite navegar pelo menu, fechar pelo botão e pressionar Escape", () => {
