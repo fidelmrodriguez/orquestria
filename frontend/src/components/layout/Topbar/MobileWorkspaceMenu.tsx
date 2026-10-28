@@ -96,7 +96,7 @@ export function MobileWorkspaceMenu({ open, workspace, projectId, priorityFilter
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="mobile-navigation-scroll min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
         <Sidebar onNavigate={onNavigate} dropdown />
         <div className="mt-4 grid gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
           <div className="grid grid-cols-2 gap-2">

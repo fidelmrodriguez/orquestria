@@ -150,14 +150,12 @@ aside::-webkit-scrollbar-thumb {
 
 /* Arrasto por ponteiro: o cartão original sai visualmente da coluna e a prévia
    segue o mouse/dedo em camada independente, sem o fantasma do HTML5. */
-.kanban-task-draggable { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
-@media (prefers-reduced-motion: no-preference) {
-  .kanban-drop-target { animation: kanban-target-pulse 950ms ease-in-out infinite alternate; }
-  @keyframes kanban-target-pulse {
-    from { box-shadow: inset 0 0 0 0 rgba(59,130,246,.07); }
-    to { box-shadow: inset 0 0 0 4px rgba(59,130,246,.20); }
-  }
+/* O toque no mobile deve continuar rolando; o arraste só é ativado no desktop. */
+.kanban-task-draggable { touch-action: pan-y; }
+@media (min-width: 1024px) {
+  .kanban-task-draggable { user-select: none; -webkit-user-select: none; }
 }
+/* O alvo utiliza ring/borda estáticos: sem animações contínuas de box-shadow. */
 
 /* Enquanto o diálogo de gravação estiver aberto, seletores nativos restantes
    são removidos do layout: a popup do navegador não respeita z-index. */
@@ -175,3 +173,14 @@ body.orquestria-remote-pending select { display: none !important; }
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+/* Menu de tela cheia: um único contêiner rolável, sem barra aparente ou
+   estreitamento lateral. O conteúdo continua acessível por toque e teclado. */
+.mobile-navigation-scroll {
+  scrollbar-width: none;
+  scrollbar-gutter: auto;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-navigation-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.mobile-navigation-scroll .sidebar-menu-scroll { overflow: visible; scrollbar-width: none; }

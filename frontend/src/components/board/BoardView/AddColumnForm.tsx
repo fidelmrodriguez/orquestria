@@ -6,10 +6,11 @@ import { Plus, X } from "lucide-react";
 type AddColumnFormProps = {
   projectId: string;
   onAddColumn: (projectId: string, title: string) => void;
+  mobile?: boolean;
 };
 
 /** Ação compacta na barra superior. O formulário flutua sem ampliar a barra. */
-export function AddColumnForm({ projectId, onAddColumn }: AddColumnFormProps) {
+export function AddColumnForm({ projectId, onAddColumn, mobile = false }: AddColumnFormProps) {
   const [expanded, setExpanded] = useState(false);
   const [columnName, setColumnName] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -32,14 +33,16 @@ export function AddColumnForm({ projectId, onAddColumn }: AddColumnFormProps) {
     };
   }, [expanded]);
 
-  return <div ref={containerRef} className="relative shrink-0">
+  const formId = mobile ? "orquestria-mobile-new-column-form" : "orquestria-new-column-form";
+
+  return <div ref={containerRef} className={mobile ? "relative z-20 min-w-0 flex-1" : "relative shrink-0"}>
     <button type="button" onClick={() => setExpanded(value => !value)}
       aria-label="Adicionar coluna ao projeto" aria-expanded={expanded}
-      aria-controls="orquestria-new-column-form"
-      className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-      <Plus className="size-4" /> <span className="hidden min-[1920px]:inline">Nova coluna</span>
+      aria-controls={formId}
+      className={mobile ? "inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" : "inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"}>
+      <Plus className="size-4 shrink-0" /> <span className={mobile ? "min-w-0 truncate" : "hidden min-[1920px]:inline"}>Nova coluna</span>
     </button>
-    {expanded && <form id="orquestria-new-column-form" className="absolute right-0 top-full z-[60] mt-2 flex w-[min(90vw,320px)] items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+    {expanded && <form id={formId} className="absolute right-0 top-full z-[60] mt-2 flex w-[min(90vw,320px)] items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
       onSubmit={(event) => {
         event.preventDefault();
         const title = columnName.trim();

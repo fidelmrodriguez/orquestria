@@ -121,7 +121,7 @@ export function Sidebar({ onNavigate, dropdown = false, collapsed = false, onTog
         </button>
       </div>}
 
-      <div className="sidebar-menu-scroll min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+      <div className={cn("space-y-4", dropdown ? "" : "sidebar-menu-scroll min-h-0 flex-1 overflow-y-auto pr-1")}>
       <WorkspaceNavigation
         workspaces={ownedWorkspaces}
         activeWorkspaceId={activeWorkspaceId}

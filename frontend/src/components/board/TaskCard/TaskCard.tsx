@@ -4,7 +4,8 @@ import { Copy, MessageCircle, Tag } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { cn, formatDate, getInitials } from "@/lib/utils";
 import { useBoardStore } from "@/store/board-store";
-import type { Member, Task } from "@/types/board";
+import type { Column, Member, Task } from "@/types/board";
+import { MobileTaskMove } from "./MobileTaskMove";
 
 const priorityStyles = {
   baixa: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
@@ -18,9 +19,14 @@ type TaskCardProps = {
   member?: Member;
   onPrepareDrag?: (event: ReactPointerEvent<HTMLElement>, task: Task) => void;
   onDuplicateTask?: (taskId: string) => void;
+  columns?: Column[];
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  onMoveTask?: (task: Task, targetColumnId: string, direction?: "up" | "down") => void;
+  moveDisabled?: boolean;
 };
 
-export function TaskCard({ task, member, onPrepareDrag, onDuplicateTask }: TaskCardProps) {
+export function TaskCard({ task, member, onPrepareDrag, onDuplicateTask, columns = [], canMoveUp = false, canMoveDown = false, onMoveTask, moveDisabled }: TaskCardProps) {
   const setSelectedTask = useBoardStore((state) => state.setSelectedTask);
 
   return (
@@ -31,6 +37,8 @@ export function TaskCard({ task, member, onPrepareDrag, onDuplicateTask }: TaskC
       onPointerDown={(event) => onPrepareDrag?.(event, task)}
       onClick={() => setSelectedTask(task.id)}
       onKeyDown={(event) => {
+        // Botões internos (duplicar/mover) devem receber seu próprio teclado.
+        if (event.target !== event.currentTarget) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           setSelectedTask(task.id);
@@ -39,10 +47,10 @@ export function TaskCard({ task, member, onPrepareDrag, onDuplicateTask }: TaskC
       tabIndex={0}
       role="button"
       aria-label={`Abrir tarefa: ${task.title}`}
-      className="kanban-task-draggable group select-none cursor-grab rounded-3xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-1 hover:border-slate-300 active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700"
+      className="kanban-task-draggable group cursor-pointer rounded-3xl border border-slate-200 bg-white p-3 shadow-card transition-colors hover:border-slate-300 lg:cursor-grab lg:select-none lg:p-4 lg:active:cursor-grabbing dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700"
     >
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-950 dark:text-white">{task.title}</h3>
+      <div className="mb-2 flex items-start justify-between gap-2 lg:mb-3 lg:gap-3">
+        <h3 className="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-5 text-slate-950 dark:text-white">{task.title}</h3>
         <div className="flex shrink-0 items-center gap-1">
           {onDuplicateTask && <button type="button" title={`Duplicar tarefa ${task.title}`}
             aria-label={`Duplicar tarefa ${task.title}`}
@@ -54,20 +62,22 @@ export function TaskCard({ task, member, onPrepareDrag, onDuplicateTask }: TaskC
           <span className={cn("rounded-full px-2 py-1 text-[11px] font-semibold capitalize", priorityStyles[task.priority])}>
             {task.priority}
           </span>
+          {onMoveTask && <MobileTaskMove task={task} columns={columns}
+            canMoveUp={canMoveUp} canMoveDown={canMoveDown} disabled={moveDisabled} onMove={onMoveTask} />}
         </div>
       </div>
 
       <p className="line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{task.description}</p>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      {task.tags.length > 0 && <div className="mt-2.5 flex flex-wrap gap-1.5 lg:mt-4">
         {task.tags.slice(0, 3).map((tag) => (
           <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500 dark:bg-slate-900 dark:text-slate-400">
             <Tag className="size-3" /> {tag}
           </span>
         ))}
-      </div>
+      </div>}
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-900">
+      <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 lg:mt-4 lg:pt-3 dark:border-slate-900">
         <div className="flex items-center gap-2">
           <div className="grid size-8 place-items-center rounded-full bg-slate-950 text-[11px] font-semibold text-white dark:bg-white dark:text-slate-950">
             {getInitials(member?.name || "User")}

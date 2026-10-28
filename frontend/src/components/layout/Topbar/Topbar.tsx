@@ -92,9 +92,9 @@ export function Topbar({ mobileMenuOpen, onToggleMobileMenu, onNewTask, onHeight
           assigneeClassName="hidden w-[112px] shrink-0 min-[1920px]:block"
         />
 
-        {project && <AddColumnForm key={project.id} projectId={project.id} onAddColumn={addColumn} />}
+        {project && <div className="hidden lg:block"><AddColumnForm key={project.id} projectId={project.id} onAddColumn={addColumn} /></div>}
 
-        <button type="button" aria-label="Nova tarefa" onClick={onNewTask} className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-card dark:bg-white dark:text-slate-950">
+        <button type="button" aria-label="Nova tarefa" onClick={onNewTask} className="hidden lg:inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-card dark:bg-white dark:text-slate-950">
           <Plus className="size-4" /> <span className="hidden min-[1920px]:inline">Nova tarefa</span>
         </button>
 

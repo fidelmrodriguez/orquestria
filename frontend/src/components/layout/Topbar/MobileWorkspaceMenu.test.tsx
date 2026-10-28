@@ -44,6 +44,8 @@ describe("menu de navegação mobile/tablet", () => {
     expect(dialog.parentElement).toBe(document.body);
     expect(dialog).toHaveAttribute("aria-modal", "true");
     expect(dialog).toHaveClass("fixed", "inset-0", "h-[100dvh]", "bg-white");
+    // Há um só contêiner com rolagem vertical; a barra é ocultada por CSS.
+    expect(dialog.querySelector(".mobile-navigation-scroll")).toHaveClass("overflow-y-auto", "overflow-x-hidden");
     expect(screen.getByRole("navigation", { name: "Projetos do menu" })).toBeInTheDocument();
     expect(screen.getByTestId("filtros-do-menu")).toBeInTheDocument();
     expect(document.body.style.overflow).toBe("hidden");

@@ -45,6 +45,26 @@ describe("navegação mobile do Kanban", () => {
     expect(onNewTask).toHaveBeenCalledWith("andamento");
   });
 
+  it("oferece criar coluna e tarefa lado a lado no lugar dos botões do topbar", () => {
+    const onAddColumn = jest.fn();
+    render(<MobileColumnSwitcher columns={columns} activeColumnId="backlog"
+      taskCounts={{ backlog: 3, andamento: 2, feito: 0 }} onChange={jest.fn()}
+      onNewTask={jest.fn()} onAddColumn={onAddColumn} projectId="p1" />);
+    const actions = screen.getByLabelText("Ações do projeto");
+    expect(within(actions).getByRole("button", { name: "Adicionar coluna ao projeto" })).toBeInTheDocument();
+    expect(within(actions).getByRole("button", { name: "Nova tarefa em Backlog" })).toBeInTheDocument();
+    fireEvent.click(within(actions).getByRole("button", { name: "Adicionar coluna ao projeto" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Nome da nova coluna" }), { target: { value: "Revisão" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar" }));
+    expect(onAddColumn).toHaveBeenCalledWith("p1", "Revisão");
+  });
+
+  it("permite criar a primeira coluna de projeto vazio", () => {
+    render(<MobileColumnSwitcher columns={[]} activeColumnId={null} taskCounts={{}}
+      onChange={jest.fn()} onNewTask={jest.fn()} onAddColumn={jest.fn()} projectId="p1" />);
+    expect(screen.getByRole("button", { name: "Adicionar coluna ao projeto" })).toBeInTheDocument();
+  });
+
   it("não apresenta navegação quando o projeto não tem colunas", () => {
     const { container } = render(<MobileColumnSwitcher columns={[]} activeColumnId={null}
       taskCounts={{}} onChange={jest.fn()} onNewTask={jest.fn()} />);

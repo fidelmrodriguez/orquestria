@@ -20,8 +20,10 @@ type TaskDragPreviewProps = {
 export function TaskDragPreview({ drag, previewRef }: TaskDragPreviewProps) {
   const { task, x, y, offsetX, offsetY, width } = drag;
   return (
-    <div ref={previewRef} aria-hidden="true" className="pointer-events-none fixed z-[180] rounded-3xl border-2 border-blue-400 bg-white p-4 shadow-2xl ring-4 ring-blue-200/50 dark:border-blue-400 dark:bg-slate-900 dark:ring-blue-950/70"
-      style={{ left: x - offsetX, top: y - offsetY, width, transform: "rotate(-2deg) scale(1.035)", transformOrigin: `${offsetX}px ${offsetY}px` }}>
+    <div ref={previewRef} aria-hidden="true" className="pointer-events-none fixed z-[180] will-change-transform rounded-3xl border-2 border-blue-400 bg-white p-4 shadow-2xl ring-4 ring-blue-200/50 dark:border-blue-400 dark:bg-slate-900 dark:ring-blue-950/70"
+      style={{ left: 0, top: 0, width,
+        transform: `translate3d(${x - offsetX}px, ${y - offsetY}px, 0) rotate(-1deg) scale(1.01)`,
+        transformOrigin: `${offsetX}px ${offsetY}px` }}>
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="line-clamp-2 text-sm font-semibold text-slate-950 dark:text-white">{task.title}</h3>
         <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-[11px] font-semibold capitalize text-blue-700 dark:bg-blue-950 dark:text-blue-200">{task.priority}</span>

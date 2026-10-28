@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { Column } from "@/types/board";
+import { AddColumnForm } from "./AddColumnForm";
 
 interface MobileColumnSwitcherProps {
   columns: Column[];
@@ -10,10 +11,12 @@ interface MobileColumnSwitcherProps {
   taskCounts: Record<string, number>;
   onChange: (columnId: string) => void;
   onNewTask: (columnId: string) => void;
+  onAddColumn?: (projectId: string, title: string) => void;
+  projectId?: string;
 }
 
 /** Navegação vertical por uma coluna de cada vez em telas menores que desktop. */
-export function MobileColumnSwitcher({ columns, activeColumnId, taskCounts, onChange, onNewTask }: MobileColumnSwitcherProps) {
+export function MobileColumnSwitcher({ columns, activeColumnId, taskCounts, onChange, onNewTask, onAddColumn, projectId }: MobileColumnSwitcherProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const activeIndex = Math.max(0, columns.findIndex(column => column.id === activeColumnId));
@@ -40,7 +43,11 @@ export function MobileColumnSwitcher({ columns, activeColumnId, taskCounts, onCh
     };
   }, [open]);
 
-  if (!activeColumn) return null;
+  if (!activeColumn) return onAddColumn && projectId ? (
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 lg:hidden dark:border-slate-800 dark:bg-slate-950">
+      <AddColumnForm mobile projectId={projectId} onAddColumn={onAddColumn} />
+    </div>
+  ) : null;
 
   return (
     <nav ref={containerRef} className="relative min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-950 lg:hidden" aria-label="Navegar entre colunas do Kanban">
@@ -83,10 +90,13 @@ export function MobileColumnSwitcher({ columns, activeColumnId, taskCounts, onCh
           ))}
         </div>
       )}
-      <button type="button" onClick={() => onNewTask(activeColumn.id)}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">
-        <Plus className="size-4 shrink-0" /> <span className="min-w-0 truncate">Nova tarefa em {activeColumn.title}</span>
-      </button>
+      <div className="mt-3 flex min-w-0 items-stretch gap-2" aria-label="Ações do projeto">
+        {onAddColumn && <AddColumnForm mobile projectId={activeColumn.projectId} onAddColumn={onAddColumn} />}
+        <button type="button" onClick={() => onNewTask(activeColumn.id)} aria-label={`Nova tarefa em ${activeColumn.title}`}
+          className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-slate-950 px-2 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">
+          <Plus className="size-4 shrink-0" /> <span className="min-w-0 truncate">Nova tarefa</span>
+        </button>
+      </div>
     </nav>
   );
 }

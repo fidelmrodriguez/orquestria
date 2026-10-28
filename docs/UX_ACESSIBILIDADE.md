@@ -36,9 +36,9 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 
 - O título da tarefa pode ser alterado no painel lateral usando **Editar**, com confirmação por Enter ou pelo botão Salvar e cancelamento por Escape ou Cancelar.
 - O campo de tags mantém as sugestões do catálogo e aceita inclusão tanto por Enter quanto pelo botão **Adicionar** na mesma linha.
-- O drag-and-drop permite reordenar tarefas dentro da mesma coluna, inserindo-as antes ou depois de outro cartão. Um espaço azul animado antecipa a posição de destino, e o cartão arrastado acompanha o cursor.
+- A partir de **1024 px**, o drag-and-drop permite reordenar tarefas dentro da mesma coluna e movê-las entre colunas. Um indicador azul discreto mostra a posição de destino, enquanto a prévia acompanha o cursor.
 - Não é necessário acertar o vão entre os cartões: durante o arrasto, sobrepor parte de um cartão já define uma inserção. Ao mover de cima para baixo, a parte principal do cartão indica **depois**; ao mover de baixo para cima, indica **antes**. Uma faixa estreita na extremidade ainda permite a posição oposta.
-- Os espaços de destino permanecem montados e animam a altura e a margem suavemente. Os cartões usam posições de referência capturadas no início do arrasto, impedindo que o espaço se desloque repetidamente enquanto os cartões cedem lugar. O cartão sob o ponteiro recebe também um movimento sutil de confirmação.
+- O destino é calculado com um snapshot das posições dos cartões capturado no início do arraste. O movimento da prévia usa `translate3d`, com no máximo uma atualização por frame, sem recalcular a geometria de todos os cartões a cada evento. O indicador de destino evita animações contínuas de sombra.
 - Arrastos cancelados, solturas fora das colunas e movimentos para a posição original não enviam requisições de gravação.
 - A ordem é armazenada pelo backend, mantendo-se após atualização da página. A mudança entre colunas reorganiza tanto a origem quanto o destino.
 
@@ -46,16 +46,18 @@ Após cada alteração de interface, testar manualmente pelo menos: navegação 
 
 - Em telas menores que 1024 px, o quadro exibe **uma coluna por vez** em largura integral, sem barra de rolagem horizontal. Os cartões acompanham o fluxo vertical natural da página, sem duas barras de rolagem concorrentes.
 - O seletor acima da coluna informa a posição atual (por exemplo, **Coluna 2 de 5**), o nome e a quantidade de tarefas. Os botões anterior/próxima e a lista de todas as colunas permitem navegar diretamente, mesmo em quadros grandes.
-- O botão **Nova tarefa em [nome da coluna]** abre o formulário já associado à coluna selecionada; os atalhos no cabeçalho da coluna continuam disponíveis.
+- Abaixo do seletor, os botões **Nova coluna** (branco) e **Nova tarefa** (preto) dividem a mesma linha. A nova tarefa utiliza a coluna selecionada; o formulário de nova coluna usa o projeto ativo. Os equivalentes no topbar ficam ocultos abaixo de 1024 px.
 - Ao trocar de workspace/projeto, o navegador volta à primeira coluna daquele quadro. Se a coluna selecionada for removida, a visualização retorna automaticamente à primeira coluna válida.
-- Em telas desktop (a partir de 1024 px), o quadro mantém a visualização de múltiplas colunas, o drag-and-drop e a rolagem horizontal no rodapé. Em telas menores, as tarefas podem ser movidas entre colunas pelo campo **Coluna** no painel de detalhes.
+- Até **1023 px**, o arraste dos cartões fica desativado para preservar a rolagem por toque. Cada cartão oferece **Mover**, com ações de subir/descer uma posição entre as tarefas visíveis ou enviar para outra coluna; a posição final respeita as tarefas ocultas pelos filtros e é persistida pela mesma API do drag-and-drop.
+- A partir de **1024 px**, o quadro mantém múltiplas colunas, arraste com prévia otimizada e rolagem horizontal no rodapé. Os cartões no mobile têm espaçamentos mais compactos, sem ocultar título, prioridade, descrição ou responsável.
+- O menu hambúrguer ocupa a viewport inteira, bloqueia a página ao fundo e mantém rolagem independente sem barra de scrollbar visível, preservando alinhamento lateral e acesso a todas as opções.
 
 ## Espaçamento e pesquisa nas barras responsivas
 
-- O quadro usa a área útil imediatamente abaixo da barra superior, sem uma reserva extra de altura em desktop ou tablet. O resumo do projeto permanece separado do cabeçalho por um espaçamento compacto.
-- Em celulares, tablets e notebooks com menos de 1536 px, a lupa revela uma linha de busca **dentro do fluxo do cabeçalho**, ocupando 100% da largura disponível. A linha empurra o quadro para baixo em vez de flutuar por cima da interface; fecha com Escape ou clique fora sem apagar o texto digitado.
-- Em telas amplas (a partir de 1536 px), o campo de pesquisa permanece visível diretamente na barra superior.
-- As alterações não modificam a busca, os filtros nem a movimentação de tarefas; apenas reorganizam a apresentação dos controles conforme a largura da tela.
+- O quadro fica imediatamente abaixo do topbar; em mobile/tablet o espaço reservado acompanha a altura real do cabeçalho fixo. O resumo duplicado do projeto não é mais renderizado acima das colunas.
+- Até **1919 px**, a lupa revela uma linha de busca **dentro do fluxo do cabeçalho**, ocupando 100% da largura disponível. A linha empurra o quadro para baixo; fecha com Escape ou clique fora sem apagar o texto digitado. Entre 768 e 1919 px, os filtros ficam na mesma linha do input; abaixo de 768 px, só o input é exibido.
+- A partir de **1920 px**, o campo de pesquisa e os filtros permanecem visíveis diretamente na barra superior, sem botão de lupa.
+- Os filtros e os controles de busca preservam as regras de filtragem. A alternativa mobile para movimentação reutiliza a operação de organização já existente no store/API.
 
 ## Sidebar recolhível em desktop
 
