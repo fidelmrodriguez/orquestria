@@ -1,4 +1,3 @@
-# A URL pública do Next.js estático é resolvida pelo proxy do Netlify.
-# 200! força o proxy mesmo se existir um arquivo exportado neste caminho.
-# Não colocar regras genéricas (/*) acima desta rota.
-/api/orquestria-readiness  https://orquestria-api.fidelmrodriguez.blitz.cloud/actuator/health  200!
+# A function aciona o Blitz pelo servidor do Netlify, evitando CORS no navegador.
+# Regra forçada: não servir o fallback estático antigo do Next.js.
+/api/orquestria-readiness  /.netlify/functions/orquestria-readiness  200!

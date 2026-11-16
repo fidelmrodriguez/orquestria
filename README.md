@@ -4,7 +4,8 @@
 
 [**Acessar aplicação**](https://orquestria.netlify.app/) · [Frontend — React/Next.js](frontend/README.md) · [Backend — Java/Spring Boot](backend/README.md) · [Arquitetura](docs/ARQUITETURA.md) · [API](docs/API.md)
 
-[![Orquestria CI](https://img.shields.io/github/actions/workflow/status/fidelmrodriguez/orquestria/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI&labelColor=243047)](https://github.com/fidelmrodriguez/orquestria/actions/workflows/ci.yml)
+[![Frontend Next.js CI](https://img.shields.io/github/actions/workflow/status/fidelmrodriguez/orquestria/frontend-ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Frontend%20CI)](https://github.com/fidelmrodriguez/orquestria/actions/workflows/frontend-ci.yml)
+[![Backend Java CI](https://img.shields.io/github/actions/workflow/status/fidelmrodriguez/orquestria/backend-ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=Backend%20CI)](https://github.com/fidelmrodriguez/orquestria/actions/workflows/backend-ci.yml)
 
 ## Funcionalidades
 
@@ -53,7 +54,7 @@ Neon — PostgreSQL
 
 O frontend utiliza a API para persistir os dados de trabalho. O Spring Security exige autenticação nas rotas privadas e verifica a titularidade dos recursos antes das operações. O esquema do banco é versionado com Flyway; as migrações disponíveis vão de **V1 a V10**.
 
-Como a hospedagem da API pode suspender processos inativos, a interface verifica a disponibilidade do Spring Boot antes de apresentar as telas de login e do quadro. Durante a inicialização, apresenta o estado **Preparando seu ambiente**, com tempo decorrido; a espera não representa uma falha de autenticação. O endpoint de prontidão é encaminhado pelo proxy do Netlify.
+Como a hospedagem da API pode suspender processos inativos, a interface verifica a disponibilidade do Spring Boot antes de apresentar as telas de login e do quadro. Durante a inicialização, apresenta o estado **Preparando seu ambiente**, com tempo decorrido; a espera não representa uma falha de autenticação. O endpoint de prontidão usa uma Netlify Function que acorda o Blitz pelo servidor, sem exigir CORS no navegador.
 
 Para conhecer as decisões e os fluxos completos, consulte a [arquitetura](docs/ARQUITETURA.md).
 
@@ -76,7 +77,7 @@ orquestria/
 │   ├── README.md               # Contratos e execução do backend
 │   └── src/main/resources/db/migration/
 ├── docs/                       # Arquitetura, API, operação e planejamento
-├── .github/workflows/ci.yml   # Integração contínua
+├── .github/workflows/        # CI separado: frontend-ci.yml e backend-ci.yml
 └── netlify.toml                # Build e publicação do frontend
 ```
 

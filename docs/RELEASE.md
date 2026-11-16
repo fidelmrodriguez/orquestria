@@ -5,7 +5,7 @@ Este documento reúne as verificações para publicar uma versão identificável
 ## Pré-condições
 
 - A branch `main` está sincronizada, sem alterações locais pendentes.
-- A execução do **Orquestria CI** para o commit escolhido terminou com os jobs **Backend** e **Frontend** aprovados. Não confundir o resultado de um commit anterior com o commit a ser publicado.
+- As execuções de **Frontend Next.js CI** e **Backend Java CI** para o commit escolhido terminaram aprovadas. Não confundir o resultado de um commit anterior com o commit a ser publicado.
 - O deploy do backend no Blitz e o deploy do frontend no Netlify correspondem a versões compatíveis.
 - O Flyway validou e aplicou as migrações versionadas de `V1` a `V10` no ambiente correspondente. Mudanças posteriores exigem migrações novas.
 - Os testes de fluxo abaixo foram repetidos na aplicação publicada, com contas e dados descartáveis.

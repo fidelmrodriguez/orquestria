@@ -85,7 +85,7 @@ npm run build
 
 O frontend é publicado no **Netlify** como site estático. A autenticação e as operações privadas usam HTTPS e tokens Bearer com validação no Spring Boot. O cliente não remove a sessão apenas por indisponibilidade temporária da API.
 
-Quando o serviço Java está suspenso, `ApiReadinessGate` aguarda uma resposta válida de `/api/orquestria-readiness`, encaminhada pelo proxy do Netlify para `/actuator/health`. A tela de preparação evita apresentar login e Kanban antes de o backend responder, mas não mantém o servidor permanentemente ativo.
+Quando o serviço Java está suspenso, `ApiReadinessGate` aguarda uma resposta válida de `/api/orquestria-readiness`, respondida pela Netlify Function que consulta `/actuator/health` no servidor, sem CORS no navegador. A tela de preparação evita apresentar login e Kanban antes de o backend responder, mas não mantém o servidor permanentemente ativo.
 
 Para configuração de ambiente e publicação, consulte [Deploy no Netlify](../docs/DEPLOY_NETLIFY.md). O repositório executa TypeScript, Jest e build estático no [GitHub Actions](../docs/TESTES.md); mudanças de UX também devem ser verificadas manualmente em tamanhos diferentes de tela e via teclado.
 

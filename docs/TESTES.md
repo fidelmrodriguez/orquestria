@@ -1,6 +1,6 @@
 # Testes e integração contínua
 
-O Orquestria utiliza testes de frontend e backend, além de verificações automáticas executadas pelo workflow `.github/workflows/ci.yml`.
+O Orquestria utiliza testes de frontend e backend, além de verificações automáticas executadas pelos workflows `.github/workflows/frontend-ci.yml` e `.github/workflows/backend-ci.yml`.
 
 ## Estratégia de testes
 
@@ -13,7 +13,7 @@ O Orquestria utiliza testes de frontend e backend, além de verificações autom
 
 ## CI no GitHub Actions
 
-O workflow **Orquestria CI** é acionado em `push` e `pull_request` para `main` e permite execução manual por `workflow_dispatch`.
+Os workflows **Frontend Next.js CI** e **Backend Java CI** são acionados em `push` e `pull_request` para `main` e permite execução manual por `workflow_dispatch`.
 
 **Job backend**
 
@@ -24,9 +24,10 @@ O workflow **Orquestria CI** é acionado em `push` e `pull_request` para `main` 
 **Job frontend**
 
 - Prepara Node.js 22 e instala dependências com `npm ci`.
-- Executa checagem TypeScript, Jest e build estático do Next.js.
+- Executa checagem TypeScript, Jest, testes da Netlify Function e build estático do Next.js.
+- Confere no build a regra de roteamento para a função de readiness.
 
-Os dois jobs são independentes. Uma execução só deve ser considerada aprovada quando **ambos terminam com sucesso**. A presença do workflow no repositório ou a aprovação de apenas um job não equivale à aprovação da execução completa.
+Os dois workflows são independentes. Uma versão só deve ser considerada aprovada quando **ambos terminam com sucesso**. A presença do workflow no repositório ou a aprovação de apenas um job não equivale à aprovação da execução completa.
 
 ## Documentação e release
 
@@ -56,6 +57,7 @@ node scripts/check-doc-links.mjs
 npm ci
 npm run typecheck
 npm test -- --runInBand --ci
+node --test tests/readiness-function.test.mjs
 npm run build
 ```
 

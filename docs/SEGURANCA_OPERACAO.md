@@ -25,11 +25,11 @@ O Netlify lê `frontend/public/_headers` na exportação estática e aplica `X-C
 
 ## Saúde da API
 
-`GET /actuator/health` permanece público e expõe somente o status, sem detalhes de banco. O frontend usa essa rota (através do proxy do Netlify) para esperar o despertar da API no Blitz. A aplicação no plano gratuito pode dormir por inatividade; os mecanismos de diagnóstico não garantem disponibilidade contínua.
+`GET /actuator/health` permanece público e expõe somente o status, sem detalhes de banco. O frontend usa essa rota (através de uma Netlify Function, sem CORS no navegador) para esperar o despertar da API no Blitz. A aplicação no plano gratuito pode dormir por inatividade; os mecanismos de diagnóstico não garantem disponibilidade contínua.
 
 ## Validação e operação
 
-1. Conferir os dois jobs do workflow **Orquestria CI** no GitHub Actions.
+1. Conferir os dois workflows **Frontend Next.js CI** e **Backend Java CI** no GitHub Actions.
 2. Verificar na aba Network que respostas de `/api/**` incluem `X-Request-ID` e proibição de cache.
 3. Enviar JSON inválido a um endpoint público de teste e confirmar HTTP 400, sem exceções internas na resposta.
 4. Confirmar que a aplicação mantém a sessão quando o servidor cai temporariamente e consegue recuperar os dados após nova tentativa.
