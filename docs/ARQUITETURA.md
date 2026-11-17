@@ -13,7 +13,7 @@ Navegador
    │      │                         │
    │      │                         └─ JDBC / TLS → Neon — PostgreSQL
    │      │
-   │      └─ /api/orquestria-readiness → Netlify Function → /actuator/health
+   │      └─ /api/orquestria-readiness → proxy nativo Netlify → /actuator/health
    │
    └─ localStorage — token de sessão e preferências de interface
 ```
@@ -68,7 +68,7 @@ A equipe de cada projeto concede acesso explícito ao projeto selecionado. Usuá
 
 ## Inicialização da API
 
-A infraestrutura da API pode suspender o processo por inatividade. Antes de exibir login ou Kanban, `ApiReadinessGate` consulta `/api/orquestria-readiness` no domínio do frontend. A regra em `frontend/public/_redirects` encaminha essa rota à Netlify Function, que consulta o health do Spring Boot sem CORS no navegador. Apenas uma resposta válida com `status: "UP"` libera a interface; páginas HTML de inicialização não são aceitas como sucesso.
+A infraestrutura da API pode suspender o processo por inatividade. Antes de exibir login ou Kanban, `ApiReadinessGate` consulta `/api/orquestria-readiness` no domínio do frontend. A regra em `frontend/public/_redirects` encaminha essa rota pelo proxy nativo do Netlify diretamente ao health do Spring Boot, sem CORS nessa consulta. Apenas uma resposta válida com `status: "UP"` libera a interface; páginas HTML de inicialização não são aceitas como sucesso.
 
 Enquanto a API não está pronta, o frontend apresenta uma tela de preparação com contador de tempo decorrido, um aviso informativo e novas tentativas automáticas. Isso melhora a experiência durante o início a frio, mas não impede que o serviço seja suspenso por inatividade nem substitui a autorização da API.
 
@@ -87,7 +87,7 @@ sequenceDiagram
     API-->>Browser: JSON e X-Request-ID
 ```
 
-A verificação de prontidão usa um fluxo separado: navegador → Netlify Function → `/actuator/health` na API. Ela não substitui autenticação ou autorização.
+A verificação de prontidão usa um fluxo separado: navegador → proxy nativo Netlify → `/actuator/health` na API. Ela não substitui autenticação ou autorização.
 
 As justificativas das escolhas de infraestrutura e modelo de acesso estão em [Decisões técnicas](DECISOES_TECNICAS.md). A organização da camada visual está detalhada no [README do frontend](../frontend/README.md), e os contratos da API no [README do backend](../backend/README.md).
 

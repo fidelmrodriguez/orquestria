@@ -8,7 +8,7 @@ O Orquestria mantém frontend, API e persistência em serviços separados. As de
 
 **Motivo:** a interface não depende de um servidor Next.js persistente e consome uma API Java independente. Isso permite publicar a camada visual sem reiniciar o backend.
 
-**Consequências:** rotas dinâmicas de servidor Next.js não podem ser usadas como endpoints operacionais nessa publicação. A rota `/api/orquestria-readiness` é encaminhada pela regra em `frontend/public/_redirects` para uma Netlify Function independente do Next.js, que consulta o Spring Boot no servidor e evita CORS no navegador.
+**Consequências:** rotas dinâmicas de servidor Next.js não podem ser usadas como endpoints operacionais nessa publicação. A rota `/api/orquestria-readiness` é encaminhada pela regra em `frontend/public/_redirects` diretamente para `/actuator/health` no Blitz usando o proxy nativo do Netlify, sem CORS nessa verificação.
 
 ## Spring Boot como limite de autorização
 

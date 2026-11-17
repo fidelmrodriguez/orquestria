@@ -1,3 +1,4 @@
-# A function aciona o Blitz pelo servidor do Netlify, evitando CORS no navegador.
-# Regra forçada: não servir o fallback estático antigo do Next.js.
-/api/orquestria-readiness  /.netlify/functions/orquestria-readiness  200!
+# Proxy nativo do Netlify: mesma estrategia utilizada no Monavero.
+# O frontend permanece no Netlify, sem navegar para a pagina do Blitz.
+# O JavaScript aceita somente JSON com status UP; HTML de wake-up nao libera a tela.
+/api/orquestria-readiness  https://orquestria-api.fidelmrodriguez.prod.page/actuator/health  200!

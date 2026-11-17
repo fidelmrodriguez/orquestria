@@ -24,8 +24,8 @@ Os workflows **Frontend Next.js CI** e **Backend Java CI** são acionados em `pu
 **Job frontend**
 
 - Prepara Node.js 22 e instala dependências com `npm ci`.
-- Executa checagem TypeScript, Jest, testes da Netlify Function e build estático do Next.js.
-- Confere no build a regra de roteamento para a função de readiness.
+- Executa checagem TypeScript, Jest, validação do proxy nativo do Netlify e build estático do Next.js.
+- Confere no build a regra de roteamento para o proxy de readiness.
 
 Os dois workflows são independentes. Uma versão só deve ser considerada aprovada quando **ambos terminam com sucesso**. A presença do workflow no repositório ou a aprovação de apenas um job não equivale à aprovação da execução completa.
 
@@ -57,7 +57,7 @@ node scripts/check-doc-links.mjs
 npm ci
 npm run typecheck
 npm test -- --runInBand --ci
-node --test tests/readiness-function.test.mjs
+node --test tests/readiness-proxy.test.mjs
 npm run build
 ```
 

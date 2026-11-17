@@ -38,13 +38,12 @@ jobs:
         run: npm run typecheck
       - name: Rodar testes Jest
         run: npm test -- --runInBand --ci
-      - name: Testar função de cold start sem CORS
-        run: node --test tests/readiness-function.test.mjs
+      - name: Testar configuracao do proxy de readiness
+        run: node --test tests/readiness-proxy.test.mjs
       - name: Validar build estático do Netlify
         run: npm run build
       - name: Conferir proxy de readiness e saída estática
         run: |
           test -f out/index.html
           test -f out/_redirects
-          grep -Eq '^/api/orquestria-readiness[[:space:]]+/.netlify/functions/orquestria-readiness[[:space:]]+200!' out/_redirects
-          test -f netlify/functions/orquestria-readiness.mjs
+          grep -Eq '^/api/orquestria-readiness[[:space:]]+https://orquestria-api\.fidelmrodriguez\.prod\.page/actuator/health[[:space:]]+200!' out/_redirects

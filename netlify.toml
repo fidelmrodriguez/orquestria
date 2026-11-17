@@ -9,6 +9,3 @@
   NODE_VERSION = "22"
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
-# Base definida como "frontend"; este diretório é relativo a essa base.
-[functions]
-  directory = "netlify/functions"
