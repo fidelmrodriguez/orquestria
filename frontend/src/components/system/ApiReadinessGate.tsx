@@ -6,27 +6,8 @@ const POLL_INTERVAL_MS = 5000;
 const REQUEST_TIMEOUT_MS = 12000;
 
 type GateStatus = "checking" | "ready";
-type ReadinessPayload = { status?: string; wakeUrl?: string };
+type ReadinessPayload = { status?: string };
 const DIRECT_API_BASE = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "https://orquestria-api.fidelmrodriguez.prod.page").trim().replace(/\/+$/, "");
-const WAKE_ATTEMPT_KEY = "orquestria-last-browser-wake";
-const WAKE_RETRY_AFTER_MS = 4 * 60 * 1000;
-const FALLBACK_WAKE_URL = "https://orquestria-api.fidelmrodriguez.prod.page/api/public/wake";
-
-/** O Blitz gratuito só desperta por visita de navegador, não por fetch de servidor. */
-function startBrowserWake(url: string | undefined) {
-  if (!url) return;
-  let target: URL;
-  try {
-    target = new URL(url);
-    if (target.protocol !== "https:" || target.pathname !== "/api/public/wake") return;
-  } catch { return; }
-  const previous = Number(window.sessionStorage.getItem(WAKE_ATTEMPT_KEY) || 0);
-  if (Date.now() - previous < WAKE_RETRY_AFTER_MS) return;
-  window.sessionStorage.setItem(WAKE_ATTEMPT_KEY, String(Date.now()));
-  // Navegação de página, não fetch/XHR: o Blitz pode tratar como visita real.
-  window.location.assign(target.href);
-}
-
 /**
  * Aguarda a API Java ficar pronta antes de montar login, cadastro, Kanban
  * ou a tela de gerenciamento, inclusive quando já existe uma sessão salva.
@@ -92,14 +73,12 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
         await Promise.any([proxyCheck(), directCheck()]);
         if (!disposed) {
           confirmedReady = true;
-          window.sessionStorage.removeItem(WAKE_ATTEMPT_KEY);
           console.info("[Orquestria][readiness] API Java disponivel");
           setStatus("ready");
         }
       } catch {
-        // Ambas as verificacoes falharam: visitar Blitz pela navegacao do browser,
-        // pois fetch automatizado pode nao despertar apps no plano gratuito.
-        if (!disposed) startBrowserWake(`${DIRECT_API_BASE}/api/public/wake`);
+        // Como no Monavero, manter o visitante no Netlify e tentar novamente.
+        // Nenhuma navegação automática para a página de wake-up do Blitz.
       } finally {
         if (timeoutTimer) clearTimeout(timeoutTimer);
         timeoutTimer = null;
@@ -146,10 +125,7 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
           <strong>Tempo de inicialização:</strong> o primeiro acesso pode levar até cerca de 3 minutos quando o servidor está em repouso.
         </p>
         <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400 sm:mt-4">
-          Se o Blitz estiver dormindo, tentaremos abrir a API pelo navegador e voltar automaticamente.
-        </p>
-        <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-          Se não redirecionar, <a href={FALLBACK_WAKE_URL} className="font-semibold text-blue-700 underline dark:text-blue-300">clique aqui para acordar a API</a>.
+          A conexão é verificada automaticamente; você continuará aqui enquanto a API inicia.
         </p>
       </section>
     </main>
