@@ -16,7 +16,7 @@ test("aceita somente health UP em JSON", async () => {
     return response(200, "application/json; charset=utf-8", { status: "UP" });
   });
   assert.equal(result, true);
-  assert.equal(url, "https://orquestria-api.fidelmrodriguez.blitz.cloud/actuator/health");
+  assert.equal(url, "https://orquestria-api.fidelmrodriguez.prod.page/actuator/health");
 });
 
 test("não interpreta HTML do Blitz como API pronta", async () => {
@@ -36,4 +36,24 @@ test("rejeita base inválida para evitar destinos inesperados", async () => {
   let invoked = false;
   assert.equal(await checkReadiness(async () => { invoked = true; }, "http://localhost:8080"), false);
   assert.equal(invoked, false);
+});
+
+// A função publica o destino de navegação para despertar o Blitz pelo browser.
+test("readiness STARTING fornece endereço de navegação do navegador", async () => {
+  const { default: handler } = await import("../netlify/functions/orquestria-readiness.mjs");
+  const previousFetch = global.fetch;
+  const previousBase = process.env.ORQUESTRIA_API_URL;
+  process.env.ORQUESTRIA_API_URL = "https://orquestria-api.fidelmrodriguez.prod.page";
+  global.fetch = async () => new Response("<html>Waking</html>", { status: 200, headers: { "content-type": "text/html" } });
+  try {
+    const response = await handler(new Request("https://orquestria.netlify.app/api/orquestria-readiness"));
+    const data = await response.json();
+    assert.equal(response.status, 503);
+    assert.equal(data.status, "STARTING");
+    assert.equal(data.wakeUrl, "https://orquestria-api.fidelmrodriguez.prod.page/api/public/wake");
+  } finally {
+    global.fetch = previousFetch;
+    if (previousBase === undefined) delete process.env.ORQUESTRIA_API_URL;
+    else process.env.ORQUESTRIA_API_URL = previousBase;
+  }
 });

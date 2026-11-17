@@ -3,7 +3,7 @@
  * O navegador consulta apenas /api/orquestria-readiness na própria origem:
  * sem CORS, sem expor tokens e sem confundir o HTML de wake-up com Spring UP.
  */
-const DEFAULT_API_BASE = "https://orquestria-api.fidelmrodriguez.blitz.cloud";
+const DEFAULT_API_BASE = "https://orquestria-api.fidelmrodriguez.prod.page";
 const TIMEOUT_MS = 8000;
 
 export async function checkReadiness(fetcher = fetch, apiBase = process.env.ORQUESTRIA_API_URL || DEFAULT_API_BASE) {
@@ -38,7 +38,9 @@ export default async function handler(request) {
   }
 
   const ready = await checkReadiness();
-  return new Response(JSON.stringify({ status: ready ? "UP" : "STARTING" }), {
+  const apiBase = (process.env.ORQUESTRIA_API_URL || DEFAULT_API_BASE).trim().replace(/\/+$/, "");
+  const wakeUrl = /^https:\/\/[^/]+$/i.test(apiBase) ? `${apiBase}/api/public/wake` : null;
+  return new Response(JSON.stringify({ status: ready ? "UP" : "STARTING", ...(ready ? {} : { wakeUrl }) }), {
     status: ready ? 200 : 503,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store, max-age=0" }
   });

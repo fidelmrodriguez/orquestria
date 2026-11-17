@@ -30,7 +30,7 @@ public class SecurityConfig {
           .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
           .authorizeHttpRequests(a->a
               .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
-              .requestMatchers("/api/auth/login","/api/auth/register","/actuator/health").permitAll()
+              .requestMatchers("/api/auth/login","/api/auth/register","/actuator/health","/api/public/wake").permitAll()
               .requestMatchers("/api/**").authenticated()
               .anyRequest().denyAll())
           .exceptionHandling(e->e.authenticationEntryPoint((req,res,ex)->res.sendError(HttpStatus.UNAUTHORIZED.value())))

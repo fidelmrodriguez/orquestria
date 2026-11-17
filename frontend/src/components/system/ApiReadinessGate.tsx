@@ -6,7 +6,26 @@ const POLL_INTERVAL_MS = 5000;
 const REQUEST_TIMEOUT_MS = 12000;
 
 type GateStatus = "checking" | "ready";
-type ReadinessPayload = { status?: string };
+type ReadinessPayload = { status?: string; wakeUrl?: string };
+const DIRECT_API_BASE = (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "https://orquestria-api.fidelmrodriguez.prod.page").trim().replace(/\/+$/, "");
+const WAKE_ATTEMPT_KEY = "orquestria-last-browser-wake";
+const WAKE_RETRY_AFTER_MS = 4 * 60 * 1000;
+const FALLBACK_WAKE_URL = "https://orquestria-api.fidelmrodriguez.prod.page/api/public/wake";
+
+/** O Blitz gratuito só desperta por visita de navegador, não por fetch de servidor. */
+function startBrowserWake(url: string | undefined) {
+  if (!url) return;
+  let target: URL;
+  try {
+    target = new URL(url);
+    if (target.protocol !== "https:" || target.pathname !== "/api/public/wake") return;
+  } catch { return; }
+  const previous = Number(window.sessionStorage.getItem(WAKE_ATTEMPT_KEY) || 0);
+  if (Date.now() - previous < WAKE_RETRY_AFTER_MS) return;
+  window.sessionStorage.setItem(WAKE_ATTEMPT_KEY, String(Date.now()));
+  // Navegação de página, não fetch/XHR: o Blitz pode tratar como visita real.
+  window.location.assign(target.href);
+}
 
 /**
  * Aguarda a API Java ficar pronta antes de montar login, cadastro, Kanban
@@ -46,24 +65,41 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
       timeoutTimer = setTimeout(() => requestController.abort(), REQUEST_TIMEOUT_MS);
 
       try {
-        const response = await fetch("/api/orquestria-readiness", {
-          method: "GET",
-          cache: "no-store",
-          headers: { Accept: "application/json" },
-          signal: requestController.signal
-        });
-        // Não confundir a página HTML de wake-up do Blitz com saúde UP.
-        const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-        if (response.ok && contentType.includes("json")) {
+        // Como no Monavero, aceitar a primeira resposta valida do proxy OU da API direta.
+        // O acesso direto so funciona quando o backend permite a origem no CORS.
+        const proxyCheck = async () => {
+          const response = await fetch("/api/orquestria-readiness", {
+            method: "GET", cache: "no-store", headers: { Accept: "application/json" },
+            signal: requestController.signal
+          });
+          const type = response.headers.get("content-type")?.toLowerCase() || "";
+          if (!type.includes("json")) throw new Error("Proxy retornou HTML");
           const payload = await response.json() as ReadinessPayload;
-          if (!disposed && payload?.status === "UP") {
-            confirmedReady = true;
-            console.info("[Orquestria][readiness] API Java disponível");
-            setStatus("ready");
-          }
+          if (response.ok && payload.status === "UP") return true;
+          throw new Error("Proxy: " + payload.status);
+        };
+        const directCheck = async () => {
+          const response = await fetch(`${DIRECT_API_BASE}/actuator/health`, {
+            method: "GET", cache: "no-store", credentials: "omit",
+            headers: { Accept: "application/json" }, signal: requestController.signal
+          });
+          const type = response.headers.get("content-type")?.toLowerCase() || "";
+          if (!response.ok || !type.includes("json")) throw new Error("API ainda nao pronta");
+          const payload = await response.json() as ReadinessPayload;
+          if (payload.status !== "UP") throw new Error("Spring ainda nao pronto");
+          return true;
+        };
+        await Promise.any([proxyCheck(), directCheck()]);
+        if (!disposed) {
+          confirmedReady = true;
+          window.sessionStorage.removeItem(WAKE_ATTEMPT_KEY);
+          console.info("[Orquestria][readiness] API Java disponivel");
+          setStatus("ready");
         }
       } catch {
-        // Falhas de rede e timeout são normais durante o despertar do Blitz.
+        // Ambas as verificacoes falharam: visitar Blitz pela navegacao do browser,
+        // pois fetch automatizado pode nao despertar apps no plano gratuito.
+        if (!disposed) startBrowserWake(`${DIRECT_API_BASE}/api/public/wake`);
       } finally {
         if (timeoutTimer) clearTimeout(timeoutTimer);
         timeoutTimer = null;
@@ -110,7 +146,10 @@ export default function ApiReadinessGate({ children }: { children: ReactNode }) 
           <strong>Tempo de inicialização:</strong> o primeiro acesso pode levar até cerca de 3 minutos quando o servidor está em repouso.
         </p>
         <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400 sm:mt-4">
-          A conexão é verificada automaticamente; você seguirá para a aplicação assim que estiver pronta.
+          Se o Blitz estiver dormindo, tentaremos abrir a API pelo navegador e voltar automaticamente.
+        </p>
+        <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+          Se não redirecionar, <a href={FALLBACK_WAKE_URL} className="font-semibold text-blue-700 underline dark:text-blue-300">clique aqui para acordar a API</a>.
         </p>
       </section>
     </main>
