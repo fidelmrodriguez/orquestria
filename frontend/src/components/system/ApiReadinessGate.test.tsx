@@ -23,7 +23,11 @@ describe("aviso de inicialização da API", () => {
       expect(panel).toHaveClass("dark:border-slate-700", "dark:bg-slate-900/95");
       expect(screen.getByRole("timer")).toHaveClass("dark:text-white");
       expect(screen.getByText(/o primeiro acesso pode levar até cerca de 3 minutos/i)).toHaveClass("dark:bg-slate-800", "dark:text-slate-200");
-      expect(screen.getByText(/a conexão é verificada automaticamente/i)).toHaveClass("dark:text-slate-400");
+      expect(screen.getByText(/se o blitz estiver dormindo, tentaremos abrir a api pelo navegador/i)).toHaveClass("dark:text-slate-400");
+      expect(screen.getByRole("link", { name: /clique aqui para acordar a api/i })).toHaveAttribute(
+        "href",
+        "https://orquestria-api.fidelmrodriguez.prod.page/api/public/wake"
+      );
     } finally {
       document.documentElement.classList.remove("dark");
     }
