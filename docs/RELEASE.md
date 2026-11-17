@@ -73,4 +73,4 @@ A tag não publica automaticamente Java no Blitz nem substitui a publicação do
 
 Manter o resultado da execução do CI, a referência do commit/tag e o estado dos deploys. Capturas de tela podem ser incluídas após revisão, utilizando uma conta com conteúdo de demonstração legível e sem dados pessoais.
 
-A conta guest é compartilhada. Projetos podem receber participantes com acesso explícito no papel membro-admin, mas não existe convite por e-mail com aceite, recuperação de senha, rate limiting distribuído ou disponibilidade contínua garantida no plano gratuito da API. Consulte [Segurança e operação](SEGURANCA_OPERACAO.md) e [Roadmap](ROADMAP.md).
+A conta guest é compartilhada. Projetos podem receber participantes com acesso explícito no papel membro-admin, mas não existe convite por e-mail com aceite, recuperação de senha, rate limiting distribuído ou disponibilidade contínua garantida no plano gratuito da API. Consulte [Segurança e operação](SEGURANCA_OPERACAO.md).

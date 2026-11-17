@@ -18,7 +18,6 @@ Esta documentação descreve a arquitetura, os contratos da API, a infraestrutur
 | [UX e acessibilidade](UX_ACESSIBILIDADE.md) | Interações por teclado, drawers, mobile e navegação responsiva |
 | [Publicação da versão 1.0.0](RELEASE.md) | Checklist de aceite, tag, publicação e recuperação |
 | [Histórico de versões](../CHANGELOG.md) | Mudanças relevantes do produto por versão |
-| [Roadmap](ROADMAP.md) | Melhorias planejadas e critérios de conclusão |
 
 ## Organização
 

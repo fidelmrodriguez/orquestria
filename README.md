@@ -118,7 +118,6 @@ O repositório possui testes automatizados do frontend e backend, testes de inte
 - [Exemplos da API](docs/API_EXEMPLOS.md)
 - [Publicação da versão 1.0.0](docs/RELEASE.md)
 - [Histórico de versões](CHANGELOG.md)
-- [Roadmap](docs/ROADMAP.md)
 
 ---
 

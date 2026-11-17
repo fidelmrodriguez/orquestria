@@ -93,4 +93,4 @@ As justificativas das escolhas de infraestrutura e modelo de acesso estão em [D
 
 ## Limites atuais
 
-A colaboração por projeto tem dois papéis (admin e membro-admin); ainda não há convite por e-mail, recuperação de senha, exclusão de conta por solicitação ou edição colaborativa em tempo real. O [roadmap](ROADMAP.md) registra possíveis evoluções.
+A colaboração por projeto tem dois papéis (admin e membro-admin); ainda não há convite por e-mail, recuperação de senha, exclusão de conta por solicitação ou edição colaborativa em tempo real.
