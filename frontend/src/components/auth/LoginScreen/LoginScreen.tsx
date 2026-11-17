@@ -224,7 +224,7 @@ export function LoginScreen() {
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            {[["Projetos", "Frentes organizadas por workspace"], ["Kanban", "Movimente tarefas entre etapas"], ["Contas", "Dados privados para quem se cadastrar"]].map(([itemTitle, description]) => (
+            {[["Projetos", "Frentes organizadas por workspace"], ["Kanban", "Movimente tarefas entre colunas"], ["Contas", "Dados privados para quem se cadastrar"]].map(([itemTitle, description]) => (
               <div key={itemTitle} className="rounded-3xl border border-white/70 bg-white/70 p-5 shadow-card dark:border-slate-700 dark:bg-slate-900">
                 <p className="text-sm font-semibold">{itemTitle}</p>
                 <p className="mt-2 text-sm leading-5 text-slate-500 dark:text-slate-400">{description}</p>

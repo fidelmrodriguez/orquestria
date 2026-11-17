@@ -39,7 +39,7 @@ Os dois workflows são independentes. Uma versão só deve ser considerada aprov
 - Faça logout com o tema escuro; confirme a tela de login com fundo escuro uniforme, textos legíveis e sem botão para alternar tema. Troque para claro no dashboard e repita.
 - Os testes `ThemeSync.test.tsx`, `BackToKanbanLink.test.tsx` e `LoginScreen.test.tsx` verificam a sincronização, o link e o contraste esperado.
 
-A etapa de frontend do CI também executa `node ../scripts/check-doc-links.mjs` para localizar links relativos quebrados nos arquivos Markdown do repositório. A verificação não depende de conexão com serviços externos e não valida links HTTP.
+O workflow de frontend do CI também executa `node ../scripts/check-doc-links.mjs` para localizar links relativos quebrados nos arquivos Markdown do repositório. A verificação não depende de conexão com serviços externos e não valida links HTTP.
 
 A validação funcional antes de marcar uma versão segue o [checklist de publicação](RELEASE.md). O sucesso do CI **não** confirma sozinho que o ambiente publicado e os fluxos de negócio foram testados.
 

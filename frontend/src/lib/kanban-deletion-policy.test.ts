@@ -3,7 +3,7 @@ import {
   requiresTypedConfirmation, taskCountInColumn
 } from "./kanban-deletion-policy";
 
-describe("Etapa 6: proteções de exclusão no Kanban", () => {
+describe("Proteções de exclusão no Kanban", () => {
   const tasks = [
     { id: "t1", columnId: "c1" },
     { id: "t2", columnId: "c1" },

@@ -1,6 +1,6 @@
 -- Cada usuário mantém uma lista particular de membros da sua equipe.
 -- IMPORTANTE: cadastrar um membro aqui NÃO concede acesso aos projetos;
--- compartilhamento/autorização exigem uma etapa explícita e separada.
+-- compartilhamento e autorização são tratados por estruturas próprias.
 CREATE TABLE IF NOT EXISTS team_members (
   owner_id UUID NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
   member_id UUID NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,

@@ -13,7 +13,7 @@ import {
 } from "@/lib/kanban-deletion-policy";
 
 const getApiBase = () => (process.env.NEXT_PUBLIC_ORQUESTRIA_API_URL || "").trim().replace(/\/+$/, "");
-const SUCCESS_NOTICE_KEY = "orquestria:etapa6:exclusao-confirmada";
+const SUCCESS_NOTICE_KEY = "orquestria:kanban:exclusao-confirmada";
 const ALL_WORKSPACES = "__all__";
 const NO_WORKSPACE = "__none__";
 
@@ -52,7 +52,7 @@ export default function BoardDeletionActions() {
     const currentToken = getAuthToken();
     if (!mounted.current) return;
     setToken(currentToken);
-    console.info("[Orquestria][etapa6] disponibilidade do painel", {
+    console.info("[Orquestria][gerenciamento] disponibilidade do painel", {
       tokenPresente: Boolean(currentToken), apiConfigurada: Boolean(API_BASE)
     });
     if (!currentToken) {
@@ -71,12 +71,12 @@ export default function BoardDeletionActions() {
         setOpen(false);
         setPending(null);
       }
-      console.info("[Orquestria][etapa6] validação inicial", { sucesso: Boolean(currentUser) });
+      console.info("[Orquestria][gerenciamento] validação inicial", { sucesso: Boolean(currentUser) });
     } catch {
       if (mounted.current && getAuthToken() === currentToken) {
         setUser(null);
         setToken(currentToken);
-        console.warn("[Orquestria][etapa6] validação inicial indisponível; nova tentativa ao abrir o painel");
+        console.warn("[Orquestria][gerenciamento] validação inicial indisponível; nova tentativa ao abrir o painel");
       }
     }
   }, [API_BASE]);
@@ -158,7 +158,7 @@ export default function BoardDeletionActions() {
       await refreshOverview(currentToken);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Falha ao validar a sessão ou carregar projetos.";
-      console.warn("[Orquestria][etapa6] falha ao abrir gerenciamento", {
+      console.warn("[Orquestria][gerenciamento] falha ao abrir gerenciamento", {
         tipo: cause instanceof Error ? cause.name : "erro_desconhecido"
       });
       setError(message);
